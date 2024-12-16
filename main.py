@@ -18,7 +18,7 @@ models = {}
 MODEL_DIR = "./models"
 os.makedirs(MODEL_DIR, exist_ok=True)
 
-def generate_model(model_name,temperature,max_tokens):
+def generate_model(prompt,model_name,temperature,max_tokens):
     if not model_name in models:
         model_path = os.path.join(MODEL_DIR, model_name)
         if not os.path.exists(model_path):
@@ -95,8 +95,8 @@ def generate_text():
         return jsonify({"error": "'model' and 'prompt' are required."}), 400
    
     try:
-        
-        output = generate_model(model_name,temperature=temperature,max_tokens=max_tokens)
+        output = generate_model(prompt=prompt,model_name=model_name,
+            temperature=temperature,max_tokens=max_tokens)
 
         # Split the output from the superprompt length
         assistant_response = output[len(prompt):].strip()
@@ -138,11 +138,12 @@ def generate_text_GPT():
     if not model_name or not prompt:
         return jsonify({"error": "'model' and 'prompt' are required."}), 400
 
-    output = generate_model(model_name,temperature=temperature,max_tokens=max_tokens)
+    output = generate_model(prompt=prompt,model_name=model_name,
+        temperature=temperature,max_tokens=max_tokens)
 
     # Split the output from the superprompt length
     assistant_response = output[len(prompt):].strip()
-
+    print(assistant_response)
     return jsonify({
         "model": model_name,
         "prompt": prompt,
