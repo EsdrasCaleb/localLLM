@@ -96,7 +96,7 @@ def generate_text():
    
     try:
         
-        output = generate_model(model_name,temperature=temperature,max_new_tokens=max_tokens)
+        output = generate_model(model_name,temperature=temperature,max_tokens=max_tokens)
 
         # Split the output from the superprompt length
         assistant_response = output[len(prompt):].strip()
@@ -138,7 +138,7 @@ def generate_text_GPT():
     if not model_name or not prompt:
         return jsonify({"error": "'model' and 'prompt' are required."}), 400
 
-    output = generate_model(model_name,temperature=temperature,max_new_tokens=max_tokens)
+    output = generate_model(model_name,temperature=temperature,max_tokens=max_tokens)
 
     # Split the output from the superprompt length
     assistant_response = output[len(prompt):].strip()
