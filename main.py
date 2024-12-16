@@ -1,4 +1,5 @@
 import os
+import torch
 import argparse
 from flask import Flask, jsonify, request
 from vllm import LLM
@@ -85,9 +86,9 @@ def generate_text():
             download_model(model_name)
         except ValueError as e:
             return jsonify({"error": str(e)}), 400
-
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     try:
-        llm = LLM(model=model_path)
+        llm = LLM(model=model_path, device="cpu")
         output = llm.generate(
             prompt=prompt,
             max_tokens=max_tokens,
@@ -112,13 +113,22 @@ def generate_text_GPT():
     data = request.get_json()
 
     # Extract parameters
-    model_name = "meta-llama/Llama-3.2-3B-Instruct"
+    model_name = "meta-llama/Llama-3.2-1B-Instruct"
     messages = data.get('messages')
     max_tokens = data.get('max_tokens', 512)
     temperature = data.get('temperature', 0.7)
-    prompt = ""
-    for message in messages:
-        
+    prompt = "<|begin_of_text|><|start_header_id|>system<|end_header_id|>"
+    sysmessage = ""
+    usermessage = ""
+    for messageOb in messages:
+        if(messageOb['role']=="system"):
+            sysmessage = messageOb['content']
+        elif(messageOb['role']=="user"):
+            usermessage = messageOb['content']
+        else:
+            print("error:")
+            print(messageOb)
+    prompt += f"{sysmessage}<|eot_id|><|eot_id|><|start_header_id|>user<|end_header_id|>{usermessage}" 
     if not model_name or not prompt:
         return jsonify({"error": "'model' and 'prompt' are required."}), 400
 
@@ -129,25 +139,24 @@ def generate_text_GPT():
         except ValueError as e:
             return jsonify({"error": str(e)}), 400
 
-    try:
-        llm = LLM(model=model_path)
-        output = llm.generate(
-            prompt=prompt,
-            max_tokens=max_tokens,
-            temperature=temperature
-        )
-        return jsonify({
-            "model": model_name,
-            "prompt": prompt,
-            "choices": [{"text": output}],
-            "usage": {
-                "prompt_tokens": len(prompt.split()),
-                "completion_tokens": len(output.split()),
-                "total_tokens": len(prompt.split()) + len(output.split())
-            }
-        })
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    device = "cuda" if torch.cuda.is_available() else "cpu"
+    llm = LLM(model=model_path,device=device)
+    output = llm.generate(
+        prompt=prompt,
+        max_tokens=max_tokens,
+        temperature=temperature
+    )
+    return jsonify({
+        "model": model_name,
+        "prompt": prompt,
+        "choices": [{"text": output}],
+        "usage": {
+            "prompt_tokens": len(prompt.split()),
+            "completion_tokens": len(output.split()),
+            "total_tokens": len(prompt.split()) + len(output.split())
+        }
+    })
+    
 
 
 
