@@ -8,7 +8,7 @@ source vllm_env/bin/activate
 pip install --upgrade pip
 
 # Install vllm
-pip3 install -r requirements.txt
+pip install -r requirements.txt
 
 # (Optional) Test installation
 #python -c "import vllm; print('vllm installed successfully')"
