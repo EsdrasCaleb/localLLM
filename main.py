@@ -88,11 +88,11 @@ def generate_text():
             return jsonify({"error": str(e)}), 400
     device = "cuda" if torch.cuda.is_available() else "cpu"
     try:
-        llm = LLM(model=model_path, device="cpu")
+        llm = LLM(model=model_path, device=device)
+        params = SamplingParams(temperature=temperature,max_tokens=max_tokens)
         output = llm.generate(
-            prompt=prompt,
-            max_tokens=max_tokens,
-            temperature=temperature
+            prompt,
+            params
         )
         return jsonify({
             "model": model_name,
@@ -141,10 +141,10 @@ def generate_text_GPT():
 
     device = "cuda" if torch.cuda.is_available() else "cpu"
     llm = LLM(model=model_path,device=device)
+    params = SamplingParams(temperature=temperature,max_tokens=max_tokens)
     output = llm.generate(
-        prompt=prompt,
-        max_tokens=max_tokens,
-        temperature=temperature
+        prompt,
+        params
     )
     return jsonify({
         "model": model_name,
