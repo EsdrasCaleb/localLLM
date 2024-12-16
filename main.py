@@ -5,6 +5,13 @@ from vllm import LLM
 from huggingface_hub import HfApi, snapshot_download
 from dotenv import load_dotenv
 
+
+
+@app.before_request
+def log_request_info():
+    print(f"Request received: {request.method} {request.url}")
+    if request.data:
+        print(f"Payload: {request.data.decode('utf-8')}")
 # Load environment variables
 load_dotenv()
 HF_TOKEN = os.getenv("HF_TOKEN")
