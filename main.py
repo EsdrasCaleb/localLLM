@@ -2,7 +2,7 @@ import os
 import torch
 import argparse
 from flask import Flask, jsonify, request
-from vllm import LLM
+from vllm import LLM,SamplingParams
 from huggingface_hub import HfApi, snapshot_download
 from dotenv import load_dotenv
 
@@ -13,11 +13,23 @@ if not HF_TOKEN:
     raise ValueError("Hugging Face token (HF_TOKEN) not found in .env file.")
 
 app = Flask(__name__)
-
+models = {}
 # Path where models are stored
 MODEL_DIR = "./models"
 os.makedirs(MODEL_DIR, exist_ok=True)
 
+def get_model(model_name):
+    if not model_name in models:
+        model_path = os.path.join(MODEL_DIR, model_name)
+        if not os.path.exists(model_path):
+            try:
+                download_model(model_name)
+            except ValueError as e:
+                return jsonify({"error": str(e)}), 400
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        models[model_name] = = LLM(model=model_path, device=device)
+        params = SamplingParams(temperature=temperature,max_tokens=max_tokens)
+    return models[model_name]
 
 # 1. List available text generation models from Hugging Face Hub
 def list_hf_models():
@@ -79,17 +91,9 @@ def generate_text():
 
     if not model_name or not prompt:
         return jsonify({"error": "'model' and 'prompt' are required."}), 400
-
-    model_path = os.path.join(MODEL_DIR, model_name)
-    if not os.path.exists(model_path):
-        try:
-            download_model(model_name)
-        except ValueError as e:
-            return jsonify({"error": str(e)}), 400
-    device = "cuda" if torch.cuda.is_available() else "cpu"
+    llm = get_model(model_name)
     try:
-        llm = LLM(model=model_path, device=device)
-        params = SamplingParams(temperature=temperature,max_tokens=max_tokens)
+        
         output = llm.generate(
             prompt,
             params
@@ -132,16 +136,7 @@ def generate_text_GPT():
     if not model_name or not prompt:
         return jsonify({"error": "'model' and 'prompt' are required."}), 400
 
-    model_path = os.path.join(MODEL_DIR, model_name)
-    if not os.path.exists(model_path):
-        try:
-            download_model(model_name)
-        except ValueError as e:
-            return jsonify({"error": str(e)}), 400
-
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    llm = LLM(model=model_path,device=device)
-    params = SamplingParams(temperature=temperature,max_tokens=max_tokens)
+    llm = get_model(model_name)
     output = llm.generate(
         prompt,
         params
