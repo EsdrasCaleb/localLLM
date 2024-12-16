@@ -11,5 +11,5 @@ pip install --upgrade pip
 pip install -r requirements.txt
 
 # (Optional) Test installation
-#python -c "import vllm; print('vllm installed successfully')"
+python -c "import vllm; print('vllm installed successfully')"
 

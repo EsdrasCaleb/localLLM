@@ -5,13 +5,6 @@ from vllm import LLM
 from huggingface_hub import HfApi, snapshot_download
 from dotenv import load_dotenv
 
-
-
-@app.before_request
-def log_request_info():
-    print(f"Request received: {request.method} {request.url}")
-    if request.data:
-        print(f"Payload: {request.data.decode('utf-8')}")
 # Load environment variables
 load_dotenv()
 HF_TOKEN = os.getenv("HF_TOKEN")
@@ -46,6 +39,14 @@ def download_model(model_name):
 
 
 # Flask API endpoints
+
+@app.before_request
+def log_request_info():
+    print(f"Request received: {request.method} {request.url}")
+    if request.data:
+        print(f"Payload: {request.data.decode('utf-8')}")
+
+
 @app.route('/list_models', methods=['GET'])
 def list_models_endpoint():
     return jsonify(list_hf_models())
@@ -104,6 +105,50 @@ def generate_text():
         })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+@app.route('/generateChatTester', methods=['POST','GET'])
+def generate_text_GPT():
+    data = request.get_json()
+
+    # Extract parameters
+    model_name = "meta-llama/Llama-3.2-3B-Instruct"
+    messages = data.get('messages')
+    max_tokens = data.get('max_tokens', 512)
+    temperature = data.get('temperature', 0.7)
+    prompt = ""
+    for message in messages:
+        
+    if not model_name or not prompt:
+        return jsonify({"error": "'model' and 'prompt' are required."}), 400
+
+    model_path = os.path.join(MODEL_DIR, model_name)
+    if not os.path.exists(model_path):
+        try:
+            download_model(model_name)
+        except ValueError as e:
+            return jsonify({"error": str(e)}), 400
+
+    try:
+        llm = LLM(model=model_path)
+        output = llm.generate(
+            prompt=prompt,
+            max_tokens=max_tokens,
+            temperature=temperature
+        )
+        return jsonify({
+            "model": model_name,
+            "prompt": prompt,
+            "choices": [{"text": output}],
+            "usage": {
+                "prompt_tokens": len(prompt.split()),
+                "completion_tokens": len(output.split()),
+                "total_tokens": len(prompt.split()) + len(output.split())
+            }
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 
 if __name__ == '__main__':
