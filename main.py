@@ -27,7 +27,7 @@ def get_model(model_name):
             except ValueError as e:
                 return jsonify({"error": str(e)}), 400
         device = "cuda" if torch.cuda.is_available() else "cpu"
-        models[model_name] = = LLM(model=model_path, device=device)
+        models[model_name] = LLM(model=model_path, device=device)
         params = SamplingParams(temperature=temperature,max_tokens=max_tokens)
     return models[model_name]
 
