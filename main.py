@@ -28,7 +28,6 @@ def get_model(model_name):
                 return jsonify({"error": str(e)}), 400
         device = "cuda" if torch.cuda.is_available() else "cpu"
         models[model_name] = LLM(model=model_path, device=device)
-        params = SamplingParams(temperature=temperature,max_tokens=max_tokens)
     return models[model_name]
 
 # 1. List available text generation models from Hugging Face Hub
@@ -91,6 +90,7 @@ def generate_text():
 
     if not model_name or not prompt:
         return jsonify({"error": "'model' and 'prompt' are required."}), 400
+    params = SamplingParams(temperature=temperature,max_tokens=max_tokens)
     llm = get_model(model_name)
     try:
         
@@ -135,7 +135,8 @@ def generate_text_GPT():
     prompt += f"{sysmessage}<|eot_id|><|eot_id|><|start_header_id|>user<|end_header_id|>{usermessage}" 
     if not model_name or not prompt:
         return jsonify({"error": "'model' and 'prompt' are required."}), 400
-
+        
+    params = SamplingParams(temperature=temperature,max_tokens=max_tokens)
     llm = get_model(model_name)
     output = llm.generate(
         prompt,
