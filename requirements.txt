@@ -1,6 +1,9 @@
 torch
 torchvision
 torchaudio
-vllm
+transformers
 numpy
 flask
+onnxruntime 
+xformers
+accelerate

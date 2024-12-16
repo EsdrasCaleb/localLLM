@@ -1,8 +1,8 @@
 import os
 import torch
 import argparse
+from transformers import pipeline
 from flask import Flask, jsonify, request
-from vllm import LLM,SamplingParams
 from huggingface_hub import HfApi, snapshot_download
 from dotenv import load_dotenv
 
@@ -18,7 +18,7 @@ models = {}
 MODEL_DIR = "./models"
 os.makedirs(MODEL_DIR, exist_ok=True)
 
-def get_model(model_name):
+def generate_model(model_name,temperature,max_tokens):
     if not model_name in models:
         model_path = os.path.join(MODEL_DIR, model_name)
         if not os.path.exists(model_path):
@@ -27,8 +27,11 @@ def get_model(model_name):
             except ValueError as e:
                 return jsonify({"error": str(e)}), 400
         device = "cuda" if torch.cuda.is_available() else "cpu"
-        models[model_name] = LLM(model=model_path, device=device)
-    return models[model_name]
+        models[model_name] = pipeline("text-generation",model=model_path, device_map=device)
+    return models[model_name](
+        prompt,
+        temperature=temperature,max_new_tokens=max_tokens
+    )[0]['generated_text']
 
 # 1. List available text generation models from Hugging Face Hub
 def list_hf_models():
@@ -90,18 +93,17 @@ def generate_text():
 
     if not model_name or not prompt:
         return jsonify({"error": "'model' and 'prompt' are required."}), 400
-    params = SamplingParams(temperature=temperature,max_tokens=max_tokens)
-    llm = get_model(model_name)
+   
     try:
         
-        output = llm.generate(
-            prompt,
-            params
-        )
+        output = generate_model(model_name,temperature=temperature,max_new_tokens=max_tokens)
+
+        # Split the output from the superprompt length
+        assistant_response = output[len(prompt):].strip()
         return jsonify({
             "model": model_name,
             "prompt": prompt,
-            "choices": [{"text": output}],
+            "choices": [{"text": assistant_response}],
             "usage": {
                 "prompt_tokens": len(prompt.split()),
                 "completion_tokens": len(output.split()),
@@ -135,17 +137,16 @@ def generate_text_GPT():
     prompt += f"{sysmessage}<|eot_id|><|eot_id|><|start_header_id|>user<|end_header_id|>{usermessage}" 
     if not model_name or not prompt:
         return jsonify({"error": "'model' and 'prompt' are required."}), 400
-        
-    params = SamplingParams(temperature=temperature,max_tokens=max_tokens)
-    llm = get_model(model_name)
-    output = llm.generate(
-        prompt,
-        params
-    )
+
+    output = generate_model(model_name,temperature=temperature,max_new_tokens=max_tokens)
+
+    # Split the output from the superprompt length
+    assistant_response = output[len(prompt):].strip()
+
     return jsonify({
         "model": model_name,
         "prompt": prompt,
-        "choices": [{"text": output}],
+        "choices": [{"text": assistant_response}],
         "usage": {
             "prompt_tokens": len(prompt.split()),
             "completion_tokens": len(output.split()),
