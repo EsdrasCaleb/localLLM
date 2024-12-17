@@ -1,5 +1,6 @@
 import os
 
+from loadenv import load_env_file
 import requests
 import torch
 import argparse
@@ -9,10 +10,12 @@ from huggingface_hub import HfApi, snapshot_download
 from intel_extension_for_transformers.transformers import AutoModelForCausalLM
 from transformers import AutoTokenizer
 #from dotenv import load_dotenv
-
+# Example usage
+file_path = '.env'
+env_data = load_env_file(file_path)
 # Load environment variables
 #load_dotenv()
-HF_TOKEN = "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"
+HF_TOKEN = env_data['HF_TOKEN']
 if not HF_TOKEN:
     raise ValueError("Hugging Face token (HF_TOKEN) not found in .env file.")
 
