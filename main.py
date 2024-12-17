@@ -9,6 +9,7 @@ from flask import Flask, jsonify, request
 from huggingface_hub import HfApi, snapshot_download
 from intel_extension_for_transformers.transformers import AutoModelForCausalLM
 from transformers import AutoTokenizer
+import openvino_genai
 #from dotenv import load_dotenv
 # Example usage
 file_path = '.env'
@@ -35,7 +36,29 @@ def generate_model(prompt,model_name,temperature,max_tokens):
                 download_model(model_name)
             except ValueError as e:
                 return jsonify({"error": str(e)}), 400
-        if model_name == "Intel/Mistral-7B-v0.1-int4-inc":
+        if model_name == "OpenVINO/Llama-3.1-8B-Instruct-FastDraft-150M-int8-ov":
+            # Set up the main and draft models
+            main_device = "CPU"
+            draft_device = "CPU"
+            draft_model_path = os.path.join(MODEL_DIR, "meta-llama/Llama-3.2-8B-Instruct")
+            draft_model = openvino_genai.draft_model(draft_model_path, draft_device)
+
+            scheduler_config = openvino_genai.SchedulerConfig()
+            scheduler_config.cache_size = 4
+
+            # Initialize the LLM pipeline with the models and configuration
+            models[model_name] = openvino_genai.LLMPipeline(
+                model_path,
+                main_device,
+                scheduler_config=scheduler_config,
+                draft_model=draft_model
+            )
+        elif model_name == "google/recurrentgemma-2b-it":
+            models[model_name] = AutoModelForCausalLM.from_pretrained(model_path,
+                                                                      device_map=device
+                                                                      )
+            tokenizers[model_name] = AutoTokenizer.from_pretrained(model_path)
+        elif model_name == "Intel/Mistral-7B-v0.1-int4-inc":
             models[model_name] = AutoModelForCausalLM.from_pretrained(model_path,
                                                          device_map=device,
                                                          trust_remote_code=True,
@@ -44,14 +67,22 @@ def generate_model(prompt,model_name,temperature,max_tokens):
             tokenizers[model_name] = AutoTokenizer.from_pretrained(model_path, use_fast=True)
         else:
             models[model_name] = pipeline("text-generation",model=model_path, device_map=device)
-    if model_name == "Intel/Mistral-7B-v0.1-int4-inc":
+    if model_name == "OpenVINO/Llama-3.1-8B-Instruct-FastDraft-150M-int8-ov":
+        # Create a GenerationConfig object and set the parameters
+        config = openvino_genai.GenerationConfig()
+        config.num_assistant_tokens = 3
+        config.max_new_tokens = max_tokens
+        config.temperature = temperature  # Adding temperature control
+        return models[model_name].generate(prompt,config)
+    if model_name == "google/recurrentgemma-2b-it":
         return tokenizers[model_name].decode(models[model_name].generate(
             **tokenizers[model_name](prompt, return_tensors="pt").to(device),
             max_new_tokens=max_tokens, temperature=temperature)[0])
-    return models[model_name](
-        prompt,
-        temperature=temperature,max_new_tokens=max_tokens
-    )[0]['generated_text']
+    if model_name == "Intel/Mistral-7B-v0.1-int4-inc":
+        return tokenizers[model_name].decode(models[model_name].generate(
+            **tokenizers[model_name](prompt, return_tensors="pt").to(device),
+            max_new_tokens=max_tokens+len(prompt), temperature=temperature)[0])
+    return models[model_name](prompt,temperature=temperature,max_new_tokens=max_tokens+len(prompt))[0]['generated_text']
 
 # 1. List available text generation models from Hugging Face Hub
 def list_hf_models():
@@ -87,7 +118,7 @@ def list_models_endpoint():
     return jsonify(list_hf_models())
 
 
-@app.route('/download_model', methods=['POST'])
+@app.route('/download_model', methods=['POST','GET'])
 def download_model_endpoint():
     data = request.get_json()
     model_name = data.get('model_name')
@@ -139,7 +170,8 @@ def generate_text_GPT():
     data = request.get_json()
 
     # Extract parameters
-    model_name = "meta-llama/Llama-3.2-1B-Instruct"
+    model_name = "Intel/Mistral-7B-v0.1-int4-inc"
+    #google/recurrentgemma-2b-it
     #OpenVINO/starcoder2-7b-int4-ov
     #OpenVINO/codegen25-7b-multi-int4-ov
     #nvidia/Hymba-1.5B-Instruct
@@ -147,6 +179,7 @@ def generate_text_GPT():
     #meta-llama/Llama-3.2-1B-Instruct
     #DistilLLaMA-1.3B
     #Intel/Mistral-7B-v0.1-int4-inc
+    #OpenVINO/Llama-3.1-8B-Instruct-FastDraft-150M-int8-ov
     messages = data.get('messages')
     max_tokens = data.get('max_tokens', 512)
     print("maxtokens:"+str(max_tokens))
@@ -162,10 +195,10 @@ def generate_text_GPT():
         else:
             print("error:")
             print(messageOb)
-    if(model_name == "meta-llama/Llama-3.2-1B-Instruct"):
-        prompt += f"{sysmessage}<|eot_id|><|eot_id|><|start_header_id|>user<|end_header_id|>{usermessage}"
+    if(model_name == "meta-llama/Llama-3.2-1B-Instruct" or model_name=="OpenVINO/Llama-3.1-8B-Instruct-FastDraft-150M-int8-ov"):
+        prompt += f"{sysmessage}<|eot_id|><|eot_id|><|start_header_id|>user<|end_header_id|>{usermessage}<|eot_id|>"
     else:
-        prompt += f"Context:{sysmessage}\nUser:{usermessage}"
+        prompt = f"Context:{sysmessage}\nUser:{usermessage}"
     if not model_name or not prompt:
         return jsonify({"error": "'model' and 'prompt' are required."}), 400
 
@@ -173,8 +206,11 @@ def generate_text_GPT():
         temperature=temperature,max_tokens=max_tokens)
 
     # Split the output from the superprompt length
-    assistant_response = output[len(prompt):].strip()
-    print("response:"+assistant_response)
+    if(model_name != "OpenVINO/Llama-3.1-8B-Instruct-FastDraft-150M-int8-ov" and model_name!="Intel/Mistral-7B-v0.1-int4-inc"):
+        assistant_response = output[len(prompt):].strip()
+    else:
+        assistant_response = output
+    print("response:" + assistant_response)
     return jsonify({
         "choices": [
             {
@@ -195,7 +231,7 @@ def generate_text_GPT():
     
 # Replace with Gemini's API URL and API key
 GEMINI_API_URL = "https://api.gemini.example/v1/query"
-GEMINI_API_KEY = os.getenv("GEMINI_TOKEN")
+GEMINI_API_KEY = env_data["GEMINI_TOKEN"]
 
 @app.route("/openai", methods=["POST"])
 def openai_to_gemini():
