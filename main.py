@@ -1,24 +1,30 @@
 import os
+
+import requests
 import torch
 import argparse
 from transformers import pipeline
 from flask import Flask, jsonify, request
 from huggingface_hub import HfApi, snapshot_download
-from dotenv import load_dotenv
+from intel_extension_for_transformers.transformers import AutoModelForCausalLM
+from transformers import AutoTokenizer
+#from dotenv import load_dotenv
 
 # Load environment variables
-load_dotenv()
-HF_TOKEN = os.getenv("HF_TOKEN")
+#load_dotenv()
+HF_TOKEN = "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"
 if not HF_TOKEN:
     raise ValueError("Hugging Face token (HF_TOKEN) not found in .env file.")
 
 app = Flask(__name__)
 models = {}
+tokenizers = {}
 # Path where models are stored
 MODEL_DIR = "./models"
 os.makedirs(MODEL_DIR, exist_ok=True)
 
 def generate_model(prompt,model_name,temperature,max_tokens):
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     if not model_name in models:
         model_path = os.path.join(MODEL_DIR, model_name)
         if not os.path.exists(model_path):
@@ -26,8 +32,19 @@ def generate_model(prompt,model_name,temperature,max_tokens):
                 download_model(model_name)
             except ValueError as e:
                 return jsonify({"error": str(e)}), 400
-        device = "cuda" if torch.cuda.is_available() else "cpu"
-        models[model_name] = pipeline("text-generation",model=model_path, device_map=device)
+        if model_name == "Intel/Mistral-7B-v0.1-int4-inc":
+            models[model_name] = AutoModelForCausalLM.from_pretrained(model_path,
+                                                         device_map=device,
+                                                         trust_remote_code=True,
+                                                         use_neural_speed=False,
+                                                         )
+            tokenizers[model_name] = AutoTokenizer.from_pretrained(model_path, use_fast=True)
+        else:
+            models[model_name] = pipeline("text-generation",model=model_path, device_map=device)
+    if model_name == "Intel/Mistral-7B-v0.1-int4-inc":
+        return tokenizers[model_name].decode(models[model_name].generate(
+            **tokenizers[model_name](prompt, return_tensors="pt").to(device),
+            max_new_tokens=max_tokens, temperature=temperature)[0])
     return models[model_name](
         prompt,
         temperature=temperature,max_new_tokens=max_tokens
@@ -120,8 +137,16 @@ def generate_text_GPT():
 
     # Extract parameters
     model_name = "meta-llama/Llama-3.2-1B-Instruct"
+    #OpenVINO/starcoder2-7b-int4-ov
+    #OpenVINO/codegen25-7b-multi-int4-ov
+    #nvidia/Hymba-1.5B-Instruct
+    #HuggingFaceTB/SmolLM2-1.7B-Instruct
+    #meta-llama/Llama-3.2-1B-Instruct
+    #DistilLLaMA-1.3B
+    #Intel/Mistral-7B-v0.1-int4-inc
     messages = data.get('messages')
     max_tokens = data.get('max_tokens', 512)
+    print("maxtokens:"+str(max_tokens))
     temperature = data.get('temperature', 0.7)
     prompt = "<|begin_of_text|><|start_header_id|>system<|end_header_id|>"
     sysmessage = ""
@@ -134,7 +159,10 @@ def generate_text_GPT():
         else:
             print("error:")
             print(messageOb)
-    prompt += f"{sysmessage}<|eot_id|><|eot_id|><|start_header_id|>user<|end_header_id|>{usermessage}" 
+    if(model_name == "meta-llama/Llama-3.2-1B-Instruct"):
+        prompt += f"{sysmessage}<|eot_id|><|eot_id|><|start_header_id|>user<|end_header_id|>{usermessage}"
+    else:
+        prompt += f"Context:{sysmessage}\nUser:{usermessage}"
     if not model_name or not prompt:
         return jsonify({"error": "'model' and 'prompt' are required."}), 400
 
@@ -143,11 +171,18 @@ def generate_text_GPT():
 
     # Split the output from the superprompt length
     assistant_response = output[len(prompt):].strip()
-    print(assistant_response)
+    print("response:"+assistant_response)
     return jsonify({
-        "model": model_name,
-        "prompt": prompt,
-        "choices": [{"text": assistant_response}],
+        "choices": [
+            {
+                "message": {
+                    "role": "assistant",
+                    "content": assistant_response
+                },
+                "finish_reason": "stop",
+                "index": 0
+            }
+        ],
         "usage": {
             "prompt_tokens": len(prompt.split()),
             "completion_tokens": len(output.split()),
@@ -155,7 +190,59 @@ def generate_text_GPT():
         }
     })
     
+# Replace with Gemini's API URL and API key
+GEMINI_API_URL = "https://api.gemini.example/v1/query"
+GEMINI_API_KEY = os.getenv("GEMINI_TOKEN")
 
+@app.route("/openai", methods=["POST"])
+def openai_to_gemini():
+    try:
+        # Get the OpenAI-style input
+        openai_request = request.json
+        if not openai_request:
+            return jsonify({"error": "Invalid input"}), 400
+
+        # Transform the OpenAI request to Gemini request
+        gemini_payload = {
+            "query": openai_request.get("messages", [])[-1]["content"],  # Assuming the last message contains the user query
+            "temperature": openai_request.get("temperature", 1.0),
+            "max_tokens": openai_request.get("max_tokens", 150)
+        }
+
+        # Send the request to Gemini API
+        gemini_response = requests.post(
+            GEMINI_API_URL,
+            headers={"Authorization": f"Bearer {GEMINI_API_KEY}"},
+            json=gemini_payload
+        )
+
+        if gemini_response.status_code != 200:
+            return jsonify({"error": "Failed to query Gemini", "details": gemini_response.text}), 500
+
+        # Transform Gemini response back to OpenAI format
+        gemini_data = gemini_response.json()
+        openai_response = {
+            "choices": [
+                {
+                    "message": {
+                        "role": "assistant",
+                        "content": gemini_data.get("response", "")
+                    },
+                    "finish_reason": "stop",
+                    "index": 0
+                }
+            ],
+            "usage": {
+                "prompt_tokens": gemini_data.get("prompt_tokens", 0),
+                "completion_tokens": gemini_data.get("completion_tokens", 0),
+                "total_tokens": gemini_data.get("total_tokens", 0)
+            }
+        }
+
+        return jsonify(openai_response)
+
+    except Exception as e:
+        return jsonify({"error": "An unexpected error occurred", "details": str(e)}), 500
 
 
 if __name__ == '__main__':

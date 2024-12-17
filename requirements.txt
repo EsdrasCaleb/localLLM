@@ -1,9 +1,4 @@
 torch
-torchvision
-torchaudio
-transformers
-numpy
-flask
-onnxruntime 
-xformers
+dotenv
+huggingface_hub
 accelerate
