@@ -34,12 +34,18 @@ def generate_model(prompt,model_name,temperature,max_tokens):
         model_path = os.path.join(MODEL_DIR, model_name)
         if not os.path.exists(model_path):
             try:
+                print("Downloading pretrained model..."+model_name)
                 download_model(model_name)
             except ValueError as e:
                 return jsonify({"error": str(e)}), 400
-        if model_name in ["OpenVINO/starcoder2-15b-int4-ov","OpenVINO/starcoder2-3b-int4-ov","OpenVINO/starcoder2-3b-fp16-ov","OpenVINO/starcoder2-7b-int4-ov"]:
+        if model_name in ["OpenVINO/starcoder2-15b-int4-ov","OpenVINO/starcoder2-3b-int4-ov",
+                          "OpenVINO/starcoder2-3b-fp16-ov","OpenVINO/starcoder2-7b-fp16-ov",
+                          "OpenVINO/starcoder2-7b-int8-ov","OpenVINO/starcoder2-7b-int4-ov"]:
             tokenizers[model_name] = AutoTokenizer.from_pretrained(model_name)
+            num_new_tokens = tokenizers[model_name].add_special_tokens(dict(pad_token="[PAD]"))
             models[model_name] = OVModelForCausalLM.from_pretrained(model_name)
+
+
         elif model_name in ["OpenVINO/codegen25-7b-multi-int4-ov","OpenVINO/codegen25-7b-multi-fp16-ov"]:
             tokenizers[model_name] = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
             tokenizers[model_name].pad_token = tokenizers[model_name].eos_token
@@ -74,7 +80,13 @@ def generate_model(prompt,model_name,temperature,max_tokens):
                                                          )
             tokenizers[model_name] = AutoTokenizer.from_pretrained(model_path, use_fast=True)
         else:
-            models[model_name] = pipeline("text-generation",model=model_path, device_map=device)
+            # Load model and tokenizer
+            tokenizers[model_name] = AutoTokenizer.from_pretrained(model_path)
+            tokenizers[model_name].add_special_tokens({"pad_token": "<|reserved_special_token_0|>"})
+            tokenizers[model_name].padding_side = 'right'
+            models[model_name] = pipeline("text-generation",pad_token_id=tokenizers[model_name].pad_token_id
+                                          ,tokenizer=tokenizers[model_name],
+                                          model=model_path, device_map=device)
     if model_name == "OpenVINO/Llama-3.1-8B-Instruct-FastDraft-150M-int8-ov":
         # Create a GenerationConfig object and set the parameters
         config = openvino_genai.GenerationConfig()
@@ -85,11 +97,18 @@ def generate_model(prompt,model_name,temperature,max_tokens):
     if model_name == "google/recurrentgemma-2b-it":
         return tokenizers[model_name].decode(models[model_name].generate(
             **tokenizers[model_name](prompt, return_tensors="pt").to(device),
-            max_new_tokens=max_tokens+len(prompt),eos_token_id=tokenizers[model_name].eos_token_id, temperature=temperature, do_sample=True, use_cache=False)[0])
-    if model_name in ["Intel/Mistral-7B-v0.1-int4-inc","OpenVINO/codegen25-7b-multi-fp16-ov","OpenVINO/starcoder2-15b-int4-ov","OpenVINO/codegen25-7b-multi-int4-ov","OpenVINO/starcoder2-3b-fp16-ov","OpenVINO/starcoder2-7b-int4-ov","OpenVINO/starcoder2-3b-int4-ov"]:
+            max_new_tokens=max_tokens+len(prompt),eos_token_id=tokenizers[model_name].eos_token_id,
+            temperature=temperature, do_sample=False,pad_token_id=tokenizers[model_name].pad_token_id,
+            use_cache=False)[0])
+    if model_name in ["Intel/Mistral-7B-v0.1-int4-inc","OpenVINO/codegen25-7b-multi-fp16-ov",
+                      "OpenVINO/starcoder2-15b-int4-ov","OpenVINO/starcoder2-7b-fp16-ov",
+                      "OpenVINO/starcoder2-7b-int8-ov","OpenVINO/codegen25-7b-multi-int4-ov",
+                      "OpenVINO/starcoder2-3b-fp16-ov",
+                      "OpenVINO/starcoder2-7b-int4-ov","OpenVINO/starcoder2-3b-int4-ov"]:
         return tokenizers[model_name].decode(models[model_name].generate(
-            **tokenizers[model_name](prompt, return_tensors="pt").to(device),
-            max_new_tokens=max_tokens,eos_token_id=tokenizers[model_name].eos_token_id, temperature=temperature)[0])
+            **tokenizers[model_name](prompt, return_tensors="pt").to(device),do_sample=False,
+            pad_token_id=tokenizers[model_name].pad_token_id,max_new_tokens=max_tokens,
+            eos_token_id=tokenizers[model_name].eos_token_id, temperature=temperature)[0])
     return models[model_name](prompt,temperature=temperature,max_new_tokens=max_tokens,return_full_text=False)[0]['generated_text']
 
 # 1. List available text generation models from Hugging Face Hub
@@ -178,9 +197,8 @@ def generate_text_GPT():
     data = request.get_json()
 
     # Extract parameters
-    model_name = "OpenVINO/starcoder2-15b-int4-ov"
+    model_name = "meta-llama/Llama-3.2-3B-Instruct"
     #OpenVINO/starcoder2-7b-int4-ov
-    #OpenVINO/starcoder2-3b-fp16-ov
     #nvidia/Hymba-1.5B-Instruct
     #meta-llama/Llama-3.2-1B-Instruct
     messages = data.get('messages')
@@ -198,18 +216,21 @@ def generate_text_GPT():
         else:
             print("error:")
             print(messageOb)
-    if(model_name in ["meta-llama/Llama-3.2-1B-Instruct","meta-llama/Llama-3.2-3B-Instruct" ,"OpenVINO/Llama-3.1-8B-Instruct-FastDraft-150M-int8-ov"]):
-        prompt += f"{sysmessage}<|eot_id|><|eot_id|><|start_header_id|>user<|end_header_id|>{usermessage}<|eot_id|>"
+    if(model_name in ["meta-llama/Llama-3.2-1B-Instruct","meta-llama/Llama-3.2-3B-Instruct" ,
+                      "OpenVINO/Llama-3.1-8B-Instruct-FastDraft-150M-int8-ov"]):
+        prompt += f"{sysmessage}<|eot_id|><|eot_id|><|start_header_id|>user<|end_header_id|>{usermessage}<|eot_id|><|start_header_id|>assistant<|end_header_id|>"
     else:
         prompt = f"{sysmessage}\n{usermessage}"
     if not model_name or not prompt:
         return jsonify({"error": "'model' and 'prompt' are required."}), 400
-    print("prompt:"+prompt)
+    #print("prompt:"+prompt)
     output = generate_model(prompt=prompt,model_name=model_name,
         temperature=temperature,max_tokens=max_tokens)
-    print("rawresponse:" + output)
+    #print("rawresponse:" + output)
     # Split the output from the superprompt length
-    if(not model_name in ["OpenVINO/Llama-3.1-8B-Instruct-FastDraft-150M-int8-ov","Intel/Mistral-7B-v0.1-int4-inc","google/recurrentgemma-2b-it"]):
+    if(not model_name in ["OpenVINO/Llama-3.1-8B-Instruct-FastDraft-150M-int8-ov",
+                          "meta-llama/Llama-3.2-1B-Instruct","meta-llama/Llama-3.2-3B-Instruct"
+                          "Intel/Mistral-7B-v0.1-int4-inc","google/recurrentgemma-2b-it"]):
         assistant_response = output[len(prompt):].strip()
     else:
         assistant_response = output
