@@ -7,10 +7,7 @@ import argparse
 from transformers import pipeline
 from flask import Flask, jsonify, request
 from huggingface_hub import HfApi, snapshot_download
-from intel_extension_for_transformers.transformers import AutoModelForCausalLM
-from transformers import AutoTokenizer
-from optimum.intel.openvino import OVModelForCausalLM
-import openvino_genai
+from transformers import AutoTokenizer,AutoModelForCausalLM
 #from dotenv import load_dotenv
 # Example usage
 file_path = '.env'
@@ -28,6 +25,8 @@ tokenizers = {}
 MODEL_DIR = "./models"
 os.makedirs(MODEL_DIR, exist_ok=True)
 
+    
+
 def generate_model(prompt,model_name,temperature,max_tokens):
     device = "cuda" if torch.cuda.is_available() else "cpu"
     if not model_name in models:
@@ -38,47 +37,21 @@ def generate_model(prompt,model_name,temperature,max_tokens):
                 download_model(model_name)
             except ValueError as e:
                 return jsonify({"error": str(e)}), 400
-        if model_name in ["OpenVINO/starcoder2-15b-int4-ov","OpenVINO/starcoder2-3b-int4-ov",
-                          "OpenVINO/starcoder2-3b-fp16-ov","OpenVINO/starcoder2-7b-fp16-ov",
-                          "OpenVINO/starcoder2-7b-int8-ov","OpenVINO/starcoder2-7b-int4-ov"]:
-            tokenizers[model_name] = AutoTokenizer.from_pretrained(model_name)
-            num_new_tokens = tokenizers[model_name].add_special_tokens(dict(pad_token="[PAD]"))
-            models[model_name] = OVModelForCausalLM.from_pretrained(model_name)
-
-
-        elif model_name in ["OpenVINO/codegen25-7b-multi-int4-ov","OpenVINO/codegen25-7b-multi-fp16-ov"]:
-            tokenizers[model_name] = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
-            tokenizers[model_name].pad_token = tokenizers[model_name].eos_token
-            models[model_name] = OVModelForCausalLM.from_pretrained(model_name, trust_remote_code=True)
-        elif model_name == "OpenVINO/Llama-3.1-8B-Instruct-FastDraft-150M-int8-ov":
-            # Set up the main and draft models
-            main_device = "CPU"
-            draft_device = "CPU"
-            draft_model_path = os.path.join(MODEL_DIR, "meta-llama/Llama-3.2-8B-Instruct")
-            draft_model = openvino_genai.draft_model(draft_model_path, draft_device)
-
-            scheduler_config = openvino_genai.SchedulerConfig()
-            scheduler_config.cache_size = 4
-
-            # Initialize the LLM pipeline with the models and configuration
-            models[model_name] = openvino_genai.LLMPipeline(
-                model_path,
-                main_device,
-                scheduler_config=scheduler_config,
-                draft_model=draft_model
-            )
-        elif model_name in ["google/recurrentgemma-2b-it"]:
+        if model_name in ["google/recurrentgemma-2b-it","google/codegemma-2b"]:
             models[model_name] = AutoModelForCausalLM.from_pretrained(model_path,
                                                                       device_map=device
                                                                       )
             tokenizers[model_name] = AutoTokenizer.from_pretrained(model_path)
-        elif model_name in ["Intel/Mistral-7B-v0.1-int4-inc"]:
-            models[model_name] = AutoModelForCausalLM.from_pretrained(model_path,
-                                                         device_map=device,
-                                                         trust_remote_code=True,
-                                                         use_neural_speed=False,
-                                                         )
-            tokenizers[model_name] = AutoTokenizer.from_pretrained(model_path, use_fast=True)
+        elif model_name in ["Qwen/Qwen2.5-Coder-0.5B-Instruct","Qwen/Qwen2.5-Coder-1.5B-Instruct",
+        "HuggingFaceTB/SmolLM2-1.7B-Instruct","Salesforce/xLAM-1b-fc-r",
+        "deepseek-ai/deepseek-coder-1.3b-instruct"]:
+            models[model_name] = AutoModelForCausalLM.from_pretrained(
+                model_name,
+                torch_dtype="auto",
+                device_map=device,
+                trust_remote_code=True
+            )
+            tokenizers[model_name] = AutoTokenizer.from_pretrained(model_name)
         else:
             # Load model and tokenizer
             tokenizers[model_name] = AutoTokenizer.from_pretrained(model_path)
@@ -87,14 +60,35 @@ def generate_model(prompt,model_name,temperature,max_tokens):
             models[model_name] = pipeline("text-generation",pad_token_id=tokenizers[model_name].pad_token_id
                                           ,tokenizer=tokenizers[model_name],
                                           model=model_path, device_map=device)
-    if model_name == "OpenVINO/Llama-3.1-8B-Instruct-FastDraft-150M-int8-ov":
-        # Create a GenerationConfig object and set the parameters
-        config = openvino_genai.GenerationConfig()
-        config.num_assistant_tokens = 3
-        config.max_new_tokens = max_tokens
-        config.temperature = temperature  # Adding temperature control
-        return models[model_name].generate(prompt,config)
-    if model_name == "google/recurrentgemma-2b-it":
+    if model_name in ["HuggingFaceTB/SmolLM2-1.7B-Instruct","Salesforce/xLAM-1b-fc-r",
+            "deepseek-ai/deepseek-coder-1.3b-instruct"]:
+        input_text=tokenizers[model_name].apply_chat_template(prompt, tokenize=False)
+        inputs = tokenizers[model_name](input_text, return_tensors="pt", padding=True, truncation=True).to(device)
+         
+        outputs = models[model_name].generate(inputs["input_ids"], max_new_tokens=max_tokens, 
+            temperature=temperature, pad_token_id=tokenizers[model_name].pad_token_id, 
+                attention_mask=inputs["attention_mask"],eos_token_id=tokenizers[model_name].eos_token_id,
+                top_p=0.9, do_sample=True)
+        return tokenizers[model_name].decode(outputs[0][len(inputs[0]):], skip_special_tokens=True)
+    if model_name in ["Qwen/Qwen2.5-Coder-0.5B-Instruct","Qwen/Qwen2.5-Coder-1.5B-Instruct"]:
+        text = tokenizers[model_name].apply_chat_template(
+            prompt,
+            tokenize=False,
+            add_generation_prompt=True
+        )
+        model_inputs = tokenizers[model_name]([text], return_tensors="pt").to(device)
+
+        generated_ids = models[model_name].generate(
+            **model_inputs,
+            max_new_tokens=max_tokens,temperature=temperature,
+            top_p=0.9, do_sample=True       
+        )
+        generated_ids = [
+            output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
+        ]
+
+        return tokenizers[model_name].batch_decode(generated_ids, skip_special_tokens=True)[0]
+    if model_name in ["google/recurrentgemma-2b-it","google/codegemma-2b"]:
         return tokenizers[model_name].decode(models[model_name].generate(
             **tokenizers[model_name](prompt, return_tensors="pt").to(device),
             max_new_tokens=max_tokens+len(prompt),eos_token_id=tokenizers[model_name].eos_token_id,
@@ -125,6 +119,16 @@ def download_model(model_name):
         return f"Model '{model_name}' is already downloaded."
 
     try:
+        patterns = [
+            "config.json",  # Model configuration
+            "pytorch_model.bin",  # Model weights
+            "tokenizer.json",  # Tokenizer
+            "vocab.json",  # Tokenizer vocabulary (if applicable)
+            "merges.txt",  # Tokenizer merges (if applicable)
+            "model.safetensors",
+            "generation_config.json",
+            "tokenizer_config.json", 
+        ]
         snapshot_download(repo_id=model_name, local_dir=model_path, token=HF_TOKEN)
         return f"Model '{model_name}' downloaded successfully."
     except Exception as e:
@@ -197,10 +201,13 @@ def generate_text_GPT():
     data = request.get_json()
 
     # Extract parameters
-    model_name = "meta-llama/Llama-3.2-3B-Instruct"
-    #OpenVINO/starcoder2-7b-int4-ov
-    #nvidia/Hymba-1.5B-Instruct
+    model_name = data.get('local_model','meta-llama/Llama-3.2-1B-Instruct')
     #meta-llama/Llama-3.2-1B-Instruct
+    #Qwen/Qwen2.5-Coder-1.5B-Instruct
+    #HuggingFaceTB/SmolLM2-1.7B-Instruct
+    #Salesforce/xLAM-1b-fc-r
+    #deepseek-ai/deepseek-coder-1.3b-instruct
+    
     messages = data.get('messages')
     max_tokens = data.get('max_tokens', 512)
     print("maxtokens:"+str(max_tokens))
@@ -219,6 +226,9 @@ def generate_text_GPT():
     if(model_name in ["meta-llama/Llama-3.2-1B-Instruct","meta-llama/Llama-3.2-3B-Instruct" ,
                       "OpenVINO/Llama-3.1-8B-Instruct-FastDraft-150M-int8-ov"]):
         prompt += f"{sysmessage}<|eot_id|><|eot_id|><|start_header_id|>user<|end_header_id|>{usermessage}<|eot_id|><|start_header_id|>assistant<|end_header_id|>"
+    elif(model_name in ["Qwen/Qwen2.5-Coder-0.5B-Instruct","Qwen/Qwen2.5-Coder-1.5B-Instruct",
+    "HuggingFaceTB/SmolLM2-1.7B-Instruct","Salesforce/xLAM-1b-fc-r","deepseek-ai/deepseek-coder-1.3b-instruct"]):
+        prompt = messages
     else:
         prompt = f"{sysmessage}\n{usermessage}"
     if not model_name or not prompt:
@@ -228,10 +238,16 @@ def generate_text_GPT():
         temperature=temperature,max_tokens=max_tokens)
     #print("rawresponse:" + output)
     # Split the output from the superprompt length
-    if(not model_name in ["OpenVINO/Llama-3.1-8B-Instruct-FastDraft-150M-int8-ov",
-                          "meta-llama/Llama-3.2-1B-Instruct","meta-llama/Llama-3.2-3B-Instruct"
-                          "Intel/Mistral-7B-v0.1-int4-inc","google/recurrentgemma-2b-it"]):
+    if(model_name in [""]):
         assistant_response = output[len(prompt):].strip()
+    elif(model_name in ["Qwen/Qwen2.5-Coder-0.5B-Instruct"
+            ,"Qwen/Qwen2.5-Coder-1.5B-Instruct"]):
+        assistant_response = output.replace("response:","",1)
+        prompt = f"{sysmessage}\n{usermessage}"
+    elif(model_name in ["HuggingFaceTB/SmolLM2-1.7B-Instruct","Salesforce/xLAM-1b-fc-r",
+        "deepseek-ai/deepseek-coder-1.3b-instruct"]):
+        assistant_response = output
+        prompt = f"{sysmessage}\n{usermessage}"
     else:
         assistant_response = output
     print("response:" + assistant_response)

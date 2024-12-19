@@ -1,5 +1,12 @@
 import requests
 
+def check_response(response):
+  # Check the response
+  if response.status_code == 200:
+      print("Response:", response.json())
+  else:
+      print(f"Failed with status code {response.status_code}: {response.text}")
+
 # Replace with the Gemini API URL
 api_url = "http://localhost:5000/generateChatTester"
 
@@ -18,7 +25,7 @@ payload = {
   "max_tokens": 1024,
   "presence_penalty": 0,
   "temperature": 0.5,
-
+  "local_model":"meta-llama/Llama-3.2-1B-Instruct",
   "messages": [
         {
         "role": "system",
@@ -32,17 +39,31 @@ payload = {
   "maxTokens": 1024
 }
 
-payload2 = {
-  "model":"meta-llama/Llama-3.2-3B-Instruct",
-  "prompt":prompt
-}
 
 # Send the POST request
 response = requests.post(api_url, headers=headers, json=payload)
+print(payload["local_model"])
+check_response(response)
+payload["local_model"] = "Qwen/Qwen2.5-Coder-0.5B-Instruct"
+response = requests.post(api_url, headers=headers, json=payload)
+print(payload["local_model"])
+check_response(response)
+payload["local_model"] = "Qwen/Qwen2.5-Coder-1.5B-Instruct"
+response = requests.post(api_url, headers=headers, json=payload)
+print(payload["local_model"])
+check_response(response)
+payload["local_model"] = "HuggingFaceTB/SmolLM2-1.7B-Instruct"
+response = requests.post(api_url, headers=headers, json=payload)
+print(payload["local_model"])
+check_response(response)
+payload["local_model"] = "Salesforce/xLAM-1b-fc-r"
+response = requests.post(api_url, headers=headers, json=payload)
+print(payload["local_model"])
+check_response(response)
+payload["local_model"] = "deepseek-ai/deepseek-coder-1.3b-instruct"
+response = requests.post(api_url, headers=headers, json=payload)
+print(payload["local_model"])
+check_response(response)
 
-# Check the response
-if response.status_code == 200:
-    print("Response:", response.json())
-else:
-    print(f"Failed with status code {response.status_code}: {response.text}")
+
 
