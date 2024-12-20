@@ -8,6 +8,7 @@ from transformers import pipeline
 from flask import Flask, jsonify, request
 from huggingface_hub import HfApi, snapshot_download
 from transformers import AutoTokenizer,AutoModelForCausalLM
+from optimum.intel.openvino import OVModelForCausalLM
 #from dotenv import load_dotenv
 # Example usage
 file_path = '.env'
@@ -25,7 +26,16 @@ tokenizers = {}
 MODEL_DIR = "./models"
 os.makedirs(MODEL_DIR, exist_ok=True)
 
+def remove_repeated_last_line(text):
+    lines = text.splitlines()  # Split the input into lines
+    if not lines:
+        return text  # If the input is empty, return it as is
     
+    last_line = lines[-1]  # Get the last line
+    unique_lines = [line for line in lines if line != last_line]  # Remove all repetitions
+    unique_lines.append(last_line)  # Keep one instance of the last line
+
+    return "\n".join(unique_lines)  # Reconstruct the string
 
 def generate_model(prompt,model_name,temperature,max_tokens):
     device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -39,7 +49,7 @@ def generate_model(prompt,model_name,temperature,max_tokens):
                 download_model(model_name)
             except ValueError as e:
                 return jsonify({"error": str(e)}), 400
-        if model_name in ["google/recurrentgemma-2b-it","google/codegemma-2b"]:
+        if model_name in ["google/recurrentgemma-2b-it","google/codegemma-2b","ibm-granite/granite-3.1-1b-a400m-instruct"]:
             models[model_name] = AutoModelForCausalLM.from_pretrained(model_path,
                                                                       device_map=device
                                                                       )
@@ -49,25 +59,22 @@ def generate_model(prompt,model_name,temperature,max_tokens):
             models[model_name] = Llama(model_path, 
             n_ctx=max_tokens,verbose=False, gpu_layers=20)
         elif model_name in ["OpenVINO/codegen25-7b-multi-int4-ov","OpenVINO/codegen25-7b-multi-fp16-ov"]:
-            tokenizers[model_name] = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
+            tokenizers[model_name] = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
             tokenizers[model_name].pad_token = tokenizers[model_name].eos_token
             tokenizers[model_name].add_special_tokens({"pad_token": "<pad>"})
             tokenizers[model_name].padding_side = 'right'
-            models[model_name] = OVModelForCausalLM.from_pretrained(model_name, trust_remote_code=True)
+            models[model_name] = OVModelForCausalLM.from_pretrained(model_path, trust_remote_code=True)
         elif model_name in ["Qwen/Qwen2.5-Coder-0.5B-Instruct","Qwen/Qwen2.5-Coder-1.5B-Instruct",
-        "HuggingFaceTB/SmolLM2-1.7B-Instruct","Salesforce/xLAM-1b-fc-r",
-        "deepseek-ai/deepseek-coder-1.3b-instruct",
+        "HuggingFaceTB/SmolLM2-1.7B-Instruct","Salesforce/xLAM-1b-fc-r","infly/OpenCoder-1.5B-Instruct",
+        "deepseek-ai/deepseek-coder-1.3b-instruct"
         ]:
             models[model_name] = AutoModelForCausalLM.from_pretrained(
-                model_name,
+                model_path,
                 torch_dtype="auto",
                 device_map=device,
                 trust_remote_code=True
             )
-            tokenizers[model_name] = AutoTokenizer.from_pretrained(model_name)
-        elif model_name in ["tiiuae/Falcon3-1B-Instruct"]:
             tokenizers[model_name] = AutoTokenizer.from_pretrained(model_path)
-            models[model_name] = AutoModelForCausalLM.from_pretrained(model_path, device_map="auto").eval()
         elif model_name in ["tiiuae/Falcon3-1B-Instruct","01-ai/Yi-Coder-1.5B"]:
             models[model_name] = pipeline("text-generation",
                                           model=model_path, device_map=device)
@@ -87,7 +94,7 @@ def generate_model(prompt,model_name,temperature,max_tokens):
                 top_p=0.9
             )['choices'][0]['message']['content']
     if model_name in ["HuggingFaceTB/SmolLM2-1.7B-Instruct","Salesforce/xLAM-1b-fc-r",
-            "deepseek-ai/deepseek-coder-1.3b-instruct"]:
+            "deepseek-ai/deepseek-coder-1.3b-instruct","infly/OpenCoder-1.5B-Instruct"]:
         input_text=tokenizers[model_name].apply_chat_template(prompt, tokenize=False)
         inputs = tokenizers[model_name](input_text, return_tensors="pt", padding=True, truncation=True).to(device)
          
@@ -96,19 +103,8 @@ def generate_model(prompt,model_name,temperature,max_tokens):
                 attention_mask=inputs["attention_mask"],eos_token_id=tokenizers[model_name].eos_token_id,
                 top_p=0.9, do_sample=True)
         return tokenizers[model_name].decode(outputs[0][len(inputs[0]):], skip_special_tokens=True)
-    if model_name in["01-ai/Yi-Coder-1.5B"]:
-        input_text=tokenizers[model_name].apply_chat_template(prompt, tokenize=False,add_generation_prompt=True)
-        inputs = tokenizers[model_name]([input_text], return_tensors="pt").to(device)
-         
-        outputs = models[model_name].generate(inputs.input_ids, max_new_tokens=max_tokens, 
-            temperature=temperature, pad_token_id=tokenizers[model_name].pad_token_id, 
-                eos_token_id=tokenizers[model_name].eos_token_id,
-                do_sample=True)
-        generated_ids = [
-            output_ids[len(input_ids):] for input_ids, output_ids in zip(inputs.input_ids, outputs)
-        ]
-        return tokenizers[model_name].decode([outputs[0][len(inputs[0]):]], skip_special_tokens=True)
-    if model_name in ["Qwen/Qwen2.5-Coder-0.5B-Instruct","Qwen/Qwen2.5-Coder-1.5B-Instruct"]:
+    if model_name in ["Qwen/Qwen2.5-Coder-0.5B-Instruct","Qwen/Qwen2.5-Coder-1.5B-Instruct",
+    "ibm-granite/granite-3.1-1b-a400m-instruct"]:
         text = tokenizers[model_name].apply_chat_template(
             prompt,
             tokenize=False,
@@ -138,10 +134,10 @@ def generate_model(prompt,model_name,temperature,max_tokens):
                       "OpenVINO/starcoder2-3b-fp16-ov",
                       "OpenVINO/starcoder2-7b-int4-ov","OpenVINO/starcoder2-3b-int4-ov"]:
         return tokenizers[model_name].decode(models[model_name].generate(
-            **tokenizers[model_name](prompt, return_tensors="pt").to(device),do_sample=False,
+            **tokenizers[model_name](prompt, return_tensors="pt").to(device),do_sample=True,
             pad_token_id=tokenizers[model_name].pad_token_id,max_new_tokens=max_tokens,
             eos_token_id=tokenizers[model_name].eos_token_id, temperature=temperature)[0])
-    return models[model_name](prompt,temperature=temperature,max_new_tokens=max_tokens,return_full_text=False)[0]['generated_text']
+    return models[model_name](prompt,temperature=temperature,max_new_tokens=max_tokens,return_full_text=False,do_sample=True)[0]['generated_text']
 
 # 1. List available text generation models from Hugging Face Hub
 def list_hf_models():
@@ -268,8 +264,8 @@ def generate_text_GPT():
             prompt += f"{sysmessage}<|eot_id|><|eot_id|><|start_header_id|>user<|end_header_id|>{usermessage}<|eot_id|><|start_header_id|>assistant<|end_header_id|>"
         else:
             prompt = usermessage
-    elif(model_name in ["Qwen/Qwen2.5-Coder-0.5B-Instruct","Qwen/Qwen2.5-Coder-1.5B-Instruct",
-    "HuggingFaceTB/SmolLM2-1.7B-Instruct","Salesforce/xLAM-1b-fc-r",
+    elif(model_name in ["Qwen/Qwen2.5-Coder-0.5B-Instruct","Qwen/Qwen2.5-Coder-1.5B-Instruct","infly/OpenCoder-1.5B-Instruct",
+    "HuggingFaceTB/SmolLM2-1.7B-Instruct","Salesforce/xLAM-1b-fc-r","ibm-granite/granite-3.1-1b-a400m-instruct",
     "deepseek-ai/deepseek-coder-1.3b-instruct","tiiuae/Falcon3-1B-Instruct"] or 
     model_name.endswith(".gguf")):
         prompt = messages
@@ -280,7 +276,6 @@ def generate_text_GPT():
         prompt += f"{usermessage}"
     if not model_name or not prompt:
         return jsonify({"error": "'model' and 'prompt' are required."}), 400
-    #print("prompt:"+prompt)
     output = generate_model(prompt=prompt,model_name=model_name,
         temperature=temperature,max_tokens=max_tokens)
     #print("rawresponse:" + output)
@@ -292,19 +287,22 @@ def generate_text_GPT():
         assistant_response = output.replace("response:","",1)
         prompt = f"{sysmessage}\n{usermessage}"
     elif(model_name in ["HuggingFaceTB/SmolLM2-1.7B-Instruct","Salesforce/xLAM-1b-fc-r",
-    "deepseek-ai/deepseek-coder-1.3b-instruct","tiiuae/Falcon3-1B-Instruct"] 
+    "infly/OpenCoder-1.5B-Instruct",
+    "deepseek-ai/deepseek-coder-1.3b-instruct","tiiuae/Falcon3-1B-Instruct",
+    "ibm-granite/granite-3.1-1b-a400m-instruct"] 
     or model_name.endswith(".gguf")):
         assistant_response = output
         prompt = f"{sysmessage}\n{usermessage}"
     else:
         assistant_response = output
-    print("response:" + assistant_response)
+    cleaned_response = remove_repeated_last_line(assistant_response).strip()
+    print("response:" + cleaned_response)
     return jsonify({
         "choices": [
             {
                 "message": {
                     "role": "assistant",
-                    "content": assistant_response
+                    "content": cleaned_response.strip()
                 },
                 "finish_reason": "stop",
                 "index": 0

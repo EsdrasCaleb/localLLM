@@ -25,7 +25,7 @@ payload = {
   "max_tokens": 1024,
   "presence_penalty": 0,
   "temperature": 0.5,
-  "local_model":"OpenVINO/codegen25-7b-multi-int4-ov",
+  "local_model":"01-ai/Yi-Coder-1.5B",
   "messages": [
         {
         "role": "system",
@@ -39,11 +39,18 @@ payload = {
   "maxTokens": 1024
 }
 
-
+print(payload["local_model"])
 # Send the POST request
 response = requests.post(api_url, headers=headers, json=payload)
-print(payload["local_model"])
-check_response(response)
 
+check_response(response)
+#payload["local_model"] = "infly/OpenCoder-1.5B-Instruct"
+#print(payload["local_model"])
+#response = requests.post(api_url, headers=headers, json=payload)
+#check_response(response)
+#payload["local_model"] = "OpenCoder-8B-Instruct-Q6_K.gguf"
+print(payload["local_model"])
+#response = requests.post(api_url, headers=headers, json=payload)
+#check_response(response)
 
 
