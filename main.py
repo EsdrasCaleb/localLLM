@@ -48,6 +48,12 @@ def generate_model(prompt,model_name,temperature,max_tokens):
             from llama_cpp import Llama
             models[model_name] = Llama(model_path, 
             n_ctx=max_tokens,verbose=False, gpu_layers=20)
+        elif model_name in ["OpenVINO/codegen25-7b-multi-int4-ov","OpenVINO/codegen25-7b-multi-fp16-ov"]:
+            tokenizers[model_name] = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
+            tokenizers[model_name].pad_token = tokenizers[model_name].eos_token
+            tokenizers[model_name].add_special_tokens({"pad_token": "<pad>"})
+            tokenizers[model_name].padding_side = 'right'
+            models[model_name] = OVModelForCausalLM.from_pretrained(model_name, trust_remote_code=True)
         elif model_name in ["Qwen/Qwen2.5-Coder-0.5B-Instruct","Qwen/Qwen2.5-Coder-1.5B-Instruct",
         "HuggingFaceTB/SmolLM2-1.7B-Instruct","Salesforce/xLAM-1b-fc-r",
         "deepseek-ai/deepseek-coder-1.3b-instruct",
