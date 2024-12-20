@@ -2,3 +2,4 @@ torch
 dotenv
 huggingface_hub
 accelerate
+llama-cpp-python

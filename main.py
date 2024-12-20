@@ -29,6 +29,8 @@ os.makedirs(MODEL_DIR, exist_ok=True)
 
 def generate_model(prompt,model_name,temperature,max_tokens):
     device = "cuda" if torch.cuda.is_available() else "cpu"
+    if model_name.endswith(".gguf"):
+        model_name = os.path.join("gguf", model_name)
     if not model_name in models:
         model_path = os.path.join(MODEL_DIR, model_name)
         if not os.path.exists(model_path):
@@ -42,9 +44,14 @@ def generate_model(prompt,model_name,temperature,max_tokens):
                                                                       device_map=device
                                                                       )
             tokenizers[model_name] = AutoTokenizer.from_pretrained(model_path)
+        elif model_name.endswith(".gguf"):
+            from llama_cpp import Llama
+            models[model_name] = Llama(model_path, 
+            n_ctx=max_tokens,verbose=False, gpu_layers=20)
         elif model_name in ["Qwen/Qwen2.5-Coder-0.5B-Instruct","Qwen/Qwen2.5-Coder-1.5B-Instruct",
         "HuggingFaceTB/SmolLM2-1.7B-Instruct","Salesforce/xLAM-1b-fc-r",
-        "deepseek-ai/deepseek-coder-1.3b-instruct"]:
+        "deepseek-ai/deepseek-coder-1.3b-instruct",
+        ]:
             models[model_name] = AutoModelForCausalLM.from_pretrained(
                 model_name,
                 torch_dtype="auto",
@@ -52,6 +59,12 @@ def generate_model(prompt,model_name,temperature,max_tokens):
                 trust_remote_code=True
             )
             tokenizers[model_name] = AutoTokenizer.from_pretrained(model_name)
+        elif model_name in ["tiiuae/Falcon3-1B-Instruct"]:
+            tokenizers[model_name] = AutoTokenizer.from_pretrained(model_path)
+            models[model_name] = AutoModelForCausalLM.from_pretrained(model_path, device_map="auto").eval()
+        elif model_name in ["tiiuae/Falcon3-1B-Instruct","01-ai/Yi-Coder-1.5B"]:
+            models[model_name] = pipeline("text-generation",
+                                          model=model_path, device_map=device)
         else:
             # Load model and tokenizer
             tokenizers[model_name] = AutoTokenizer.from_pretrained(model_path)
@@ -60,6 +73,13 @@ def generate_model(prompt,model_name,temperature,max_tokens):
             models[model_name] = pipeline("text-generation",pad_token_id=tokenizers[model_name].pad_token_id
                                           ,tokenizer=tokenizers[model_name],
                                           model=model_path, device_map=device)
+    if model_name.endswith(".gguf"):
+        return models[model_name].create_chat_completion(
+                messages=prompt,
+                max_tokens=max_tokens,
+                temperature=temperature,
+                top_p=0.9
+            )['choices'][0]['message']['content']
     if model_name in ["HuggingFaceTB/SmolLM2-1.7B-Instruct","Salesforce/xLAM-1b-fc-r",
             "deepseek-ai/deepseek-coder-1.3b-instruct"]:
         input_text=tokenizers[model_name].apply_chat_template(prompt, tokenize=False)
@@ -70,6 +90,18 @@ def generate_model(prompt,model_name,temperature,max_tokens):
                 attention_mask=inputs["attention_mask"],eos_token_id=tokenizers[model_name].eos_token_id,
                 top_p=0.9, do_sample=True)
         return tokenizers[model_name].decode(outputs[0][len(inputs[0]):], skip_special_tokens=True)
+    if model_name in["01-ai/Yi-Coder-1.5B"]:
+        input_text=tokenizers[model_name].apply_chat_template(prompt, tokenize=False,add_generation_prompt=True)
+        inputs = tokenizers[model_name]([input_text], return_tensors="pt").to(device)
+         
+        outputs = models[model_name].generate(inputs.input_ids, max_new_tokens=max_tokens, 
+            temperature=temperature, pad_token_id=tokenizers[model_name].pad_token_id, 
+                eos_token_id=tokenizers[model_name].eos_token_id,
+                do_sample=True)
+        generated_ids = [
+            output_ids[len(input_ids):] for input_ids, output_ids in zip(inputs.input_ids, outputs)
+        ]
+        return tokenizers[model_name].decode([outputs[0][len(inputs[0]):]], skip_special_tokens=True)
     if model_name in ["Qwen/Qwen2.5-Coder-0.5B-Instruct","Qwen/Qwen2.5-Coder-1.5B-Instruct"]:
         text = tokenizers[model_name].apply_chat_template(
             prompt,
@@ -81,13 +113,13 @@ def generate_model(prompt,model_name,temperature,max_tokens):
         generated_ids = models[model_name].generate(
             **model_inputs,
             max_new_tokens=max_tokens,temperature=temperature,
-            top_p=0.9, do_sample=True       
+            top_p=0.95, do_sample=True       
         )
         generated_ids = [
             output_ids[len(input_ids):] for input_ids, output_ids in zip(model_inputs.input_ids, generated_ids)
         ]
 
-        return tokenizers[model_name].batch_decode(generated_ids, skip_special_tokens=True)[0]
+        return tokenizers[model_name].batch_decode(generated_ids, skip_special_tokens=True)[0]  
     if model_name in ["google/recurrentgemma-2b-it","google/codegemma-2b"]:
         return tokenizers[model_name].decode(models[model_name].generate(
             **tokenizers[model_name](prompt, return_tensors="pt").to(device),
@@ -195,18 +227,19 @@ def generate_text():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
+#funciona com 
+#meta-llama/Llama-3.2-1B-Instruct ok
+#Qwen/Qwen2.5-Coder-1.5B-Instruct gera código no intention
+#Qwen/Qwen2.5-Coder-1.5B-Instruct gera código no intention
+#HuggingFaceTB/SmolLM2-1.7B-Instruct ok
+#Salesforce/xLAM-1b-fc-r ok
+#deepseek-ai/deepseek-coder-1.3b-instruct
 @app.route('/generateChatTester', methods=['POST','GET'])
 def generate_text_GPT():
     data = request.get_json()
 
     # Extract parameters
     model_name = data.get('local_model','meta-llama/Llama-3.2-1B-Instruct')
-    #meta-llama/Llama-3.2-1B-Instruct
-    #Qwen/Qwen2.5-Coder-1.5B-Instruct
-    #HuggingFaceTB/SmolLM2-1.7B-Instruct
-    #Salesforce/xLAM-1b-fc-r
-    #deepseek-ai/deepseek-coder-1.3b-instruct
     
     messages = data.get('messages')
     max_tokens = data.get('max_tokens', 512)
@@ -225,12 +258,20 @@ def generate_text_GPT():
             print(messageOb)
     if(model_name in ["meta-llama/Llama-3.2-1B-Instruct","meta-llama/Llama-3.2-3B-Instruct" ,
                       "OpenVINO/Llama-3.1-8B-Instruct-FastDraft-150M-int8-ov"]):
-        prompt += f"{sysmessage}<|eot_id|><|eot_id|><|start_header_id|>user<|end_header_id|>{usermessage}<|eot_id|><|start_header_id|>assistant<|end_header_id|>"
+        if(len(sysmessage)>0):
+            prompt += f"{sysmessage}<|eot_id|><|eot_id|><|start_header_id|>user<|end_header_id|>{usermessage}<|eot_id|><|start_header_id|>assistant<|end_header_id|>"
+        else:
+            prompt = usermessage
     elif(model_name in ["Qwen/Qwen2.5-Coder-0.5B-Instruct","Qwen/Qwen2.5-Coder-1.5B-Instruct",
-    "HuggingFaceTB/SmolLM2-1.7B-Instruct","Salesforce/xLAM-1b-fc-r","deepseek-ai/deepseek-coder-1.3b-instruct"]):
+    "HuggingFaceTB/SmolLM2-1.7B-Instruct","Salesforce/xLAM-1b-fc-r",
+    "deepseek-ai/deepseek-coder-1.3b-instruct","tiiuae/Falcon3-1B-Instruct"] or 
+    model_name.endswith(".gguf")):
         prompt = messages
     else:
-        prompt = f"{sysmessage}\n{usermessage}"
+        prompt =""
+        if(len(sysmessage)>0):
+            prompt =f"{sysmessage}\n"
+        prompt += f"{usermessage}"
     if not model_name or not prompt:
         return jsonify({"error": "'model' and 'prompt' are required."}), 400
     #print("prompt:"+prompt)
@@ -238,14 +279,15 @@ def generate_text_GPT():
         temperature=temperature,max_tokens=max_tokens)
     #print("rawresponse:" + output)
     # Split the output from the superprompt length
-    if(model_name in [""]):
-        assistant_response = output[len(prompt):].strip()
+    if(model_name in ["starcoder2-3b-Q8_0.gguf"]):
+        assistant_response = output.replace()[len(prompt):].strip()
     elif(model_name in ["Qwen/Qwen2.5-Coder-0.5B-Instruct"
             ,"Qwen/Qwen2.5-Coder-1.5B-Instruct"]):
         assistant_response = output.replace("response:","",1)
         prompt = f"{sysmessage}\n{usermessage}"
     elif(model_name in ["HuggingFaceTB/SmolLM2-1.7B-Instruct","Salesforce/xLAM-1b-fc-r",
-        "deepseek-ai/deepseek-coder-1.3b-instruct"]):
+    "deepseek-ai/deepseek-coder-1.3b-instruct","tiiuae/Falcon3-1B-Instruct"] 
+    or model_name.endswith(".gguf")):
         assistant_response = output
         prompt = f"{sysmessage}\n{usermessage}"
     else:

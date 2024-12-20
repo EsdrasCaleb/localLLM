@@ -25,11 +25,11 @@ payload = {
   "max_tokens": 1024,
   "presence_penalty": 0,
   "temperature": 0.5,
-  "local_model":"meta-llama/Llama-3.2-1B-Instruct",
+  "local_model":"OpenVINO/codegen25-7b-multi-int4-ov",
   "messages": [
         {
         "role": "system",
-          "content": prompt2sys
+          "content": ""
         },
         {
         "role": "user",
@@ -41,26 +41,6 @@ payload = {
 
 
 # Send the POST request
-response = requests.post(api_url, headers=headers, json=payload)
-print(payload["local_model"])
-check_response(response)
-payload["local_model"] = "Qwen/Qwen2.5-Coder-0.5B-Instruct"
-response = requests.post(api_url, headers=headers, json=payload)
-print(payload["local_model"])
-check_response(response)
-payload["local_model"] = "Qwen/Qwen2.5-Coder-1.5B-Instruct"
-response = requests.post(api_url, headers=headers, json=payload)
-print(payload["local_model"])
-check_response(response)
-payload["local_model"] = "HuggingFaceTB/SmolLM2-1.7B-Instruct"
-response = requests.post(api_url, headers=headers, json=payload)
-print(payload["local_model"])
-check_response(response)
-payload["local_model"] = "Salesforce/xLAM-1b-fc-r"
-response = requests.post(api_url, headers=headers, json=payload)
-print(payload["local_model"])
-check_response(response)
-payload["local_model"] = "deepseek-ai/deepseek-coder-1.3b-instruct"
 response = requests.post(api_url, headers=headers, json=payload)
 print(payload["local_model"])
 check_response(response)
