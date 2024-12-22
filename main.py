@@ -57,7 +57,7 @@ def generate_model(prompt,model_name,temperature,max_tokens):
         elif model_name.endswith(".gguf"):
             from llama_cpp import Llama
             models[model_name] = Llama(model_path, 
-            n_ctx=max_tokens,verbose=False, gpu_layers=20)
+            n_ctx=len(str(prompt))+max_tokens,verbose=False, gpu_layers=20)
         elif model_name in ["OpenVINO/codegen25-7b-multi-int4-ov","OpenVINO/codegen25-7b-multi-fp16-ov"]:
             tokenizers[model_name] = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
             tokenizers[model_name].pad_token = tokenizers[model_name].eos_token
@@ -229,19 +229,13 @@ def generate_text():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-#funciona com 
-#meta-llama/Llama-3.2-1B-Instruct ok
-#Qwen/Qwen2.5-Coder-1.5B-Instruct gera código no intention
-#Qwen/Qwen2.5-Coder-1.5B-Instruct gera código no intention
-#HuggingFaceTB/SmolLM2-1.7B-Instruct ok
-#Salesforce/xLAM-1b-fc-r ok
-#deepseek-ai/deepseek-coder-1.3b-instruct
+
 @app.route('/generateChatTester', methods=['POST','GET'])
 def generate_text_GPT():
     data = request.get_json()
 
     # Extract parameters
-    model_name = data.get('local_model','meta-llama/Llama-3.2-1B-Instruct')
+    model_name = data.get('model','Phi-3.5-mini-instruct-Q8_0.gguf')
     
     messages = data.get('messages')
     max_tokens = data.get('max_tokens', 512)
@@ -295,14 +289,16 @@ def generate_text_GPT():
         prompt = f"{sysmessage}\n{usermessage}"
     else:
         assistant_response = output
-    cleaned_response = remove_repeated_last_line(assistant_response).strip()
-    print("response:" + cleaned_response)
+    #cleaned_response = remove_repeated_last_line(assistant_response).strip()
+    print("prompt:" + prompt+"\n\n\n\n")
+    print("response:" + assistant_response)
+
     return jsonify({
         "choices": [
             {
                 "message": {
                     "role": "assistant",
-                    "content": cleaned_response.strip()
+                    "content": assistant_response
                 },
                 "finish_reason": "stop",
                 "index": 0
@@ -315,58 +311,93 @@ def generate_text_GPT():
         }
     })
     
-# Replace with Gemini's API URL and API key
-GEMINI_API_URL = "https://api.gemini.example/v1/query"
-GEMINI_API_KEY = env_data["GEMINI_TOKEN"]
 
-@app.route("/openai", methods=["POST"])
+gemini_keys = env_data["g_tokens"].split(",")
+gemini_index = 0
+
+@app.route("/gemini", methods=["POST","GET"])
 def openai_to_gemini():
+    global gemini_index
+    key = gemini_keys[gemini_index]
+    gemini_index = (1+gemini_index)%(len(gemini_keys))
     try:
         # Get the OpenAI-style input
-        openai_request = request.json
-        if not openai_request:
+        data = request.get_json()
+        if not data:
             return jsonify({"error": "Invalid input"}), 400
+        model = data.get('model','gemini-1.5-flash') #gemma-7b-it gemini-2.0-flash-exp
+    
+        messages = data.get('messages')
+        max_tokens = data.get('max_tokens', 512)
+        print("maxtokens:"+str(max_tokens))
+        temperature = data.get('temperature', 0.7)
+        sysmessage = ""
+        usermessage = ""
+        for messageOb in messages:
+            if(messageOb['role']=="system"):
+                sysmessage = messageOb['content']
+            elif(messageOb['role']=="user"):
+                usermessage = messageOb['content']
+            else:
+                print("error:")
+                print(messageOb)
 
-        # Transform the OpenAI request to Gemini request
-        gemini_payload = {
-            "query": openai_request.get("messages", [])[-1]["content"],  # Assuming the last message contains the user query
-            "temperature": openai_request.get("temperature", 1.0),
-            "max_tokens": openai_request.get("max_tokens", 150)
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"  # Gemini API endpoint
+
+        messages = [
+            {"role": "user", "parts": [{"text": sysmessage}]}, # System context is part of the user content in Gemini
+            {"role": "user", "parts": [{"text": usermessage}]}, # User's prompt
+        ]
+
+        data = {
+            "contents": messages,
+            "generation_config": {
+                "temperature": temperature,
+                "max_output_tokens": max_tokens  # Correct parameter name for Gemini
+            }
         }
-
+        print(data)
         # Send the request to Gemini API
         gemini_response = requests.post(
-            GEMINI_API_URL,
-            headers={"Authorization": f"Bearer {GEMINI_API_KEY}"},
-            json=gemini_payload
+            url,
+            headers={ "Content-Type": "application/json","x-goog-api-key": key},
+            json=data
         )
 
         if gemini_response.status_code != 200:
+            print(gemini_response.text)
             return jsonify({"error": "Failed to query Gemini", "details": gemini_response.text}), 500
-
+        
         # Transform Gemini response back to OpenAI format
-        gemini_data = gemini_response.json()
+        response_json = gemini_response.json()
+        response = ""
+        print(response_json)
+        if response_json and 'candidates' in response_json and len(response_json['candidates']) > 0:
+          if response_json['candidates'][0] and 'content' in response_json['candidates'][0] and response_json['candidates'][0]['content'] and 'parts' in response_json['candidates'][0]['content']:
+              if response_json['candidates'][0]['content']['parts'] and len(response_json['candidates'][0]['content']['parts']) > 0 :
+                response = response_json['candidates'][0]['content']['parts'][0]['text']
         openai_response = {
             "choices": [
                 {
                     "message": {
                         "role": "assistant",
-                        "content": gemini_data.get("response", "")
+                        "content": response
                     },
                     "finish_reason": "stop",
                     "index": 0
                 }
             ],
             "usage": {
-                "prompt_tokens": gemini_data.get("prompt_tokens", 0),
-                "completion_tokens": gemini_data.get("completion_tokens", 0),
-                "total_tokens": gemini_data.get("total_tokens", 0)
+                "prompt_tokens": response_json["usageMetadata"]["promptTokenCount"],
+                "completion_tokens": response_json["usageMetadata"]["candidatesTokenCount"],
+                "total_tokens": response_json["usageMetadata"]["totalTokenCount"]
             }
         }
 
         return jsonify(openai_response)
 
     except Exception as e:
+        print(e)
         return jsonify({"error": "An unexpected error occurred", "details": str(e)}), 500
 
 

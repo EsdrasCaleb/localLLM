@@ -8,7 +8,7 @@ def check_response(response):
       print(f"Failed with status code {response.status_code}: {response.text}")
 
 # Replace with the Gemini API URL
-api_url = "http://localhost:5000/generateChatTester"
+api_url = "http://localhost:5000/gemini"
 
 # Replace with your API key if authentication is required
 headers = {
@@ -25,7 +25,7 @@ payload = {
   "max_tokens": 1024,
   "presence_penalty": 0,
   "temperature": 0.5,
-  "local_model":"01-ai/Yi-Coder-1.5B",
+  "local_model":"gemma-2-27b-it",
   "messages": [
         {
         "role": "system",
@@ -49,7 +49,7 @@ check_response(response)
 #response = requests.post(api_url, headers=headers, json=payload)
 #check_response(response)
 #payload["local_model"] = "OpenCoder-8B-Instruct-Q6_K.gguf"
-print(payload["local_model"])
+#print(payload["local_model"])
 #response = requests.post(api_url, headers=headers, json=payload)
 #check_response(response)
 
