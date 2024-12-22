@@ -18,17 +18,17 @@ execute_command() {
 }
 
 # Loop through each folder in the "envs" directory
-for folder in envs/*; do
+for folder in enfiles/*; do
   if [ -d "$folder" ]; then
     echo "Processing folder: $folder"
 
     # Loop through each .env file in the folder
-    for env_file in "$folder"/*.env; do
+    for env_file in "$folder"/*; do
       # Construct the command
       command="java -jar target/chatunitest-standalone-1.0.0.jar $env_file project"
-
+      testcommand="java -jar target/chatunitest-standalone-1.0.0.jar $env_file test $env_file"
       # Execute the command and capture output
-      execute_command "$command" "$env_file" "$folder"
+      execute_command "$testcommand" "$env_file" "$folder"
     done
   fi
 done

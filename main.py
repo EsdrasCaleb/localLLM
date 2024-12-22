@@ -230,7 +230,7 @@ def generate_text():
         return jsonify({"error": str(e)}), 500
 
 
-@app.route('/generateChatTester', methods=['POST','GET'])
+@app.route('/generate_model', methods=['POST','GET'])
 def generate_text_GPT():
     data = request.get_json()
 
@@ -315,7 +315,7 @@ def generate_text_GPT():
 gemini_keys = env_data["g_tokens"].split(",")
 gemini_index = 0
 
-@app.route("/gemini", methods=["POST","GET"])
+@app.route("/google", methods=["POST","GET"])
 def openai_to_gemini():
     global gemini_index
     key = gemini_keys[gemini_index]

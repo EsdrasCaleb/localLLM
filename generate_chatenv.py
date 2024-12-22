@@ -19,34 +19,30 @@ def create_env_files(projects_dir, models_file):
         model, url = parts
         model_urls[model] = url
       elif len(parts) == 1:
-        model_urls[parts[0]] = "http://localhost:5000/ChatTester"
+        model_urls[parts[0]] = "http://localhost:5000/generate_model"
 
   # Get project folders
   projects = [f for f in os.listdir(projects_dir) 
               if os.path.isdir(os.path.join(projects_dir, f)) 
               and f not in ["lib", "classes.txt"]]
-  for model in model_urls.keys():
-    for project in projects:
-        index = project.split("_")[0]
-        project_name = project.split("_")[1]
-        project_dir = os.path.join("./envs", project)
-        os.makedirs(project_dir, exist_ok=True)
-
-        env_file_path = os.path.join(project_dir, f"{model}_env")
+  for project in projects:
+      index = project.split("_")[0]
+      project_name = project.split("_")[1]
+      project_dir = os.path.join("./enfiles", project)
+      os.makedirs(project_dir, exist_ok=True)
+      for model,url in model_urls.items():
+        env_file_path = os.path.join(project_dir, f"{model.replace('/','_')}_env")
 
         with open(env_file_path, "w") as f:
-        with open("template.env", "r") as template:
-            for line in template:
-            line = line.replace("{index}", index)
-            line = line.replace("{project}", project_name)
+          with open("template.env", "r") as template:
+              for line in template:
+                line = line.replace("{index}", index)
+                line = line.replace("{project}", project_name)
 
-            # Replace {url} and {model}
-            if "{url}" in line:
-                url = model_urls.get(model, "http://localhost:5000/ChatTester") 
                 line = line.replace("{url}", url)
                 line = line.replace("{model}", model)
 
-            f.write(line)
+              f.write(line)
 
 # Example usage
 projects_dir = "../SF110"
