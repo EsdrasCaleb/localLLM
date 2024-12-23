@@ -1,5 +1,8 @@
 import os
 import re
+from loadenv import load_env_file
+file_path = '.env'
+env_data = load_env_file(file_path)
 
 def create_env_files(projects_dir, models_file):
   """
@@ -25,24 +28,28 @@ def create_env_files(projects_dir, models_file):
   projects = [f for f in os.listdir(projects_dir) 
               if os.path.isdir(os.path.join(projects_dir, f)) 
               and f not in ["lib", "classes.txt"]]
-  for project in projects:
-      index = project.split("_")[0]
-      project_name = project.split("_")[1]
-      project_dir = os.path.join("./enfiles", project)
-      os.makedirs(project_dir, exist_ok=True)
-      for model,url in model_urls.items():
-        env_file_path = os.path.join(project_dir, f"{model.replace('/','_')}_env")
-
-        with open(env_file_path, "w") as f:
-          with open("template.env", "r") as template:
-              for line in template:
-                line = line.replace("{index}", index)
-                line = line.replace("{project}", project_name)
-
-                line = line.replace("{url}", url)
-                line = line.replace("{model}", model)
-
-              f.write(line)
+  for model,url in model_urls.items():
+      model_ar = model.split("/")
+      model_name = model_ar[len(model_ar)-1]
+      model_dir = os.path.join("./enfiles", model_name)
+      os.makedirs(model_dir, exist_ok=True)
+      for project in projects:
+        index = project.split("_")[0]
+        project_name = project.split("_")[1]
+        for intention in ["true","false"]:
+          env_file_path = os.path.join(model_dir, f"{project}_int{intention}_env")
+          with open(env_file_path, "w") as f:
+            with open("template.env", "r") as template:
+                for line in template:
+                  line = line.replace("{index}", index)
+                  line = line.replace("{project}", project_name)
+                  line = line.replace("{intention}",intention)
+                  line = line.replace("{url}", url)
+                  line = line.replace("{model}", model)
+                  line = line.replace("{model_name}", model_name)
+                  if(url=="https://api.openai.com/v1/chat/completions"):
+                    line = line.replace("XXXKEYXXX", env_data['gpt_key'])
+                  f.write(line)
 
 # Example usage
 projects_dir = "../SF110"

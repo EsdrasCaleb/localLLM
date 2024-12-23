@@ -9,6 +9,7 @@ from flask import Flask, jsonify, request
 from huggingface_hub import HfApi, snapshot_download
 from transformers import AutoTokenizer,AutoModelForCausalLM
 from optimum.intel.openvino import OVModelForCausalLM
+import gc
 #from dotenv import load_dotenv
 # Example usage
 file_path = '.env'
@@ -37,6 +38,13 @@ def remove_repeated_last_line(text):
 
     return "\n".join(unique_lines)  # Reconstruct the string
 
+def filterMessage(messages):
+    messagesNew =[]
+    for messageOb in messages:
+        if(len(messageOb["content"])>0):
+            messagesNew.append(messageOb)
+    return messagesNew
+
 def generate_model(prompt,model_name,temperature,max_tokens):
     device = "cuda" if torch.cuda.is_available() else "cpu"
     if model_name.endswith(".gguf"):
@@ -49,7 +57,8 @@ def generate_model(prompt,model_name,temperature,max_tokens):
                 download_model(model_name)
             except ValueError as e:
                 return jsonify({"error": str(e)}), 400
-        if model_name in ["google/recurrentgemma-2b-it","google/codegemma-2b","ibm-granite/granite-3.1-1b-a400m-instruct"]:
+        if model_name in ["google/recurrentgemma-2b-it","google/codegemma-2b"
+            ,"ibm-granite/granite-3.1-1b-a400m-instruct"]:
             models[model_name] = AutoModelForCausalLM.from_pretrained(model_path,
                                                                       device_map=device
                                                                       )
@@ -75,7 +84,7 @@ def generate_model(prompt,model_name,temperature,max_tokens):
                 trust_remote_code=True
             )
             tokenizers[model_name] = AutoTokenizer.from_pretrained(model_path)
-        elif model_name in ["tiiuae/Falcon3-1B-Instruct","01-ai/Yi-Coder-1.5B"]:
+        elif model_name in ["tiiuae/Falcon3-1B-Instruct","01-ai/Yi-Coder-1.5B","google/gemma2-2b-it"]:
             models[model_name] = pipeline("text-generation",
                                           model=model_path, device_map=device)
         else:
@@ -145,7 +154,6 @@ def list_hf_models():
     models = api.list_models(filter="text-generation")
     return [model.modelId for model in models]
 
-
 # 2. Download model from Hugging Face Hub
 def download_model(model_name):
     model_path = os.path.join(MODEL_DIR, model_name)
@@ -177,6 +185,22 @@ def log_request_info():
     if request.data:
         print(f"Payload: {request.data.decode('utf-8')}")
 
+# CLear model from Hugging Face Hub on memory
+@app.route('/clear_models', methods=['GET'])
+def clear_models():
+    # Clear all models in the dictionary
+    for key in list(models.keys()):
+        del models[key]
+
+    # Clear the dictionary itself
+    models.clear()
+
+    # If using PyTorch, free up GPU memory
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+
+    # Run garbage collection to free up memory
+    gc.collect()
 
 @app.route('/list_models', methods=['GET'])
 def list_models_endpoint():
@@ -237,13 +261,14 @@ def generate_text_GPT():
     # Extract parameters
     model_name = data.get('model','Phi-3.5-mini-instruct-Q8_0.gguf')
     
-    messages = data.get('messages')
+    messages = filterMessage(data.get('messages'))
     max_tokens = data.get('max_tokens', 512)
     print("maxtokens:"+str(max_tokens))
     temperature = data.get('temperature', 0.7)
     prompt = "<|begin_of_text|><|start_header_id|>system<|end_header_id|>"
     sysmessage = ""
     usermessage = ""
+    print(messages)
     for messageOb in messages:
         if(messageOb['role']=="system"):
             sysmessage = messageOb['content']
@@ -260,7 +285,7 @@ def generate_text_GPT():
             prompt = usermessage
     elif(model_name in ["Qwen/Qwen2.5-Coder-0.5B-Instruct","Qwen/Qwen2.5-Coder-1.5B-Instruct","infly/OpenCoder-1.5B-Instruct",
     "HuggingFaceTB/SmolLM2-1.7B-Instruct","Salesforce/xLAM-1b-fc-r","ibm-granite/granite-3.1-1b-a400m-instruct",
-    "deepseek-ai/deepseek-coder-1.3b-instruct","tiiuae/Falcon3-1B-Instruct"] or 
+    "deepseek-ai/deepseek-coder-1.3b-instruct","tiiuae/Falcon3-1B-Instruct","google/gemma2-2b-it"] or 
     model_name.endswith(".gguf")):
         prompt = messages
     else:
@@ -281,7 +306,7 @@ def generate_text_GPT():
         assistant_response = output.replace("response:","",1)
         prompt = f"{sysmessage}\n{usermessage}"
     elif(model_name in ["HuggingFaceTB/SmolLM2-1.7B-Instruct","Salesforce/xLAM-1b-fc-r",
-    "infly/OpenCoder-1.5B-Instruct",
+    "infly/OpenCoder-1.5B-Instruct","google/gemma2-2b-it",
     "deepseek-ai/deepseek-coder-1.3b-instruct","tiiuae/Falcon3-1B-Instruct",
     "ibm-granite/granite-3.1-1b-a400m-instruct"] 
     or model_name.endswith(".gguf")):
@@ -327,35 +352,25 @@ def openai_to_gemini():
             return jsonify({"error": "Invalid input"}), 400
         model = data.get('model','gemini-1.5-flash') #gemma-7b-it gemini-2.0-flash-exp
     
-        messages = data.get('messages')
+        messages = filterMessage(data.get('messages'))
         max_tokens = data.get('max_tokens', 512)
         print("maxtokens:"+str(max_tokens))
         temperature = data.get('temperature', 0.7)
         sysmessage = ""
         usermessage = ""
         for messageOb in messages:
-            if(messageOb['role']=="system"):
-                sysmessage = messageOb['content']
-            elif(messageOb['role']=="user"):
-                usermessage = messageOb['content']
-            else:
-                print("error:")
-                print(messageOb)
+            messagesNew.append({"role": "user", "parts": [{"text": messageOb['content']}]})
 
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"  # Gemini API endpoint
 
-        messages = [
-            {"role": "user", "parts": [{"text": sysmessage}]}, # System context is part of the user content in Gemini
-            {"role": "user", "parts": [{"text": usermessage}]}, # User's prompt
-        ]
-
         data = {
-            "contents": messages,
+            "contents": messagesNew,
             "generation_config": {
                 "temperature": temperature,
                 "max_output_tokens": max_tokens  # Correct parameter name for Gemini
             }
         }
+
         print(data)
         # Send the request to Gemini API
         gemini_response = requests.post(
@@ -371,7 +386,7 @@ def openai_to_gemini():
         # Transform Gemini response back to OpenAI format
         response_json = gemini_response.json()
         response = ""
-        print(response_json)
+        
         if response_json and 'candidates' in response_json and len(response_json['candidates']) > 0:
           if response_json['candidates'][0] and 'content' in response_json['candidates'][0] and response_json['candidates'][0]['content'] and 'parts' in response_json['candidates'][0]['content']:
               if response_json['candidates'][0]['content']['parts'] and len(response_json['candidates'][0]['content']['parts']) > 0 :
@@ -395,12 +410,88 @@ def openai_to_gemini():
         }
 
         return jsonify(openai_response)
-
     except Exception as e:
         print(e)
         return jsonify({"error": "An unexpected error occurred", "details": str(e)}), 500
 
+mistral_key = env_data["MISTRAL_API_KEY"]
 
+@app.route("/mistral", methods=["POST","GET"])
+def mistral_to_openai():
+    from mistralai import Mistral
+    try:
+        # Get the OpenAI-style input
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "Invalid input"}), 400
+        model = data.get('model','open-codestral-mamba')
+    
+        messages = filterMessage(data.get('messages'))
+
+        max_tokens = data.get('max_tokens', 512)
+        temperature = data.get('temperature', 0.7)
+        client = Mistral(api_key=mistral_key)
+        chat_response = client.chat.complete(
+            model= model,
+            max_tokens= max_tokens,
+            temperature= temperature,
+            messages = messages
+        )
+        openai_response = {
+            "choices": [
+                {
+                    "message": {
+                        "role": "assistant",
+                        "content": chat_response.choices[0].message.content
+                    },
+                    "finish_reason": "stop",
+                    "index": 0
+                }
+            ],
+            "usage": {
+                "prompt_tokens": chat_response.usage.prompt_tokens,
+                "completion_tokens": chat_response.usage.completion_tokens,
+                "total_tokens": chat_response.usage.total_tokens,
+            }
+        }
+        return jsonify(openai_response)
+    except Exception as e:
+        print(e)
+        return jsonify({"error": "An unexpected error occurred", "details": str(e)}), 500
+
+grok_key =  env_data["grok_key"]
+@app.route("/grok", methods=["POST","GET"])
+def grok_to_openai():
+    try:
+        data = request.get_json()
+        url = "https://api.x.ai/v1/chat/completions"  # Gemini API endpoint
+        model = data.get('model','grok-2-1212')
+        
+        messages = filterMessage(data.get('messages'))
+        max_tokens = data.get('max_tokens', 512)
+        temperature = data.get('temperature', 0.7)
+        data = {
+            "messages":messages,
+            "max_tokens":max_tokens,
+            "temperature":temperature,
+            "stream":False,
+            "model":model
+        }
+        
+        # Send the request to Grok
+        response = requests.post(
+            url,
+            headers={ "Content-Type": "application/json","Authorization": f"Bearer {grok_key}"},
+            json=data
+        )
+        if response.status_code != 200:
+            print(response.text)
+            return jsonify({"error": "Failed to query Gemini", "details": response.text}), 500
+        
+        return response.json()
+    except Exception as e:
+        print(e)
+        return jsonify({"error": "An unexpected error occurred", "details": str(e)}), 500
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="VLLM Local Server")
     parser.add_argument('--host', type=str, default='0.0.0.0', help='Host address for the server')

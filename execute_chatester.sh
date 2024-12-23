@@ -11,12 +11,16 @@ execute_command() {
   local exit_code=$?
 
   if [ $exit_code -eq 0 ]; then
-    echo "Successful execution of $folder/$env_file"
+    echo "Successful execution of $folder/$env_file" >>result.log
   else
-    echo "Problem in execution of $folder/$env_file: $output"
+    echo "Problem in execution of $folder/$env_file: $output" >>result.log
   fi
 }
+# Activate the virtual environment
+source vllm_env/bin/activate
 
+# Run main.py in the background
+python main.py &
 # Loop through each folder in the "envs" directory
 for folder in enfiles/*; do
   if [ -d "$folder" ]; then
@@ -30,5 +34,9 @@ for folder in enfiles/*; do
       # Execute the command and capture output
       execute_command "$testcommand" "$env_file" "$folder"
     done
+    python request.py 
   fi
 done
+# Shutdown the computer
+echo "All files processed. The system will shut down now."
+sudo shutdown -h now

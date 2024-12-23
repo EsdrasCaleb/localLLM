@@ -1,5 +1,7 @@
-torch
-dotenv
-huggingface_hub
+torch>=2.0.0
+transformers>=4.30.0
+datasets
+llama-cpp-python>=0.1.73
+scipy
+openvino
 accelerate
-llama-cpp-python
