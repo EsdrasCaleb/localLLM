@@ -170,7 +170,7 @@ def list_hf_models():
     return [model.modelId for model in models]
 
 # 2. Download model from Hugging Face Hub
-def download_model(model_name=model_name,file=None):
+def download_model(model_name,file=None):
     model_path = os.path.join(MODEL_DIR, model_name)
     if os.path.exists(model_path):
         return f"Model '{model_name}' is already downloaded."
