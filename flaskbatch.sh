@@ -6,10 +6,10 @@
 #SBATCH --mem=32GB                  # Allocate sufficient RAM
 #SBATCH --gpus=1                    # Request 1 GPU (if available)
 #SBATCH --partition=gpu             # Partition with GPU support (adjust as needed)
-#SBATCH --time=12:00:00             # Test greather model in 12hours
+#SBATCH --time=12:00:30             # Test greather model in 12hours
 
 # Load modules (adjust based on your environment)
-module load python/3.8              # Python version
+module load python/3.9              # Python version
 module load cuda/11.7               # CUDA version (if using GPUs)
 
 source $HOME/.bashrc
@@ -39,7 +39,15 @@ execute_command() {
 }
 
 # Run main.py in the background
-python main.py &
+python3.9 main.py &
+
+flask_pid=$!
+
+# Wait for Flask to initialize (use sleep or health check)
+echo "Waiting for Flask app to initialize..."
+sleep 30  # Adjust this as needed
+
+
 # Loop through each folder in the "envs" directory
 for folder in enfiles/*; do
   if [ -d "$folder" ]; then
@@ -53,8 +61,11 @@ for folder in enfiles/*; do
       execute_command "$command" "$env_file" "$folder"
     done
     echo "Clear Models"
-    python clear_models.py
+    python3.9 clear_models.py
   fi
 done
 
-echo "All files processed. Weee."
+# Stop Flask app
+kill $flask_pid
+
+echo "All files processed. The system will exit now."
