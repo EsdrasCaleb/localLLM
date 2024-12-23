@@ -8,7 +8,7 @@ from transformers import pipeline
 from flask import Flask, jsonify, request
 from huggingface_hub import HfApi, snapshot_download
 from transformers import AutoTokenizer,AutoModelForCausalLM
-from optimum.intel.openvino import OVModelForCausalLM
+#from optimum.intel.openvino import OVModelForCausalLM
 import gc
 #from dotenv import load_dotenv
 # Example usage
