@@ -23,8 +23,21 @@ if not HF_TOKEN:
 app = Flask(__name__)
 models = {}
 tokenizers = {}
+
+file_repo={
+    "OpenCoder-8B-Instruct-Q6_K.gguf":"lmstudio-community/OpenCoder-8B-Instruct-GGUF",
+    "Yi-Coder-9B-Chat-Q4_K_M.gguf":"lmstudio-community/Yi-Coder-9B-Chat-GGUF",
+    "EXAONE-3.5-2.4B-Instruct-BF16.ggf"
+    "granite-3.1-8b-instruct-Q6_K.gguf":"lmstudio-community/granite-3.1-8b-instruct-GGUF",
+    "Llama-3.2-3B-Instruct-f16.gguf"
+    "gemma-2-9b-it-Q4_K_M-fp16.gguf"
+    "Ministral-8B-Instruct-2410-Q6_K_L.gguf"
+    "codegemma-7b-it-Q6_K.gguf"
+    "matteogeniaccio.phi-4.Q3_K_M.gguf"
+    "internlm2_5-7b-chat-q8_0.gguf"
+}
 # Path where models are stored
-MODEL_DIR = "./models"
+MODEL_DIR = env_data.get("model_dir","./models")
 os.makedirs(MODEL_DIR, exist_ok=True)
 
 def remove_repeated_last_line(text):
@@ -63,10 +76,10 @@ def generate_model(prompt,model_name,temperature,max_tokens):
                                                                       device_map=device
                                                                       )
             tokenizers[model_name] = AutoTokenizer.from_pretrained(model_path)
-        #elif model_name.endswith(".gguf"):
-            #from llama_cpp import Llama
-            #models[model_name] = Llama(model_path,
-            #n_ctx=len(str(prompt))+max_tokens,verbose=False, gpu_layers=20)
+        elif model_name.endswith(".gguf"):
+            from llama_cpp import Llama
+            models[model_name] = Llama(model_path,
+            _ctx=len(str(prompt))+max_tokens,verbose=False, gpu_layers=20)
         elif model_name in ["OpenVINO/codegen25-7b-multi-int4-ov","OpenVINO/codegen25-7b-multi-fp16-ov"]:
             tokenizers[model_name] = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
             tokenizers[model_name].pad_token = tokenizers[model_name].eos_token
@@ -155,23 +168,17 @@ def list_hf_models():
     return [model.modelId for model in models]
 
 # 2. Download model from Hugging Face Hub
-def download_model(model_name):
+def download_model(model_name=model_name,file=None):
     model_path = os.path.join(MODEL_DIR, model_name)
     if os.path.exists(model_path):
         return f"Model '{model_name}' is already downloaded."
 
     try:
-        patterns = [
-            "config.json",  # Model configuration
-            "pytorch_model.bin",  # Model weights
-            "tokenizer.json",  # Tokenizer
-            "vocab.json",  # Tokenizer vocabulary (if applicable)
-            "merges.txt",  # Tokenizer merges (if applicable)
-            "model.safetensors",
-            "generation_config.json",
-            "tokenizer_config.json", 
-        ]
-        snapshot_download(repo_id=model_name, local_dir=model_path, token=HF_TOKEN)
+        if(file):
+            snapshot_download(repo_id=model_name, local_dir=model_path, token=HF_TOKEN, 
+                filename=file)
+        else:
+            snapshot_download(repo_id=model_name, local_dir=model_path, token=HF_TOKEN)
         return f"Model '{model_name}' downloaded successfully."
     except Exception as e:
         raise ValueError(f"Failed to download model '{model_name}': {str(e)}")
