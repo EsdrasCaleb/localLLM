@@ -17,6 +17,7 @@ def load_project_path(project, projects_dir,classfile):
         str: Common package path prefix for the project
     """
     classes_file = os.path.join(projects_dir, "classes.txt")
+
     project_classes = []
     for line in classfile.split('\n'):
         parts = line.strip().split(maxsplit=1)
@@ -62,6 +63,12 @@ def create_env_files(projects_dir, models_file):
       class_file = data.read()
     for  project in os.listdir(projects_dir) :
       if os.path.isdir(os.path.join(projects_dir, project)) and project not in ["lib", "classes.txt"]:
+        # Create the target folder inside the project folder
+        target_folder_path = os.path.join(projects_dir,project, "target")
+
+        # Create the folder if it does not exist
+        if not os.path.exists(target_folder_path):
+            os.makedirs(target_folder_path)
         projects[project] = load_project_path(project,projects_dir,class_file)
     
     for model, url in model_urls.items():
