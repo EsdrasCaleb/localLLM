@@ -27,14 +27,14 @@ tokenizers = {}
 file_repo={
     "OpenCoder-8B-Instruct-Q6_K.gguf":"lmstudio-community/OpenCoder-8B-Instruct-GGUF",
     "Yi-Coder-9B-Chat-Q4_K_M.gguf":"lmstudio-community/Yi-Coder-9B-Chat-GGUF",
-    "EXAONE-3.5-2.4B-Instruct-BF16.ggf"
+    "EXAONE-3.5-2.4B-Instruct-BF16.ggf":"LGAI-EXAONE/EXAONE-3.5-2.4B-Instruct-GGUF",
     "granite-3.1-8b-instruct-Q6_K.gguf":"lmstudio-community/granite-3.1-8b-instruct-GGUF",
-    "Llama-3.2-3B-Instruct-f16.gguf"
-    "gemma-2-9b-it-Q4_K_M-fp16.gguf"
-    "Ministral-8B-Instruct-2410-Q6_K_L.gguf"
-    "codegemma-7b-it-Q6_K.gguf"
-    "matteogeniaccio.phi-4.Q3_K_M.gguf"
-    "internlm2_5-7b-chat-q8_0.gguf"
+    "Llama-3.2-3B-Instruct-f16.gguf":"second-state/Llama-3.2-3B-Instruct-GGUF",
+    "gemma-2-9b-it-Q4_K_M-fp16.gguf":"bartowski/gemma-2-9b-it-GGUF",
+    "Ministral-8B-Instruct-2410-Q6_K_L.gguf":"bartowski/Ministral-8B-Instruct-2410-GGUF",
+    "codegemma-7b-it-Q6_K.gguf":"second-state/CodeGemma-7b-it-GGUF",
+    "matteogeniaccio.phi-4.Q3_K_M.gguf":"matteogeniaccio/phi-4",
+    "internlm2_5-7b-chat-q8_0.gguf":"internlm/internlm2_5-7b-chat-gguf",
 }
 # Path where models are stored
 MODEL_DIR = env_data.get("model_dir","./models")
@@ -60,14 +60,16 @@ def filterMessage(messages):
 
 def generate_model(prompt,model_name,temperature,max_tokens):
     device = "cuda" if torch.cuda.is_available() else "cpu"
+    file_name = None
     if model_name.endswith(".gguf"):
         model_name = os.path.join("gguf", model_name)
+        file_name = file_repo[model_name]
     if not model_name in models:
         model_path = os.path.join(MODEL_DIR, model_name)
         if not os.path.exists(model_path):
             try:
                 print("Downloading pretrained model..."+model_name)
-                download_model(model_name)
+                download_model(model_name=model_name,file=file_name)
             except ValueError as e:
                 return jsonify({"error": str(e)}), 400
         if model_name in ["google/recurrentgemma-2b-it","google/codegemma-2b"
