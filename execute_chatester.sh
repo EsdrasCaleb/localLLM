@@ -34,7 +34,7 @@ for folder in enfiles/*; do
       # Execute the command and capture output
       execute_command "$testcommand" "$env_file" "$folder"
     done
-    python request.py 
+    python clear_models.py 
   fi
 done
 # Shutdown the computer
