@@ -12,7 +12,6 @@
 module load python/3.8              # Python version
 module load cuda/11.7               # CUDA version (if using GPUs)
 
-start_time=$(date +%s)
 source $HOME/.bashrc
 # Activate virtual environment (if needed)
 source vllm_env/bin/activate  # Update with your virtual environment path
@@ -49,8 +48,7 @@ for folder in enfiles/*; do
     # Loop through each .env file in the folder
     for env_file in "$folder"/*; do
       # Construct the command
-      command="java -jar ../chatunitest-standalone/target/chatunitest-standalone-1.0.0.jar $env_file project"
-      testcommand="java -jar ../chatunitest-standalone/target/chatunitest-standalone-1.0.0.jar $env_file test $env_file"
+      command="java -jar chatunitest-standalone-1.0.0.jar $env_file project"
       # Execute the command and capture output
       execute_command "$command" "$env_file" "$folder"
     done
