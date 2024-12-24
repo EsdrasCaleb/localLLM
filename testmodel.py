@@ -1,5 +1,5 @@
 import os
-from auxfunctions import generate_model,generate_prompt,load_env_file
+from auxfunctions import generate_model,generate_prompt,load_env_file,clear_models_from_mem
 file_path = '.env'
 env_data = load_env_file(file_path)
 # Path to the folder containing GGUF model files
@@ -35,5 +35,5 @@ for model_name in models:
     # Print the output
     print(f"Response from {model_name}:")
     print(result)
-    clear_models()
+    clear_models_from_mem()
     
