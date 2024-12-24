@@ -26,7 +26,7 @@ flask_pid=$!
 # Wait for Flask to initialize (use sleep or health check)
 echo "Waiting for Flask app to initialize..."
 python generate_chatenv.py
-sleep 15  # Adjust this as needed
+sleep 10  # Adjust this as needed
 # Loop through each folder in the "envs" directory
 for folder in enfiles/*; do
   if [ -d "$folder" ]; then
