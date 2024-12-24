@@ -27,12 +27,8 @@ for model_name in models:
 
         # Create chat completion
         result = generate_model(
-            messages=[
-                {
-                    "role": "user",
-                    "content": prompt
-                }
-            ],
+            prompt=prompt,
+            model_name=model_name,
             max_tokens=256,
             temperature=0.7
         )
