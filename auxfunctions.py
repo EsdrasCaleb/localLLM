@@ -239,8 +239,9 @@ def download_model(model_name,file=None):
                 shutil.rmtree(cache_dir)
         else:
             local_cache = os.path.join(model_path,".cache")
-            snapshot_download(repo_id=model_name, local_dir=model_path, token=HF_TOKEN,ignore_patterns=["*onnx*","runs","*guff*"])
-            if(os.path.exists(local_cache),cache_dir=local_cache):
+            snapshot_download(repo_id=model_name, local_dir=model_path,cache_dir=local_cache,
+            token=HF_TOKEN,ignore_patterns=["*onnx*","runs","*guff*"])
+            if(os.path.exists(local_cache)):
                 shutil.rmtree(cache_dir)
 
         return f"Model '{model_name}' downloaded successfully."
