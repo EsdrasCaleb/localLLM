@@ -38,7 +38,7 @@ for folder in enfiles/*; do
       command="sudo -u caleb java -jar chatunitest-standalone.jar $env_file project"
       testcommand="sudo -u caleb java -jar chatunitest-standalone.jar $env_file test $env_file"
       # Execute the command and capture output
-      execute_command "$testcommand" "$env_file" "$folder"
+      execute_command "$command" "$env_file" "$folder"
     done
     echo "Clear Models"
     python clear_models.py
@@ -48,4 +48,4 @@ done
 # Shutdown the computer
 kill $flask_pid
 echo "All files processed. The system will shut down now."
-#shutdown -h now
+shutdown -h now
