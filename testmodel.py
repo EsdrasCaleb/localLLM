@@ -10,7 +10,7 @@ prompt="// Focal class\npublic class Query {\nprotected String serverURL,\n    a
 # Iterate through all files in the folder
 for model_filename in os.listdir(models_folder):
     model_path = os.path.join(models_folder, model_filename)
-
+    print(os.path.exists(model_path)) 
     # Check if the file is a GGUF model
     #if model_filename.startswith("ggml-c4ai-command-r7b-12-2024-q4_k") and model_filename.endswith(".gguf"):
     if model_filename in ["gemma-2-9b-it-Q4_K_M-fp16.gguf","Ministral-8B-Instruct-2410-Q6_K_L.gguf"]:
