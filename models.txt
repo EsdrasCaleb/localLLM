@@ -1,1 +1,1 @@
-Phi-3.5-mini-instruct-Q8_0.gguf http://localhost:5000/generate_model
+meta-llama/Llama-3.2-1B-Instruct http://localhost:5000/generate_model

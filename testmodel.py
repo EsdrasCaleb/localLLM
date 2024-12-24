@@ -5,7 +5,7 @@ from loadenv import load_env_file
 env_data = load_env_file(file_path)
 # Path to the folder containing GGUF model files
 models_folder = os.path.join(env_data.get("model_dir","./models"),"gguf")
-models=["meta-llama/Llama-3.2-1B-Instruct"]
+models=["HuggingFaceTB/SmolLM2-1.7B-Instruct"]
 prompt="give me e small java class that calculate the area of a polygon"
 messages=[
     {
