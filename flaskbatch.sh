@@ -6,7 +6,7 @@
 #SBATCH --mem=32GB                  # Allocate sufficient RAM
 #SBATCH --gpus=1                    # Request 1 GPU (if available)
 #SBATCH --partition=amd-512            # Partition with GPU support (adjust as needed)
-#SBATCH --time=00:25:30             # Test greather model in 12hours
+#SBATCH --time=00:05:00             # Test greather model in 12hours
 
 # Load modules (adjust based on your environment)
 module load python/3.9              # Python version
@@ -45,7 +45,7 @@ flask_pid=$!
 
 # Wait for Flask to initialize (use sleep or health check)
 echo "Waiting for Flask app to initialize..."
-sleep 30  # Adjust this as needed
+sleep 10  # Adjust this as needed
 
 
 # Loop through each folder in the "envs" directory
