@@ -1,1 +1,1 @@
-gemma-2-9b-it-Q4_K_M-fp16.gguf http://localhost:5000/generate_model
+Phi-3.5-mini-instruct-Q8_0.gguf http://localhost:5000/generate_model
