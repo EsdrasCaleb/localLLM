@@ -13,7 +13,7 @@ for model_filename in os.listdir(models_folder):
     model_path = os.path.join(models_folder, model_filename)
     # Check if the file is a GGUF model
     #if model_filename.startswith("ggml-c4ai-command-r7b-12-2024-q4_k") and model_filename.endswith(".gguf"):
-    if model_filename in ["Ministral-8B-Instruct-2410-Q6_K_L.gguf"]:
+    if model_filename in ["Yi-Coder-9B-Chat-Q4_K_M.gguf","Ministral-8B-Instruct-2410-Q6_K_L.gguf"]:
         print(f"Testing model: {model_filename}")
 
         try:
