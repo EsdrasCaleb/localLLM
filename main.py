@@ -100,7 +100,7 @@ def generate_model(prompt,model_name,temperature,max_tokens):
             try:
                 print("Downloading pretrained model..."+model_name)
                 if(file_name):
-                    download_model(model_name=file_repo[model_name],file=file_name)
+                    download_model(model_name=file_repo[file_name],file=file_name)
                 else:
                     download_model(model_name=model_name)
             except ValueError as e:
