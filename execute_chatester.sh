@@ -9,7 +9,7 @@ execute_command() {
 
   if [ $exit_code -eq 0 ]; then
     sudo -u caleb echo "Successful execution of $folder/$env_file" >>executions.log 
-    sudo -u caleb echo "\nLog of $folder/$env_file:\n $output\n" >> logs.log
+    sudo -u caleb echo -e "\nLog of $folder/$env_file:\n $output\n\n" >> logs.log
     rm $env_file
   else
     sudo -u caleb echo "Problem in execution of $folder/$env_file: $output" >>errors.log
@@ -42,6 +42,7 @@ for folder in enfiles/*; do
     done
     echo "Clear Models"
     python clear_models.py
+    rm -r $folder
   fi
 done
 # Shutdown the computer
