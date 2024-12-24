@@ -15,11 +15,14 @@ execute_command() {
     echo "Problem in execution of $folder/$env_file: $output" >>result.log
   fi
 }
-
-
+export TF_ENABLE_ONEDNN_OPTS=0
+export CUDA_VISIBLE_DEVICES=""
 # Run main.py in the background
 python main.py &
 flask_pid=$!
+# Wait for Flask to initialize (use sleep or health check)
+echo "Waiting for Flask app to initialize..."
+sleep 15  # Adjust this as needed
 # Loop through each folder in the "envs" directory
 for folder in enfiles/*; do
   if [ -d "$folder" ]; then
