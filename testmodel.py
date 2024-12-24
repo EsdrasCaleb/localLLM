@@ -4,7 +4,7 @@ file_path = '.env'
 env_data = load_env_file(file_path)
 # Path to the folder containing GGUF model files
 models_folder = os.path.join(env_data.get("model_dir","./models"),"gguf")
-models=["Ministral-8B-Instruct-2410-Q6_K_L.gguf"]
+models=["codegemma-7b-it-Q6_K.gguf"]
 prompt="give me e small java class that calculate the area of a polygon"
 messages=[
     {
