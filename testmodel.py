@@ -1,5 +1,5 @@
 import os
-from main import generate_model,clear_models,generate_prompt
+from auxfunctions import *
 file_path = '.env'
 from loadenv import load_env_file
 env_data = load_env_file(file_path)
