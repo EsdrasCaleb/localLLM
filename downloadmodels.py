@@ -13,5 +13,5 @@ file_repo={
     #"internlm2_5-7b-chat-q8_0.gguf":"internlm/internlm2_5-7b-chat-gguf",
 }
 
-for item,module in file.items():
+for item,module in file_repo.items():
     download_model(module,item)
