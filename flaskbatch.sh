@@ -45,7 +45,7 @@ flask_pid=$!
 
 # Wait for Flask to initialize (use sleep or health check)
 echo "Waiting for Flask app to initialize..."
-sleep 10  # Adjust this as needed
+#sleep 10  # Adjust this as needed
 
 
 # Loop through each folder in the "envs" directory
