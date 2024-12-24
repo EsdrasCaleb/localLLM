@@ -8,6 +8,7 @@ from transformers import pipeline
 from flask import Flask, jsonify, request
 from huggingface_hub import HfApi, snapshot_download
 from transformers import AutoTokenizer,AutoModelForCausalLM
+import shutil
 #from optimum.intel.openvino import OVModelForCausalLM
 import gc
 #from dotenv import load_dotenv
@@ -211,10 +212,18 @@ def download_model(model_name,file=None):
     try:
         if(file):
             snapshot_download(repo_id=model_name, local_dir=os.path.join(MODEL_DIR, 'gguf'), token=HF_TOKEN, 
-                allow_patterns=[file],local_files_only=true)
+                allow_patterns=[file])
+            local_cache = os.path.join(MODEL_DIR,'gguf',".cache")
+            if(os.path.exists(local_cache)):
+                shutil.rmtree(cache_dir)
         else:
             snapshot_download(repo_id=model_name, local_dir=model_path, token=HF_TOKEN,ignore_patterns=["*onnx*","runs","*guff*"])
+            local_cache = os.path.join(model_path,".cache")
+            if(os.path.exists(local_cache)):
+                shutil.rmtree(cache_dir)
+
         return f"Model '{model_name}' downloaded successfully."
+       
     except Exception as e:
         raise ValueError(f"Failed to download model '{model_name}': {str(e)}")
 
