@@ -122,14 +122,11 @@ def generate_model(prompt,model_name,temperature,max_tokens):
     if not model_name in models:
         model_path = os.path.join(MODEL_DIR, model_name)
         if not os.path.exists(model_path):
-            try:
-                print("Downloading pretrained model..."+model_name)
-                if(file_name):
-                    download_model(model_name=file_repo[file_name],file=file_name)
-                else:
-                    download_model(model_name=model_name)
-            except ValueError as e:
-                return jsonify({"error": str(e)}), 400
+            print("Downloading pretrained model..."+model_name)
+            if(file_name):
+                download_model(model_name=file_repo[file_name],file=file_name)
+            else:
+                download_model(model_name=model_name)
         if model_name in ["google/recurrentgemma-2b-it","google/codegemma-2b"
             ,"ibm-granite/granite-3.1-1b-a400m-instruct"]:
             models[model_name] = AutoModelForCausalLM.from_pretrained(model_path,
