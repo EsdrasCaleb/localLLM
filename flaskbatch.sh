@@ -5,7 +5,7 @@
 #SBATCH --cpus-per-task=8           # Adjust based on Flask requirements
 #SBATCH --mem=32GB                  # Allocate sufficient RAM
 #SBATCH --gpus=1                    # Request 1 GPU (if available)
-#SBATCH --partition=gpu             # Partition with GPU support (adjust as needed)
+#SBATCH --partition=amd-512            # Partition with GPU support (adjust as needed)
 #SBATCH --time=12:00:30             # Test greather model in 12hours
 
 # Load modules (adjust based on your environment)
