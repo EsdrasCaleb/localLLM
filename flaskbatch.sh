@@ -5,7 +5,7 @@
 #SBATCH --time=12:00:00             # Test greather model in 12hours
 
 # Load modules (adjust based on your environment)
-module load python/3.9              # Python version
+#module load python/3.9              # Python version
 module load cuda/11.7               # CUDA version (if using GPUs)
 
 source $HOME/.bashrc
