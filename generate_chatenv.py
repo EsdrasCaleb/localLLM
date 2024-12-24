@@ -70,11 +70,13 @@ def create_env_files(projects_dir, models_file):
         if not os.path.exists(target_folder_path):
             os.makedirs(target_folder_path)
         projects[project] = load_project_path(project,projects_dir,class_file)
-    
+    indexname = 0
     for model, url in model_urls.items():
         model_ar = model.split("/")
         model_name = model_ar[-1]
-        model_dir = os.path.join("./enfiles", model_name)
+        model_dir = os.path.join("./enfiles", f"{indexname:03}_{model_name}")
+        indexname += 1
+        #model_dir = os.path.join("./enfiles", model_name)
         os.makedirs(model_dir, exist_ok=True)
         
         for project,project_path in projects.items():

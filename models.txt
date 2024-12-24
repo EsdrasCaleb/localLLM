@@ -1,1 +1,5 @@
-starcoder2-7b-Q8_0.gguf http://localhost:5000/generate_model
+granite-3.1-8b-instruct-Q6_K.gguf   http://localhost:5000/generate_model
+codegemma-7b-it-Q6_K.gguf           http://localhost:5000/generate_model
+matteogeniaccio.phi-4.Q3_K_M.gguf   http://localhost:5000/generate_model
+gemini-1.5-flash                    http://localhost:5000/google
+open-codestral-mamba                http://localhost:5000/mistral
