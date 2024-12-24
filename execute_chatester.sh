@@ -9,10 +9,10 @@ execute_command() {
 
   if [ $exit_code -eq 0 ]; then
     sudo -u caleb echo "Successful execution of $folder/$env_file" >>executions.log 
-    sudo -u calebca echo "\nLog of $folder/$env_file:\n $output\n" >> logs.log
+    sudo -u caleb echo "\nLog of $folder/$env_file:\n $output\n" >> logs.log
     rm $env_file
   else
-    echo "Problem in execution of $folder/$env_file: $output" >>errors.log
+    sudo -u caleb echo "Problem in execution of $folder/$env_file: $output" >>errors.log
   fi
 }
 export TF_ENABLE_ONEDNN_OPTS=0
@@ -31,8 +31,8 @@ for folder in enfiles/*; do
     # Loop through each .env file in the folder
     for env_file in "$folder"/*; do
       # Construct the command
-      command="sudo -u caleb java -jar chatunitest-standalone-1.0.0.jar $env_file project"
-      testcommand="sudo -u caleb java -jar chatunitest-standalone-1.0.0.jar $env_file test $env_file"
+      command="sudo -u caleb java -jar chatunitest-standalone.jar $env_file project"
+      testcommand="sudo -u caleb java -jar chatunitest-standalone.jar $env_file test $env_file"
       # Execute the command and capture output
       execute_command "$testcommand" "$env_file" "$folder"
     done
@@ -43,4 +43,4 @@ done
 # Shutdown the computer
 kill $flask_pid
 echo "All files processed. The system will shut down now."
-shutdown -h now
+#shutdown -h now
