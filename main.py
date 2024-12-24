@@ -2,7 +2,6 @@ import os
 import auxfunctions
 import requests
 import argparse
-import torch
 from flask import Flask, jsonify, request
 
 # Load environment variables
