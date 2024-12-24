@@ -6,7 +6,7 @@
 #SBATCH --mem=32GB                  # Allocate sufficient RAM
 #SBATCH --gpus=1                    # Request 1 GPU (if available)
 #SBATCH --partition=amd-512            # Partition with GPU support (adjust as needed)
-#SBATCH --time=00:05:00             # Test greather model in 12hours
+#SBATCH --time=12:00:00             # Test greather model in 12hours
 
 # Load modules (adjust based on your environment)
 module load python/3.9              # Python version
