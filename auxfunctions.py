@@ -50,9 +50,10 @@ models = {}
 tokenizers = {}
 
 file_repo={
+    "Phi-3.5-mini-instruct-Q8_0.gguf": "bartowski/Phi-3.5-mini-instruct-GGUF",
+    "Yi-Coder-9B-Chat-Q4_K_M.gguf": "lmstudio-community/Yi-Coder-9B-Chat-GGUF",
+    "EXAONE-3.5-2.4B-Instruct-BF16.gguf": "LGAI-EXAONE/EXAONE-3.5-2.4B-Instruct-GGUF",
     "OpenCoder-8B-Instruct-Q6_K.gguf":"lmstudio-community/OpenCoder-8B-Instruct-GGUF",
-    "Yi-Coder-9B-Chat-Q4_K_M.gguf":"lmstudio-community/Yi-Coder-9B-Chat-GGUF",
-    "EXAONE-3.5-2.4B-Instruct-BF16.gguf":"LGAI-EXAONE/EXAONE-3.5-2.4B-Instruct-GGUF",
     "granite-3.1-8b-instruct-Q6_K.gguf":"lmstudio-community/granite-3.1-8b-instruct-GGUF",
     "Llama-3.2-3B-Instruct-f16.gguf":"second-state/Llama-3.2-3B-Instruct-GGUF",
     "gemma-2-9b-it-Q4_K_M-fp16.gguf":"bartowski/gemma-2-9b-it-GGUF",
@@ -60,8 +61,7 @@ file_repo={
     "codegemma-7b-it-Q6_K.gguf":"second-state/CodeGemma-7b-it-GGUF",
     "matteogeniaccio.phi-4.Q3_K_M.gguf":"DevQuasar/matteogeniaccio.phi-4-GGUF",
     "internlm2_5-7b-chat-q8_0.gguf":"internlm/internlm2_5-7b-chat-gguf",
-    "starcoder2-7b-Q8_0.gguf":"second-state/StarCoder2-7B-GGUF",
-    "starcoder2-3b-Q8_0.gguf":"second-state/StarCoder2-3B-GGUF",
+    "starcoder2-7b-Q8_0.gguf":"second-state/StarCoder2-7B-GGUF"
 }
 # Path where models are stored
 MODEL_DIR = env_data.get("model_dir","./models")
