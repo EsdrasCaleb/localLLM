@@ -121,7 +121,7 @@ def generate_model(prompt,model_name,temperature,max_tokens):
         model_name = os.path.join("gguf", model_name)
     if not model_name in models:
         model_path = os.path.join(MODEL_DIR, model_name)
-        if not os.path.exists(model_path)):
+        if not os.path.exists(model_path):
             try:
                 print("Downloading pretrained model..."+model_name)
                 if(file_name):
