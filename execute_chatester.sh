@@ -10,6 +10,7 @@ execute_command() {
   if [ $exit_code -eq 0 ]; then
     echo "Successful execution of $folder/$env_file" >>result.log 
     echo "\nLog of $folder/$env_file:\n $output\n" >> succes.log
+    rm $env_file
   else
     echo "Problem in execution of $folder/$env_file: $output" >>result.log
   fi

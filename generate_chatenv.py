@@ -1,6 +1,6 @@
 import os
 import re
-from loadenv import load_env_file
+from auxfunctions import load_env_file
 file_path = '.env'
 env_data = load_env_file(file_path)
 
