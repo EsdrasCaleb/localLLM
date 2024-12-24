@@ -1,7 +1,7 @@
 import requests
 from main import download_model
 file_repo={
-    "Phi-3.5-mini-instruct-Q8_0.gguf"
+    "Phi-3.5-mini-instruct-Q8_0.gguf",
     #"OpenCoder-8B-Instruct-Q6_K.gguf":"lmstudio-community/OpenCoder-8B-Instruct-GGUF",
     "Yi-Coder-9B-Chat-Q4_K_M.gguf":"lmstudio-community/Yi-Coder-9B-Chat-GGUF",
     #"EXAONE-3.5-2.4B-Instruct-BF16.ggf":"LGAI-EXAONE/EXAONE-3.5-2.4B-Instruct-GGUF",
