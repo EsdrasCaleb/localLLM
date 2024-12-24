@@ -211,7 +211,7 @@ def download_model(model_name,file=None):
     try:
         if(file):
             snapshot_download(repo_id=model_name, local_dir=os.path.join(MODEL_DIR, 'gguf'), token=HF_TOKEN, 
-                allow_patterns=[file])
+                allow_patterns=[file],local_files_only=true)
         else:
             snapshot_download(repo_id=model_name, local_dir=model_path, token=HF_TOKEN,ignore_patterns=["*onnx*","runs","*guff*"])
         return f"Model '{model_name}' downloaded successfully."
