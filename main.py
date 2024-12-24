@@ -1,21 +1,13 @@
 import os
-
-from auxfunctions import *
+import auxfunctions
 import requests
-import torch
 import argparse
-from transformers import pipeline
 from flask import Flask, jsonify, request
-from huggingface_hub import HfApi, snapshot_download
-from transformers import AutoTokenizer,AutoModelForCausalLM
-import shutil
-#from optimum.intel.openvino import OVModelForCausalLM
-import gc
-#from dotenv import load_dotenv
 
 # Load environment variables
 #load_dotenv()
-
+file_path = '.env'
+env_data = auxfunctions.load_env_file(file_path)
 
 app = Flask(__name__)
 
@@ -30,23 +22,11 @@ def log_request_info():
 # CLear model from Hugging Face Hub on memory
 @app.route('/clear_models', methods=['GET'])
 def clear_models():
-    # Clear all models in the dictionary
-    for key in list(models.keys()):
-        del models[key]
-
-    # Clear the dictionary itself
-    models.clear()
-
-    # If using PyTorch, free up GPU memory
-    if torch.cuda.is_available():
-        torch.cuda.empty_cache()
-
-    # Run garbage collection to free up memory
-    gc.collect()
+    auxfunctions.clear_models_from_mem()
 
 @app.route('/list_models', methods=['GET'])
 def list_models_endpoint():
-    return jsonify(list_hf_models())
+    return jsonify(auxfunctions.list_hf_models())
 
 
 @app.route('/download_model', methods=['POST','GET'])
@@ -57,60 +37,27 @@ def download_model_endpoint():
         return jsonify({"error": "'model_name' is required."}), 400
 
     try:
-        result = download_model(model_name)
+        result = auxfunctions.download_model(model_name)
         return jsonify({"message": result})
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
 
 
-@app.route('/generate', methods=['POST'])
-def generate_text():
-    data = request.get_json()
-
-    # Extract parameters
-    model_name = data.get('model')
-    prompt = data.get('prompt')
-    max_tokens = data.get('max_tokens', 512)
-    temperature = data.get('temperature', 0.7)
-
-    if not model_name or not prompt:
-        return jsonify({"error": "'model' and 'prompt' are required."}), 400
-   
-    try:
-        output = generate_model(prompt=prompt,model_name=model_name,
-            temperature=temperature,max_tokens=max_tokens)
-
-        # Split the output from the superprompt length
-        assistant_response = output[len(prompt):].strip()
-        return jsonify({
-            "model": model_name,
-            "prompt": prompt,
-            "choices": [{"text": assistant_response}],
-            "usage": {
-                "prompt_tokens": len(prompt.split()),
-                "completion_tokens": len(output.split()),
-                "total_tokens": len(prompt.split()) + len(output.split())
-            }
-        })
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-
 @app.route('/generate_model', methods=['POST','GET'])
-def generate_text_GPT():
+def generate_text():
     data = request.get_json()
 
     # Extract parameters
     model_name = data.get('model','Phi-3.5-mini-instruct-Q8_0.gguf')
     
-    messages = filterMessage(data.get('messages'))
+    messages = auxfunctions.filterMessage(data.get('messages'))
     max_tokens = data.get('max_tokens', 512)
     print("maxtokens:"+str(max_tokens))
     temperature = data.get('temperature', 0.7)
     prompt,sysmessage,usermessage = generate_prompt(messages=messages,model_name=model_name)
     if not model_name or not prompt:
         return jsonify({"error": "'model' and 'prompt' are required."}), 400
-    output = generate_model(prompt=prompt,model_name=model_name,
+    output = auxfunctions.generate_model(prompt=prompt,model_name=model_name,
         temperature=temperature,max_tokens=max_tokens)
     #print("rawresponse:" + output)
     # Split the output from the superprompt length
@@ -167,7 +114,7 @@ def openai_to_gemini():
             return jsonify({"error": "Invalid input"}), 400
         model = data.get('model','gemini-1.5-flash') #gemma-7b-it gemini-2.0-flash-exp
     
-        messages = filterMessage(data.get('messages'))
+        messages = auxfunctions.filterMessage(data.get('messages'))
         max_tokens = data.get('max_tokens', 512)
         print("maxtokens:"+str(max_tokens))
         temperature = data.get('temperature', 0.7)
@@ -241,7 +188,7 @@ def mistral_to_openai():
             return jsonify({"error": "Invalid input"}), 400
         model = data.get('model','open-codestral-mamba')
     
-        messages = filterMessage(data.get('messages'))
+        messages = auxfunctions.filterMessage(data.get('messages'))
 
         max_tokens = data.get('max_tokens', 512)
         temperature = data.get('temperature', 0.7)
@@ -282,7 +229,7 @@ def grok_to_openai():
         url = "https://api.x.ai/v1/chat/completions"  # Gemini API endpoint
         model = data.get('model','grok-2-1212')
         
-        messages = filterMessage(data.get('messages'))
+        messages = auxfunctions.filterMessage(data.get('messages'))
         max_tokens = data.get('max_tokens', 512)
         temperature = data.get('temperature', 0.7)
         data = {

@@ -1,3 +1,13 @@
+import torch
+import argparse
+from transformers import pipeline
+from huggingface_hub import HfApi, snapshot_download
+from transformers import AutoTokenizer,AutoModelForCausalLM
+import shutil
+#from optimum.intel.openvino import OVModelForCausalLM
+import gc
+import os
+
 def load_env_file(file_path):
     env_dict = {}
     try:
@@ -240,3 +250,18 @@ def download_model(model_name,file=None):
        
     except Exception as e:
         raise ValueError(f"Failed to download model '{model_name}': {str(e)}")
+
+def clear_models_from_mem():
+    # Clear all models in the dictionary
+    for key in list(models.keys()):
+        del models[key]
+
+    # Clear the dictionary itself
+    models.clear()
+
+    # If using PyTorch, free up GPU memory
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+
+    # Run garbage collection to free up memory
+    gc.collect()
