@@ -62,8 +62,8 @@ def generate_model(prompt,model_name,temperature,max_tokens):
     device = "cuda" if torch.cuda.is_available() else "cpu"
     file_name = None
     if model_name.endswith(".gguf"):
-        model_name = os.path.join("gguf", model_name)
         file_name = file_repo[model_name]
+        model_name = os.path.join("gguf", model_name)
     if not model_name in models:
         model_path = os.path.join(MODEL_DIR, model_name)
         if not os.path.exists(model_path):

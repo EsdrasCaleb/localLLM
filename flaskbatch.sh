@@ -10,7 +10,7 @@ module load cuda/11.7               # CUDA version (if using GPUs)
 
 source $HOME/.bashrc
 # Activate virtual environment (if needed)
-source vllm_env/bin/activate  # Update with your virtual environment path
+source $HOME/localLLM/vllm_env/bin/activate  # Update with your virtual environment path
 
 # Function to execute a command and capture its output
 execute_command() {
