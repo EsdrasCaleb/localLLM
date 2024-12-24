@@ -8,11 +8,11 @@ execute_command() {
   local exit_code=$?
 
   if [ $exit_code -eq 0 ]; then
-    echo "Successful execution of $folder/$env_file" >>result.log 
-    echo "\nLog of $folder/$env_file:\n $output\n" >> succes.log
+    sudo -u caleb echo "Successful execution of $folder/$env_file" >>executions.log 
+    sudo -u calebca echo "\nLog of $folder/$env_file:\n $output\n" >> logs.log
     rm $env_file
   else
-    echo "Problem in execution of $folder/$env_file: $output" >>result.log
+    echo "Problem in execution of $folder/$env_file: $output" >>errors.log
   fi
 }
 export TF_ENABLE_ONEDNN_OPTS=0
