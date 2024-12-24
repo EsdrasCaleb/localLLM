@@ -40,6 +40,36 @@ file_repo={
 MODEL_DIR = env_data.get("model_dir","./models")
 os.makedirs(MODEL_DIR, exist_ok=True)
 
+def generate_prompt(messages,model_name):
+    prompt = "<|begin_of_text|><|start_header_id|>system<|end_header_id|>"
+    sysmessage = ""
+    usermessage = ""
+    for messageOb in messages:
+        if(messageOb['role']=="system"):
+            sysmessage = messageOb['content']
+        elif(messageOb['role']=="user"):
+            usermessage = messageOb['content']
+        else:
+            print("error:")
+            print(messageOb)
+    if(model_name in ["meta-llama/Llama-3.2-1B-Instruct","meta-llama/Llama-3.2-3B-Instruct" ,
+                      "OpenVINO/Llama-3.1-8B-Instruct-FastDraft-150M-int8-ov"]):
+        if(len(sysmessage)>0):
+            prompt += f"{sysmessage}<|eot_id|><|eot_id|><|start_header_id|>user<|end_header_id|>{usermessage}<|eot_id|><|start_header_id|>assistant<|end_header_id|>"
+        else:
+            prompt = usermessage
+    elif(model_name in ["Qwen/Qwen2.5-Coder-0.5B-Instruct","Qwen/Qwen2.5-Coder-1.5B-Instruct","infly/OpenCoder-1.5B-Instruct",
+    "HuggingFaceTB/SmolLM2-1.7B-Instruct","Salesforce/xLAM-1b-fc-r","ibm-granite/granite-3.1-1b-a400m-instruct",
+    "deepseek-ai/deepseek-coder-1.3b-instruct","tiiuae/Falcon3-1B-Instruct","google/gemma2-2b-it"] or 
+    model_name.endswith(".gguf")):
+        prompt = messages
+    else:
+        prompt =""
+        if(len(sysmessage)>0):
+            prompt =f"{sysmessage}\n"
+        prompt += f"{usermessage}"
+    return prompt,sysmessage,usermessage
+
 def remove_repeated_last_line(text):
     lines = text.splitlines()  # Split the input into lines
     if not lines:
@@ -277,34 +307,7 @@ def generate_text_GPT():
     max_tokens = data.get('max_tokens', 512)
     print("maxtokens:"+str(max_tokens))
     temperature = data.get('temperature', 0.7)
-    prompt = "<|begin_of_text|><|start_header_id|>system<|end_header_id|>"
-    sysmessage = ""
-    usermessage = ""
-    print(messages)
-    for messageOb in messages:
-        if(messageOb['role']=="system"):
-            sysmessage = messageOb['content']
-        elif(messageOb['role']=="user"):
-            usermessage = messageOb['content']
-        else:
-            print("error:")
-            print(messageOb)
-    if(model_name in ["meta-llama/Llama-3.2-1B-Instruct","meta-llama/Llama-3.2-3B-Instruct" ,
-                      "OpenVINO/Llama-3.1-8B-Instruct-FastDraft-150M-int8-ov"]):
-        if(len(sysmessage)>0):
-            prompt += f"{sysmessage}<|eot_id|><|eot_id|><|start_header_id|>user<|end_header_id|>{usermessage}<|eot_id|><|start_header_id|>assistant<|end_header_id|>"
-        else:
-            prompt = usermessage
-    elif(model_name in ["Qwen/Qwen2.5-Coder-0.5B-Instruct","Qwen/Qwen2.5-Coder-1.5B-Instruct","infly/OpenCoder-1.5B-Instruct",
-    "HuggingFaceTB/SmolLM2-1.7B-Instruct","Salesforce/xLAM-1b-fc-r","ibm-granite/granite-3.1-1b-a400m-instruct",
-    "deepseek-ai/deepseek-coder-1.3b-instruct","tiiuae/Falcon3-1B-Instruct","google/gemma2-2b-it"] or 
-    model_name.endswith(".gguf")):
-        prompt = messages
-    else:
-        prompt =""
-        if(len(sysmessage)>0):
-            prompt =f"{sysmessage}\n"
-        prompt += f"{usermessage}"
+    prompt,sysmessage,usermessage = generate_prompt(messages=messages,model_name=model_name)
     if not model_name or not prompt:
         return jsonify({"error": "'model' and 'prompt' are required."}), 400
     output = generate_model(prompt=prompt,model_name=model_name,
