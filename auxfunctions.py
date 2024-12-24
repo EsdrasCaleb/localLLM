@@ -232,15 +232,15 @@ def download_model(model_name,file=None):
 
     try:
         if(file):
-            snapshot_download(repo_id=model_name, local_dir=os.path.join(MODEL_DIR, 'gguf'), token=HF_TOKEN, 
-                allow_patterns=[file])
             local_cache = os.path.join(MODEL_DIR,'gguf',".cache")
+            snapshot_download(repo_id=model_name, local_dir=os.path.join(MODEL_DIR, 'gguf'), token=HF_TOKEN, 
+                allow_patterns=[file],cache_dir=local_cache)
             if(os.path.exists(local_cache)):
                 shutil.rmtree(cache_dir)
         else:
-            snapshot_download(repo_id=model_name, local_dir=model_path, token=HF_TOKEN,ignore_patterns=["*onnx*","runs","*guff*"])
             local_cache = os.path.join(model_path,".cache")
-            if(os.path.exists(local_cache)):
+            snapshot_download(repo_id=model_name, local_dir=model_path, token=HF_TOKEN,ignore_patterns=["*onnx*","runs","*guff*"])
+            if(os.path.exists(local_cache),cache_dir=local_cache):
                 shutil.rmtree(cache_dir)
 
         return f"Model '{model_name}' downloaded successfully."
