@@ -5,3 +5,4 @@ scipy
 openvino
 accelerate
 flask
+llama-cpp-python
