@@ -36,6 +36,7 @@ execute_command() {
 
 # Run main.py in the background
 python main.py &
+flask_pid=$!
 # Loop through each folder in the "envs" directory
 for folder in enfiles/*; do
   if [ -d "$folder" ]; then
@@ -54,5 +55,6 @@ for folder in enfiles/*; do
   fi
 done
 # Shutdown the computer
+kill $flask_pid
 echo "All files processed. The system will shut down now."
 sudo shutdown -h now
