@@ -10,7 +10,7 @@ file_repo={
     #"gemma-2-9b-it-Q4_K_M-fp16.gguf":"bartowski/gemma-2-9b-it-GGUF",
     #"Ministral-8B-Instruct-2410-Q6_K_L.gguf":"bartowski/Ministral-8B-Instruct-2410-GGUF",
     #"codegemma-7b-it-Q6_K.gguf":"second-state/CodeGemma-7b-it-GGUF",
-    #"phi-4.Q3_K_M.gguf":"matteogeniaccio/phi-4",
+    #"phi-4-Q4_K_M.gguf":"matteogeniaccio/phi-4",
     #"internlm2_5-7b-chat-q8_0.gguf":"internlm/internlm2_5-7b-chat-gguf",
     "meta-llama/Llama-3.2-1B-Instruct":None
 }
