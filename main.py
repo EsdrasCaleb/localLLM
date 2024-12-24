@@ -23,6 +23,7 @@ def log_request_info():
 @app.route('/clear_models', methods=['GET'])
 def clear_models():
     auxfunctions.clear_models_from_mem()
+    return jsonify({"status":"ok","message":"models cleared"})
 
 @app.route('/list_models', methods=['GET'])
 def list_models_endpoint():
