@@ -52,7 +52,7 @@ tokenizers = {}
 file_repo={
     "OpenCoder-8B-Instruct-Q6_K.gguf":"lmstudio-community/OpenCoder-8B-Instruct-GGUF",
     "Yi-Coder-9B-Chat-Q4_K_M.gguf":"lmstudio-community/Yi-Coder-9B-Chat-GGUF",
-    "EXAONE-3.5-2.4B-Instruct-BF16.ggf":"LGAI-EXAONE/EXAONE-3.5-2.4B-Instruct-GGUF",
+    "EXAONE-3.5-2.4B-Instruct-BF16.gguf":"LGAI-EXAONE/EXAONE-3.5-2.4B-Instruct-GGUF",
     "granite-3.1-8b-instruct-Q6_K.gguf":"lmstudio-community/granite-3.1-8b-instruct-GGUF",
     "Llama-3.2-3B-Instruct-f16.gguf":"second-state/Llama-3.2-3B-Instruct-GGUF",
     "gemma-2-9b-it-Q4_K_M-fp16.gguf":"bartowski/gemma-2-9b-it-GGUF",
