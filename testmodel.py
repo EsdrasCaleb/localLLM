@@ -20,7 +20,7 @@ messages=[
 ]
 # Iterate through all files in the folder
 for model_name in models:
-    print(f"Testing model: {model_filename}")
+    print(f"Testing model: {model_name}")
 
     try:
         prompt,sysmessage,usermessage = generate_prompt(messages=messages,model_name=model_name)
