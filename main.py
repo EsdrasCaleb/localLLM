@@ -83,9 +83,8 @@ def generate_model(prompt,model_name,temperature,max_tokens):
             tokenizers[model_name] = AutoTokenizer.from_pretrained(model_path)
         elif model_name.endswith(".gguf"):
             from llama_cpp import Llama
-            print(f"\n\n\n\n{model_path}\n\n\n\n")
-            models[model_name] = Llama(model_path,
-            _ctx=len(str(prompt))+max_tokens,verbose=False, gpu_layers=20)
+            models[model_name] = Llama(model_path,n_ctx=len(str(prompt))+max_tokens,
+                verbose=False, gpu_layers=20)
         elif model_name in ["OpenVINO/codegen25-7b-multi-int4-ov","OpenVINO/codegen25-7b-multi-fp16-ov"]:
             tokenizers[model_name] = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
             tokenizers[model_name].pad_token = tokenizers[model_name].eos_token
