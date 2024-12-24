@@ -236,6 +236,7 @@ def download_model(model_name,file=None):
             snapshot_download(repo_id=model_name, local_dir=os.path.join(MODEL_DIR, 'gguf'), token=HF_TOKEN, 
                 allow_patterns=[file],cache_dir=local_cache)
             if(os.path.exists(local_cache)):
+                print(local_cache)
                 shutil.rmtree(local_cache)
         else:
             local_cache = os.path.join(model_path,".cache")
