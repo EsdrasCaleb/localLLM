@@ -38,9 +38,9 @@ for model_name in models:
         )
 
         # Print the output
-        print(f"Response from {model_filename}:")
+        print(f"Response from {model_name}:")
         print(result)
         clear_models()
     except Exception as e:
-        print(f"An error occurred while testing {model_filename}: {e}")
+        print(f"An error occurred while testing {model_name}: {e}")
         print(e)
