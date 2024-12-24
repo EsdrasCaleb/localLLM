@@ -60,6 +60,8 @@ file_repo={
     "codegemma-7b-it-Q6_K.gguf":"second-state/CodeGemma-7b-it-GGUF",
     "matteogeniaccio.phi-4.Q3_K_M.gguf":"DevQuasar/matteogeniaccio.phi-4-GGUF",
     "internlm2_5-7b-chat-q8_0.gguf":"internlm/internlm2_5-7b-chat-gguf",
+    "starcoder2-7b-Q8_0.gguf":"second-state/StarCoder2-7B-GGUF",
+    "starcoder2-3b-Q8_0.gguf":"second-state/StarCoder2-3B-GGUF",
 }
 # Path where models are stored
 MODEL_DIR = env_data.get("model_dir","./models")
