@@ -38,3 +38,4 @@ for model_filename in os.listdir(models_folder):
             print(response['choices'][0]['message']['content'])
         except Exception as e:
             print(f"An error occurred while testing {model_filename}: {e}")
+            print(e)
