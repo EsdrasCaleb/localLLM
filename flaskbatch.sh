@@ -1,10 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=flask_chattester        # Job name
 #SBATCH --output=flask_chattester_8b_%j.log    # Log file (%j = job ID)
-#SBATCH --ntasks=1                  # Number of tasks (single-node app)
-#SBATCH --cpus-per-task=8           # Adjust based on Flask requirements
-#SBATCH --mem=32GB                  # Allocate sufficient RAM
-#SBATCH --gpus=1                    # Request 1 GPU (if available)
 #SBATCH --partition=amd-512            # Partition with GPU support (adjust as needed)
 #SBATCH --time=12:00:00             # Test greather model in 12hours
 
