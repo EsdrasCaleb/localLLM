@@ -24,15 +24,16 @@ execute_command() {
   local exit_code=$?
 
   if [ $exit_code -eq 0 ]; then
-    echo "Successful execution of $folder/$env_file" >>result.log 
-    echo "\nLog of $folder/$env_file:\n $output\n" >> success.log
+    echo "Successful execution of $folder/$env_file" >>executions.log
+    echo "\nLog of $folder/$env_file:\n $output\n" >> logs.log
+    rm $env_file
   else
-    echo "Problem in execution of $folder/$env_file: $output" >>result.log
+    echo "Problem in execution of $folder/$env_file: $output" >>errors.log
   fi
   # After processing each project:
   end_time=$(date +%s)
   elapsed_time=$((end_time - start_time))
-  echo "Processing $env_file took $elapsed_time seconds" >> timing.log
+  echo "Processing $env_file took $elapsed_time seconds" >> timings.log
 }
 
 # Run main.py in the background
