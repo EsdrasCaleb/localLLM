@@ -53,7 +53,7 @@ for folder in enfiles/*; do
     # Loop through each .env file in the folder
     for env_file in "$folder"/*; do
       # Construct the command
-      command="java -jar chatunitest-standalone-1.0.0.jar $env_file project"
+      command="java -jar chatunitest-standalone.jar $env_file project"
       # Execute the command and capture output
       execute_command "$command" "$env_file" "$folder"
     done

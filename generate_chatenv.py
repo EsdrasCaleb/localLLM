@@ -1,6 +1,6 @@
 import os
 import re
-from auxfunctions import load_env_file,download_model
+from auxfunctions import load_env_file,download_model,file_repo
 file_path = '.env'
 env_data = load_env_file(file_path)
 
@@ -72,7 +72,12 @@ def create_env_files(projects_dir, models_file):
         projects[project] = load_project_path(project,projects_dir,class_file)
     indexname = 0
     for model, url in model_urls.items():
-        download_model(model)
+        if model.endswith(".gguf"):
+            file_name = model
+            model = os.path.join("gguf", model)
+            download_model(model_name=file_repo[file_name], file=file_name)
+        else:
+            download_model(model)
         model_ar = model.split("/")
         model_name = model_ar[-1]
         model_dir = os.path.join("./enfiles", f"{indexname:03}_{model_name}")
