@@ -36,13 +36,14 @@ execute_command() {
 }
 
 # Run main.py in the background
-python3.9 main.py &
+python3.9 main.py > flask_app.log 2>&1 &
 
 flask_pid=$!
-
-# Wait for Flask to initialize (use sleep or health check)
 echo "Waiting for Flask app to initialize..."
-sleep 10  # Adjust this as needed
+while ! curl -s http://localhost:5000/health; do
+  echo "Waiting for Flask app to be ready..."
+  sleep 5
+done
 
 
 # Loop through each folder in the "envs" directory
