@@ -1,6 +1,6 @@
 import os
 import re
-from auxfunctions import load_env_file
+from auxfunctions import load_env_file,download_model
 file_path = '.env'
 env_data = load_env_file(file_path)
 
@@ -72,6 +72,7 @@ def create_env_files(projects_dir, models_file):
         projects[project] = load_project_path(project,projects_dir,class_file)
     indexname = 0
     for model, url in model_urls.items():
+        download_model(model)
         model_ar = model.split("/")
         model_name = model_ar[-1]
         model_dir = os.path.join("./enfiles", f"{indexname:03}_{model_name}")

@@ -1,5 +1,5 @@
 import requests
-from main import download_model
+from auxfunctions import download_model
 file_repo={
     #"Phi-3.5-mini-instruct-Q8_0.gguf":"bartowski/Phi-3.5-mini-instruct-GGUF",
     #"OpenCoder-8B-Instruct-Q6_K.gguf":"lmstudio-community/OpenCoder-8B-Instruct-GGUF",
