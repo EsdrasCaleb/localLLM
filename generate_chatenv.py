@@ -74,7 +74,6 @@ def create_env_files(projects_dir, models_file):
     for model, url in model_urls.items():
         if model.endswith(".gguf"):
             file_name = model
-            model = os.path.join("gguf", model)
             download_model(model_name=file_repo[file_name], file=file_name)
         else:
             download_model(model)
