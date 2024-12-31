@@ -1,6 +1,6 @@
 #!/bin/bash
 
-MAX_JOBS=4  # Maximum number of jobs per partition
+MAX_JOBS=8  # Maximum number of jobs per partition
 echo "Processing folder: 009_deepseek-coder-1.3b-instruct"
 # Loop through each folder in the "envs" directory
 for env_file in enfiles/009_deepseek-coder-1.3b-instruct/*; do
@@ -18,7 +18,8 @@ for env_file in enfiles/009_deepseek-coder-1.3b-instruct/*; do
 
       # Check each idle partition for user job count
       for partition in "${idle_partitions[@]}"; do
-        job_count=$(squeue --user="$USER" --partition="$partition" --noheader | wc -l)
+        #job_count=$(squeue --user="$USER" --partition="$partition" --noheader | wc -l)
+        job_count=$(squeue --user="$USER" --noheader | wc -l)
         if [ "$job_count" -lt "$MAX_JOBS" ]; then
           selected_partition="$partition"
           break
