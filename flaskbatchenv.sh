@@ -9,17 +9,18 @@
 
 # Load modules (adjust based on your environment)
 #module load python/3.9              # Python version
-#module load libraries/cuda               # CUDA version (if using GPUs)
+module load libraries/cuda/12.6              # CUDA version (if using GPUs)
 
 source $HOME/.bashrc
 # Activate virtual environment (if needed)
 conda activate llm_env
+pip install --upgrade -r requirements.txt
 
 # Function to execute a command and capture its output
 execute_command() {
   local command="$1"
   local env_file="$2"
-  local file =$(basename "$2")
+  local file = "$3"
   start_time=$(date +%s)
   echo "Executing: $command"
   local output=$(eval "$command" 2>&1)
@@ -49,7 +50,7 @@ done
 
 command="java -jar chatunitest-standalone.jar $1 project"
 
-execute_command "$command" $1
+execute_command "$command" $1 $file
 
 
 echo "All files processed. The system will exit now."
