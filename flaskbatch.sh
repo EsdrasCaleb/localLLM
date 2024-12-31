@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=flask_chattester        # Job name
 #SBATCH --output=flask_batch_%j.log    # Log file (%j = job ID)
-#SBATCH --partition=gpu-4-a100           # Partition with GPU support (adjust as needed)
+#SBATCH --partition=gpu-8-v100          # Partition with GPU support (adjust as needed)
 #SBATCH --time=2-00:00:00            # Test greather model in 2 days
 #SBATCH --nodes=1               # Use one node
 #SBATCH --ntasks=4              # Run four tasks (processes)
