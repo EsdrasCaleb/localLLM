@@ -115,7 +115,7 @@ def filterMessage(messages):
             messagesNew.append(messageOb)
     return messagesNew
 
-def generate_model(prompt, model_name, temperature, max_tokens):
+def generate_model_new(prompt, model_name, temperature, max_tokens):
     device = "cpu"
     file_name = None
 
@@ -223,7 +223,7 @@ def generate_model(prompt, model_name, temperature, max_tokens):
     return models[model_name](prompt, temperature=temperature, max_new_tokens=max_tokens, return_full_text=False, do_sample=True)[0]['generated_text']
 
 
-def generate_model_old(prompt,model_name,temperature,max_tokens):
+def generate_model(prompt,model_name,temperature,max_tokens):
     device = "cpu"
     file_name = None
     # If using PyTorch, free up GPU memory
