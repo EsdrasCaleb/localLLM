@@ -45,7 +45,7 @@ python3.9 main.py >> flask_app.log 2>&1 &
 
 flask_pid=$!
 echo "Waiting for Flask app to initialize..."
-while ! curl -s http://localhost:5000/list_models; do
+while ! curl -s http://localhost:5000/health; do
   echo "Waiting for Flask app to be ready..."
   sleep 5
 done

@@ -25,13 +25,12 @@ execute_command() {
   echo "Executing: $command"
   local output=$(eval "$command" 2>&1)
   local exit_code=$?
-
   if [ $exit_code -eq 0 ]; then
-    echo "Successful execution of $folder/$env_file" >> "unilogs/executions_$1_sigle.log"
-    echo "\nLog of $folder/$env_file:\n $output\n" >> "unilogs/logs_$1_sigle.log"
+    echo "Successful execution of $folder/$env_file" >> "unilogs/executions_$file_sigle.log"
+    echo "\nLog of $folder/$env_file:\n $output\n" >> "unilogs/logs_$file_sigle.log"
     rm $env_file
   else
-    echo "Problem in execution of $folder/$env_file: $output" >>"unilogs/errors_$1_single.log"
+    echo "Problem in execution of $folder/$env_file: $output" >>"unilogs/errors_$file_single.log"
   fi
   # After processing each project:
   end_time=$(date +%s)
@@ -39,12 +38,12 @@ execute_command() {
   echo "Processing $env_file took $elapsed_time seconds" >> timings.log
 }
 
+file=$(basename "$1")
 # Run main.py in the background
-python3.9 main.py >> "unilogs/flask_app_$1.log" 2>&1 &
+python3.9 main.py >> "unilogs/flask_app_$file.log" 2>&1 &
 
-flask_pid=$!
 echo "Waiting for Flask app to initialize..."
-while ! curl -s http://localhost:5000/list_models; do
+while ! curl -s http://localhost:5000/health; do
   echo "Waiting for Flask app to be ready..."
   sleep 5
 done
@@ -52,6 +51,5 @@ done
 
 execute_command "$command" $1 $2
 
-kill $flask_pid
 
 echo "All files processed. The system will exit now."
