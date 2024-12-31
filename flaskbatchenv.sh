@@ -19,17 +19,17 @@ conda activate llm_env
 execute_command() {
   local command="$1"
   local env_file="$2"
-  local folder="$3"
+  local file =$(basename "$2")
   start_time=$(date +%s)
   echo "Executing: $command"
   local output=$(eval "$command" 2>&1)
   local exit_code=$?
   if [ $exit_code -eq 0 ]; then
-    echo "Successful execution of $folder/$env_file" >> "unilogs/executions_$file_sigle.log"
-    echo "\nLog of $folder/$env_file:\n $output\n" >> "unilogs/logs_$file_sigle.log"
-    rm $env_file
+    echo "Successful execution of $env_file" >> "unilogs/executions_$file.log"
+    echo "\nLog of $env_file:\n $output\n" >> "unilogs/logs_$file.log"
+    #rm $env_file
   else
-    echo "Problem in execution of $folder/$env_file: $output" >>"unilogs/errors_$file_single.log"
+    echo "Problem in execution of $env_file: $output" >>"unilogs/errors_$file.log"
   fi
   # After processing each project:
   end_time=$(date +%s)
@@ -47,8 +47,9 @@ while ! curl -s http://localhost:5000/health; do
   sleep 5
 done
 
+command="java -jar chatunitest-standalone.jar $1 project"
 
-execute_command "$command" $1 $2
+execute_command "$command" $1
 
 
 echo "All files processed. The system will exit now."
