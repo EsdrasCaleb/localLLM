@@ -1,7 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=flask_uni        # Job name
 #SBATCH --output=flask_uni_%j.log    # Log file (%j = job ID)
-#SBATCH --partition=amd-3tb           # Partition with GPU support (adjust as needed)
 #SBATCH --time=20:00:00             # Test greather model in 12hours
 #SBATCH --nodes=1               # Use one node
 #SBATCH --ntasks=4              # Run four tasks (processes)

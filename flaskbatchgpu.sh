@@ -1,7 +1,8 @@
 #!/bin/bash
-#SBATCH --job-name=flask_chattester        # Job name
-#SBATCH --output=flask_batch_%j.log    # Log file (%j = job ID)
-#SBATCH --time=20:00:00             # Test greather model in 12hours
+#SBATCH --job-name=flask_chattester_gpu        # Job name
+#SBATCH --output=flask_gpu_%j.log    # Log file (%j = job ID)
+#SBATCH --partition=gpu-8-v100          # Partition with GPU support (adjust as needed)
+#SBATCH --time=2-00:00:00            # Test greather model in 2 days
 #SBATCH --nodes=1               # Use one node
 #SBATCH --ntasks=4              # Run four tasks (processes)
 #SBATCH --cpus-per-task=4       # Each task uses four CPU cores
@@ -9,7 +10,7 @@
 
 # Load modules (adjust based on your environment)
 #module load python/3.9              # Python version
-#module load libraries/cuda               # CUDA version (if using GPUs)
+module load libraries/cuda               # CUDA version (if using GPUs)
 
 source $HOME/.bashrc
 # Activate virtual environment (if needed)
@@ -27,20 +28,20 @@ execute_command() {
   local exit_code=$?
 
   if [ $exit_code -eq 0 ]; then
-    echo "Successful execution of $folder/$env_file" >>executions.log
-    echo "\nLog of $folder/$env_file:\n $output\n" >> logs.log
+    echo "Successful execution of $folder/$env_file" >>executions_gpu.log
+    echo "\nLog of $folder/$env_file:\n $output\n" >> logs_gpu.log
     rm $env_file
   else
-    echo "Problem in execution of $folder/$env_file: $output" >>errors.log
+    echo "Problem in execution of $folder/$env_file: $output" >>errors_gpu.log
   fi
   # After processing each project:
   end_time=$(date +%s)
   elapsed_time=$((end_time - start_time))
-  echo "Processing $env_file took $elapsed_time seconds" >> timings.log
+  echo "Processing $env_file took $elapsed_time seconds" >> timings_gpu.log
 }
 
 # Run main.py in the background
-python3.9 main.py >> flask_app.log 2>&1 &
+python3.9 main.py >> flask_app_gpu.log 2>&1 &
 
 flask_pid=$!
 echo "Waiting for Flask app to initialize..."
