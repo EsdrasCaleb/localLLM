@@ -2,7 +2,7 @@
 #SBATCH --job-name=flask_chattester        # Job name
 #SBATCH --output=flask_chattester_8b_%j.log    # Log file (%j = job ID)
 #SBATCH --partition=amd-3tb           # Partition with GPU support (adjust as needed)
-#SBATCH --time=12:00:00             # Test greather model in 12hours
+#SBATCH --time=20:00:00             # Test greather model in 12hours
 
 # Load modules (adjust based on your environment)
 #module load python/3.9              # Python version
