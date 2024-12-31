@@ -13,7 +13,7 @@ module load libraries/cuda/12.6              # CUDA version (if using GPUs)
 
 source $HOME/.bashrc
 # Activate virtual environment (if needed)
-conda activate llm_env
+conda activate llm_env_gpu
 pip install --upgrade -r requirements.txt
 
 # Function to execute a command and capture its output
