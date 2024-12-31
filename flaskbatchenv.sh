@@ -6,7 +6,7 @@
 
 # Load modules (adjust based on your environment)
 #module load python/3.9              # Python version
-module load cuda/11.7               # CUDA version (if using GPUs)
+module load cuda               # CUDA version (if using GPUs)
 
 source $HOME/.bashrc
 # Activate virtual environment (if needed)
