@@ -115,9 +115,123 @@ def filterMessage(messages):
             messagesNew.append(messageOb)
     return messagesNew
 
-def generate_model(prompt,model_name,temperature,max_tokens):
-    device = "cuda" if torch.cuda.is_available() else "cpu"
+def generate_model(prompt, model_name, temperature, max_tokens):
+    device = "cpu"
     file_name = None
+
+    # Detect GPUs
+    if torch.cuda.is_available():
+        device = "cuda"
+        torch.cuda.empty_cache()
+    elif torch.backends.mps.is_available():  # For macOS with Metal Performance Shaders
+        device = "mps"
+
+    # Run garbage collection to free up memory
+    gc.collect()
+
+    if model_name.endswith(".gguf"):
+        file_name = model_name
+        model_name = os.path.join("gguf", model_name)
+
+    if not model_name in models:
+        model_path = os.path.join(MODEL_DIR, model_name)
+        if not os.path.exists(model_path):
+            print("Downloading pretrained model..." + model_name)
+            if file_name:
+                download_model(model_name=file_repo[file_name], file=file_name)
+            else:
+                download_model(model_name=model_name)
+
+        if model_name in [
+            "google/recurrentgemma-2b-it", "google/codegemma-2b",
+            "ibm-granite/granite-3.1-1b-a400m-instruct"
+        ]:
+            # Load model and move to multiple GPUs using DataParallel
+            raw_model = AutoModelForCausalLM.from_pretrained(model_path)
+            models[model_name] = torch.nn.DataParallel(raw_model).to(device)
+            tokenizers[model_name] = AutoTokenizer.from_pretrained(model_path)
+        elif model_name.endswith(".gguf"):
+            from llama_cpp import Llama
+            models[model_name] = Llama(
+                model_path,
+                n_ctx=len(str(prompt)) + max_tokens,
+                verbose=False,
+                gpu_layers=20 if device == "cuda" else 0
+            )
+        elif model_name in [
+            "Qwen/Qwen2.5-Coder-0.5B-Instruct", "Qwen/Qwen2.5-Coder-1.5B-Instruct",
+            "HuggingFaceTB/SmolLM2-1.7B-Instruct", "Salesforce/xLAM-1b-fc-r",
+            "infly/OpenCoder-1.5B-Instruct", "deepseek-ai/deepseek-coder-1.3b-instruct"
+        ]:
+            raw_model = AutoModelForCausalLM.from_pretrained(
+                model_path,
+                torch_dtype="auto",
+                trust_remote_code=True
+            )
+            models[model_name] = torch.nn.DataParallel(raw_model).to(device)
+            tokenizers[model_name] = AutoTokenizer.from_pretrained(model_path)
+        elif model_name in [
+            "tiiuae/Falcon3-1B-Instruct", "01-ai/Yi-Coder-1.5B", "google/gemma2-2b-it"
+        ]:
+            raw_pipeline = pipeline(
+                "text-generation",
+                model=model_path,
+                device_map="auto" if device == "cuda" else None
+            )
+            models[model_name] = raw_pipeline
+        else:
+            # Load model and tokenizer
+            tokenizers[model_name] = AutoTokenizer.from_pretrained(model_path)
+            tokenizers[model_name].add_special_tokens({"pad_token": "<|reserved_special_token_0|>"})
+            tokenizers[model_name].padding_side = 'right'
+            raw_pipeline = pipeline(
+                "text-generation",
+                model=model_path,
+                pad_token_id=tokenizers[model_name].pad_token_id,
+                tokenizer=tokenizers[model_name],
+                device_map="auto" if device == "cuda" else None
+            )
+            models[model_name] = raw_pipeline
+
+    # Generate text based on the model type
+    if model_name.endswith(".gguf"):
+        return models[model_name].create_chat_completion(
+            messages=prompt,
+            max_tokens=max_tokens,
+            temperature=temperature,
+            top_p=0.9
+        )['choices'][0]['message']['content']
+
+    elif model_name in [
+        "HuggingFaceTB/SmolLM2-1.7B-Instruct", "Salesforce/xLAM-1b-fc-r",
+        "deepseek-ai/deepseek-coder-1.3b-instruct", "infly/OpenCoder-1.5B-Instruct"
+    ]:
+        input_text = tokenizers[model_name].apply_chat_template(prompt, tokenize=False)
+        inputs = tokenizers[model_name](input_text, return_tensors="pt", padding=True, truncation=True).to(device)
+        outputs = models[model_name].module.generate(
+            inputs["input_ids"],
+            max_new_tokens=max_tokens,
+            temperature=temperature,
+            pad_token_id=tokenizers[model_name].pad_token_id,
+            attention_mask=inputs["attention_mask"],
+            eos_token_id=tokenizers[model_name].eos_token_id,
+            top_p=0.9,
+            do_sample=True
+        )
+        return tokenizers[model_name].decode(outputs[0], skip_special_tokens=True)
+
+    return models[model_name](prompt, temperature=temperature, max_new_tokens=max_tokens, return_full_text=False, do_sample=True)[0]['generated_text']
+
+
+def generate_model_old(prompt,model_name,temperature,max_tokens):
+    device = "cpu"
+    file_name = None
+    # If using PyTorch, free up GPU memory
+    if torch.cuda.is_available():
+        device = "cuda"
+        torch.cuda.empty_cache()
+    # Run garbage collection to free up memory
+    gc.collect()
     if model_name.endswith(".gguf"):
         file_name = model_name
         model_name = os.path.join("gguf", model_name)

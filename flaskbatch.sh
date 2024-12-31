@@ -1,14 +1,16 @@
 #!/bin/bash
 #SBATCH --job-name=flask_chattester        # Job name
-#SBATCH --output=flask_chattester_8b_%j.log    # Log file (%j = job ID)
+#SBATCH --output=flask_batch_%j.log    # Log file (%j = job ID)
 #SBATCH --partition=gpu-4-a100           # Partition with GPU support (adjust as needed)
 #SBATCH --time=2-00:00:00            # Test greather model in 2 days
-#SBATCH --nodes=1 
-#SBATCH --ntasks=2
+#SBATCH --nodes=1               # Use one node
+#SBATCH --ntasks=4              # Run four tasks (processes)
+#SBATCH --cpus-per-task=4       # Each task uses four CPU cores
+
 
 # Load modules (adjust based on your environment)
 #module load python/3.9              # Python version
-#module load cuda               # CUDA version (if using GPUs)
+module load libraries/cuda               # CUDA version (if using GPUs)
 
 source $HOME/.bashrc
 # Activate virtual environment (if needed)
@@ -39,7 +41,7 @@ execute_command() {
 }
 
 # Run main.py in the background
-python3.9 main.py > flask_app.log 2>&1 &
+python3.9 main.py >> flask_app.log 2>&1 &
 
 flask_pid=$!
 echo "Waiting for Flask app to initialize..."

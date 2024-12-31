@@ -1,13 +1,16 @@
 #!/bin/bash
-#SBATCH --job-name=flask_chattester        # Job name
-#SBATCH --output=flask_chattester_8b_%j.log    # Log file (%j = job ID)
+#SBATCH --job-name=flask_uni        # Job name
+#SBATCH --output=flask_uni_%j.log    # Log file (%j = job ID)
 #SBATCH --partition=amd-3tb           # Partition with GPU support (adjust as needed)
 #SBATCH --time=20:00:00             # Test greather model in 12hours
-#SBATCH --ntasks=2
+#SBATCH --nodes=1               # Use one node
+#SBATCH --ntasks=4              # Run four tasks (processes)
+#SBATCH --cpus-per-task=4       # Each task uses four CPU cores
+
 
 # Load modules (adjust based on your environment)
 #module load python/3.9              # Python version
-module load cuda               # CUDA version (if using GPUs)
+#module load libraries/cuda               # CUDA version (if using GPUs)
 
 source $HOME/.bashrc
 # Activate virtual environment (if needed)
@@ -24,11 +27,11 @@ execute_command() {
   local exit_code=$?
 
   if [ $exit_code -eq 0 ]; then
-    echo "Successful execution of $folder/$env_file" >>executions.log
-    echo "\nLog of $folder/$env_file:\n $output\n" >> logs.log
+    echo "Successful execution of $folder/$env_file" >> "unilogs/executions_$1_sigle.log"
+    echo "\nLog of $folder/$env_file:\n $output\n" >> "unilogs/logs_$1_sigle.log"
     rm $env_file
   else
-    echo "Problem in execution of $folder/$env_file: $output" >>errors.log
+    echo "Problem in execution of $folder/$env_file: $output" >>"unilogs/errors_$1_single.log"
   fi
   # After processing each project:
   end_time=$(date +%s)
@@ -37,7 +40,7 @@ execute_command() {
 }
 
 # Run main.py in the background
-python3.9 main.py > flask_app.log 2>&1 &
+python3.9 main.py >> "unilogs/flask_app_$1.log" 2>&1 &
 
 flask_pid=$!
 echo "Waiting for Flask app to initialize..."
