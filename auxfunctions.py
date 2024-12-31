@@ -228,19 +228,23 @@ def list_hf_models():
 
 # 2. Download model from Hugging Face Hub
 def download_model(model_name,file=None):
-    model_path = os.path.join(MODEL_DIR, model_name)
-    if os.path.exists(model_path):
-        return f"Model '{model_name}' is already downloaded."
+
 
     try:
         if(file):
             local_cache = os.path.join(MODEL_DIR,'gguf',".cache")
+            model_path = os.path.join(MODEL_DIR, model_name)
+            if os.path.exists(os.path.join(MODEL_DIR, 'gguf')):
+                return f"Model '{model_name}' is already downloaded."
             snapshot_download(repo_id=model_name, local_dir=os.path.join(MODEL_DIR, 'gguf'), token=HF_TOKEN, 
                 allow_patterns=[file],cache_dir=local_cache)
             if(os.path.exists(local_cache)):
                 print(local_cache)
                 shutil.rmtree(local_cache)
         else:
+            model_path = os.path.join(MODEL_DIR, model_name)
+            if os.path.exists(model_path):
+                return f"Model '{model_name}' is already downloaded."
             local_cache = os.path.join(model_path,".cache")
             snapshot_download(repo_id=model_name, local_dir=model_path,cache_dir=local_cache,
             token=HF_TOKEN,ignore_patterns=["*onnx*","runs","*guff*"])

@@ -40,30 +40,14 @@ python3.9 main.py > flask_app.log 2>&1 &
 
 flask_pid=$!
 echo "Waiting for Flask app to initialize..."
-while ! curl -s http://localhost:5000/health; do
+while ! curl -s http://localhost:5000/list_models; do
   echo "Waiting for Flask app to be ready..."
   sleep 5
 done
 
 
-# Loop through each folder in the "envs" directory
-for folder in enfiles/*; do
-  if [ -d "$folder" ]; then
-    echo "Processing folder: $folder"
+execute_command "$command" $1 "$folder"
 
-    # Loop through each .env file in the folder
-    for env_file in "$folder"/*; do
-      # Construct the command
-      command="java -jar chatunitest-standalone.jar $env_file project"
-      # Execute the command and capture output
-      execute_command "$command" "$env_file" "$folder"
-    done
-    echo "Clear Models"
-    python3.9 clear_models.py
-  fi
-done
-
-# Stop Flask app
 kill $flask_pid
 
 echo "All files processed. The system will exit now."
