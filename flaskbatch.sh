@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=flask_chattester        # Job name
 #SBATCH --output=flask_chattester_8b_%j.log    # Log file (%j = job ID)
-#SBATCH --partition=gpu-8-v100           # Partition with GPU support (adjust as needed)
+#SBATCH --partition=gpu-4-a100           # Partition with GPU support (adjust as needed)
 #SBATCH --time=2-00:00:00            # Test greather model in 12hours
 
 # Load modules (adjust based on your environment)
@@ -40,7 +40,7 @@ python3.9 main.py > flask_app.log 2>&1 &
 
 flask_pid=$!
 echo "Waiting for Flask app to initialize..."
-while ! curl -s http://localhost:5000/health; do
+while ! curl -s http://localhost:5000/list_models; do
   echo "Waiting for Flask app to be ready..."
   sleep 5
 done
@@ -64,6 +64,6 @@ for folder in enfiles/*; do
 done
 
 # Stop Flask app
-kill $flask_pid
+#kill $flask_pid
 
 echo "All files processed. The system will exit now."
