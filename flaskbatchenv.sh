@@ -20,7 +20,7 @@ pip install --upgrade -r requirements.txt
 execute_command() {
   local command="$1"
   local env_file="$2"
-  local file = "$3"
+  local file="$3"
   start_time=$(date +%s)
   echo "Executing: $command"
   local output=$(eval "$command" 2>&1)
