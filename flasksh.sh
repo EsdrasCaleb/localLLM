@@ -1,5 +1,6 @@
 #!/bin/bash
 
+MAX_JOBS=4  # Maximum number of jobs per partition
 
 # Loop through each folder in the "envs" directory
 for folder in enfiles/*; do
@@ -8,19 +9,38 @@ for folder in enfiles/*; do
 
     # Loop through each .env file in the folder
     for env_file in "$folder"/*; do
-      # Construct the command
-      # Get the first idle partition
-      idle_partition=$(sinfo --format="%P %D %T" | awk '$3 == "idle" {print $1; exit}')
+      while true; do
+        # Get a list of all idle partitions excluding those starting with "gpu" or "fpga"
+        idle_partitions=($(sinfo --format="%P %T" | awk '$2 == "idle" && $1 !~ /^(gpu|fpga)/ {print $1}'))
 
-      # Check if an idle partition was found
-      if [ -z "$idle_partition" ]; then
-        echo "No idle partition available. Exiting."
-        exit 1
-      fi
+        # Check if there are any idle partitions
+        if [ ${#idle_partitions[@]} -eq 0 ]; then
+          echo "No idle partitions available. Retrying in 10 seconds."
+          sleep 10
+          continue
+        fi
 
-      echo "Using idle partition: $idle_partition in file $env_file and folder $folder"
-      # Execute the command and capture output
-      sbatch --partition="$idle_partition" flaskbatchenv.sh $env_file $folder
+        selected_partition=""
+
+        # Check each idle partition for user job count
+        for partition in "${idle_partitions[@]}"; do
+          job_count=$(squeue --user="$USER" --partition="$partition" --noheader | wc -l)
+          if [ "$job_count" -lt "$MAX_JOBS" ]; then
+            selected_partition="$partition"
+            break
+          fi
+        done
+
+        if [ -z "$selected_partition" ]; then
+          echo "All idle partitions are full of user jobs. Retrying in 10 seconds."
+          sleep 10
+        else
+          echo "Using partition: $selected_partition with $job_count jobs running by user $USER."
+          echo "Submitting file $env_file from folder $folder."
+          sbatch --partition="$selected_partition" flaskbatchenv.sh "$env_file" "$folder"
+          break
+        fi
+      done
     done
   fi
 done
