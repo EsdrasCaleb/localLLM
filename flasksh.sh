@@ -18,10 +18,13 @@ for folder in enfiles/*; do
         exit 1
       fi
 
-      echo "Using idle partition: $idle_partition in file $env_file"
+      echo "Using idle partition: $idle_partition in file $env_file and folder $folder"
       # Execute the command and capture output
-      sbatch --partition="$idle_partition" flaskbatchenv.sh $env_file
+      sbatch --partition="$idle_partition" flaskbatchenv.sh $env_file $folder
+      exit 0
+      break
     done
+    break
   fi
 done
 

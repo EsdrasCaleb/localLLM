@@ -46,7 +46,7 @@ while ! curl -s http://localhost:5000/list_models; do
 done
 
 
-execute_command "$command" $1 "$folder"
+execute_command "$command" $1 $2
 
 kill $flask_pid
 
