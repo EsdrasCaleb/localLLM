@@ -52,8 +52,12 @@ done
 
 
 # Loop through each folder in the "envs" directory
-for folder in enfiles/*; do
+for folder in $(ls -d enfiles/* | sort -r); do
   if [ -d "$folder" ]; then
+    case "$folder" in
+            *gg)
+                continue ;; # Skip folders ending in "gg"
+    esac
     echo "Processing folder: $folder"
 
     # Loop through each .env file in the folder

@@ -58,9 +58,11 @@ def generate_text():
     prompt,sysmessage,usermessage = auxfunctions.generate_prompt(messages=messages,model_name=model_name)
     if not model_name or not prompt:
         return jsonify({"error": "'model' and 'prompt' are required."}), 400
-
-    output = auxfunctions.generate_model(prompt=prompt,model_name=model_name,
+    try:
+        output = auxfunctions.generate_model(prompt=prompt,model_name=model_name,
             temperature=temperature,max_tokens=max_tokens)
+    except ValueError as e:
+        return jsonify({"error": str(e)}), 400
     #print("rawresponse:" + output)
     # Split the output from the superprompt length
     if(model_name in ["starcoder2-3b-Q8_0.gguf"]):
