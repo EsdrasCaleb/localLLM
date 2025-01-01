@@ -1,7 +1,6 @@
 #!/bin/bash
 #SBATCH --job-name=flask_chattester_gpu        # Job name
 #SBATCH --output=flask_gpu_%j.log    # Log file (%j = job ID)
-#SBATCH --partition=gpu-4-a100          # Partition with GPU support (adjust as needed)
 #SBATCH --time=2-00:00:00            # Test greather model in 2 days
 #SBATCH --nodes=1               # Use one node
 #SBATCH --ntasks=4              # Run four tasks (processes)
@@ -52,12 +51,13 @@ done
 
 
 # Loop through each folder in the "envs" directory
-for folder in $(ls -d enfiles/* | sort -r); do
+#for folder in $(ls -d enfiles/* | sort -r); do
+for folder in enfiles/*; do
   if [ -d "$folder" ]; then
-    case "$folder" in
-            *gg)
-                continue ;; # Skip folders ending in "gg"
-    esac
+    #case "$folder" in
+    #        *gg)
+    #            continue ;; # Skip folders ending in "gg"
+    #esac
     echo "Processing folder: $folder"
 
     # Loop through each .env file in the folder
