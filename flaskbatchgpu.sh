@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=flask_chattester_gpu        # Job name
 #SBATCH --output=flask_gpu_%j.log    # Log file (%j = job ID)
-#SBATCH --partition=gpu-8-v100          # Partition with GPU support (adjust as needed)
+#SBATCH --partition=gpu-4-a100          # Partition with GPU support (adjust as needed)
 #SBATCH --time=2-00:00:00            # Test greather model in 2 days
 #SBATCH --nodes=1               # Use one node
 #SBATCH --ntasks=4              # Run four tasks (processes)
@@ -10,12 +10,12 @@
 
 # Load modules (adjust based on your environment)
 #module load python/3.9              # Python version
-#module load libraries/cuda               # CUDA version (if using GPUs)
+module load libraries/cuda               # CUDA version (if using GPUs)
 
 source $HOME/.bashrc
 # Activate virtual environment (if needed)
 conda activate llm_env_gpu
-#pip install --upgrade torch torchvision torchaudio
+pip install --upgrade torch torchvision torchaudio
 
 # Function to execute a command and capture its output
 execute_command() {
