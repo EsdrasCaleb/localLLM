@@ -8,16 +8,16 @@
 
 
 # Load modules (adjust based on your environment)
-module load softwares/python/3.10.5-gnu8              # Python version
+#module load softwares/python/3.10.5-gnu8              # Python version
 module load libraries/cuda/12.6           # CUDA version (if using GPUs)
 
 source $HOME/.bashrc
 # Activate virtual environment (if needed)
 #python -m venv venv
 source venv/bin/activate
-pip3.10 install --upgrade pip
-pip3.10 install -r requirements.txt
-pip3.10 install --upgrade torch torchvision torchaudio
+pip3.9 install --upgrade pip
+pip3.9 install -r requirements.txt
+pip3.9 install --upgrade torch torchvision torchaudio
 
 # Function to execute a command and capture its output
 execute_command() {
@@ -43,7 +43,7 @@ execute_command() {
 }
 
 # Run main.py in the background
-python3.10 main.py >> flask_app_gpu_1.log 2>&1 &
+python3.9 main.py >> flask_app_gpu_1.log 2>&1 &
 
 flask_pid=$!
 echo "Waiting for Flask app to initialize..."
@@ -73,7 +73,7 @@ for folder in $(ls -d enfiles/* | sort -r); do
       fi
     done
     echo "Clear Models"
-    python3.10 clear_models.py
+    python3.9  clear_models.py
   fi
 done
 

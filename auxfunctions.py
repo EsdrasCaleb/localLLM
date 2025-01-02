@@ -4,7 +4,7 @@ from transformers import pipeline
 from huggingface_hub import HfApi, snapshot_download
 from transformers import AutoTokenizer,AutoModelForCausalLM
 import shutil
-#from optimum.intel.openvino import OVModelForCausalLM
+from optimum.intel.openvino import OVModelForCausalLM
 import gc
 import os
 
