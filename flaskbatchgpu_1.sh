@@ -8,7 +8,7 @@
 
 
 # Load modules (adjust based on your environment)
-#module load softwares/python/3.10.5-gnu8              # Python version
+module load softwares/python/3.10.5-gnu8              # Python version
 module load libraries/cuda/12.6           # CUDA version (if using GPUs)
 
 source $HOME/.bashrc
