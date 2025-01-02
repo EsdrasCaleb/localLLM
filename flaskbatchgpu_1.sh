@@ -13,9 +13,11 @@ module load libraries/cuda/12.6           # CUDA version (if using GPUs)
 
 source $HOME/.bashrc
 # Activate virtual environment (if needed)
-python -m venv venv
+#python -m venv venv
 source venv/bin/activate
-pip install --upgrade -r requirements.txt
+pip install --upgrade pip
+pip install -r requirements.txt
+pip install --upgrade torch torchvision torchaudio
 
 # Function to execute a command and capture its output
 execute_command() {
