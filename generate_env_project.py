@@ -1,8 +1,6 @@
 import os
-import re
-from auxfunctions import load_env_file,download_model,file_repo
-file_path = '.env'
-env_data = load_env_file(file_path)
+
+
 
 
 def load_project_path(project, projects_dir,classfile):
@@ -102,8 +100,6 @@ def create_env_files(projects_dir, models_file):
                             line = line.replace("{model}", model)
                             line = line.replace("{model_name}", model_name)
                             line = line.replace("{project_path}", project_path)
-                            if url == "https://api.openai.com/v1/chat/completions":
-                              line = line.replace("XXXKEYXXX", env_data.get('gpt_key',"XXXKEYXXX"))
                             f.write(line)
 
 # Example usage
