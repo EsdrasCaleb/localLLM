@@ -54,3 +54,10 @@ curl -X POST -H "Content-Type: application/json" \
 -d '{"model_name": "gpt2", "prompt": "Once upon a time"}' \
 http://localhost:5000/generate
 ```
+
+use 
+```bash
+sbatch --partition=gpu-4-a100 flaskbatchgpu.sh 
+sbatch --partition=gpu-8-v100 flaskbatchgpu.sh 
+sbatch --partition=gpu-8-h100 flaskbatchgpu.sh 
+```

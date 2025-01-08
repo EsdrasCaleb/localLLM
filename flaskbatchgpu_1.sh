@@ -2,9 +2,6 @@
 #SBATCH --job-name=flask_chattester_gpu        # Job name
 #SBATCH --output=flask_gpu_%j.log    # Log file (%j = job ID)
 #SBATCH --time=2-00:00:00            # Test greather model in 2 days
-#SBATCH --nodes=1               # Use one node
-#SBATCH --ntasks=4              # Run four tasks (processes)
-#SBATCH --cpus-per-task=4       # Each task uses four CPU cores
 
 
 # Load modules (adjust based on your environment)
