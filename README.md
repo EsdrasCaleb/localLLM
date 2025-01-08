@@ -60,4 +60,5 @@ use
 sbatch --partition=gpu-4-a100 flaskbatchgpu.sh 
 sbatch --partition=gpu-8-v100 flaskbatchgpu.sh 
 sbatch --partition=gpu-8-h100 flaskbatchgpu.sh 
+sbatch --partition=parition flaskbatchenv.sh ENVFILE 
 ```

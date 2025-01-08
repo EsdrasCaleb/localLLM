@@ -2,14 +2,11 @@
 #SBATCH --job-name=flask_uni        # Job name
 #SBATCH --output=flask_uni_%j.log    # Log file (%j = job ID)
 #SBATCH --time=20:00:00             # Test greather model in 12hours
-#SBATCH --nodes=1               # Use one node
-#SBATCH --ntasks=4              # Run four tasks (processes)
-#SBATCH --cpus-per-task=4       # Each task uses four CPU cores
 
 
 # Load modules (adjust based on your environment)
 #module load python/3.9              # Python version
-module load libraries/cuda/12.6              # CUDA version (if using GPUs)
+#module load libraries/cuda/12.6              # CUDA version (if using GPUs)
 
 source $HOME/.bashrc
 # Activate virtual environment (if needed)
