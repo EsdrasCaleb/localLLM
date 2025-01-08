@@ -10,6 +10,7 @@ infly/OpenCoder-1.5B-Instruct http://localhost:5000/generate_model
 Phi-3.5-mini-instruct-Q8_0.gguf http://localhost:5000/generate_model
 google/gemma-2-2b-it http://localhost:5000/generate_model
 Qwen/Qwen2.5-Coder-1.5B-Instruct http://localhost:5000/generate_model
+meta-llama/Llama-3.2-3B-Instruct http://localhost:5000/generate_model
 01-ai/Yi-Coder-1.5B http://localhost:5000/generate_model
 OpenCoder-8B-Instruct-Q6_K.gguf http://localhost:5000/generate_model
 Yi-Coder-9B-Chat-Q4_K_M.gguf http://localhost:5000/generate_model
