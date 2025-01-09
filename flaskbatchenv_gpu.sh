@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=flask_uni        # Job name
 #SBATCH --output=flask_uni_%j.log    # Log file (%j = job ID)
-#SBATCH --time=6:00:00             # Test greather model in 12hours
+#SBATCH --time=2-00:00:00             # Test greather model in 12hours
 
 
 # Load modules (adjust based on your environment)
