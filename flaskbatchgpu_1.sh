@@ -10,7 +10,6 @@ module load libraries/cuda/12.6           # CUDA version (if using GPUs)
 
 source $HOME/.bashrc
 # Activate virtual environment (if needed)
-#python -m venv venv
 source venv/bin/activate
 pip3.9 install --upgrade pip
 pip3.9 install -r requirements.txt
