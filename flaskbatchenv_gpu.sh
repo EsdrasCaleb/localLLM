@@ -35,9 +35,10 @@ execute_command() {
   echo "Processing $env_file took $elapsed_time seconds" >> timings.log
 }
 
-file=$(basename "$1")
+#file=$(basename "$1")
+last_folder=$(basename "$(dirname "$1")")
 # Run main.py in the background
-python3.9 main.py >> "unilogs/flask_app_$file.log" 2>&1 &
+python3.9 main.py >> "unilogs/flask_app_$last_folder.log" 2>&1 &
 
 echo "Waiting for Flask app to initialize..."
 while ! curl -s http://localhost:5000/health; do
@@ -47,7 +48,7 @@ done
 
 command="java -jar chatunitest-standalone.jar $1 project"
 
-execute_command "$command" $1 $file
+execute_command "$command" $1 $last_folder
 
 
 echo "All files processed. The system will exit now."
