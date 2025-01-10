@@ -259,6 +259,7 @@ def generate_model(prompt,model_name,temperature,max_tokens):
             tokenizers[model_name].add_special_tokens({"pad_token": "<pad>"})
             tokenizers[model_name].padding_side = 'right'
             models[model_name] = OVModelForCausalLM.from_pretrained(model_path, trust_remote_code=True)
+            models[model_name] = models[model_name].to(device)
         elif model_name in ["Qwen/Qwen2.5-Coder-0.5B-Instruct","Qwen/Qwen2.5-Coder-1.5B-Instruct",
         "HuggingFaceTB/SmolLM2-1.7B-Instruct","Salesforce/xLAM-1b-fc-r","infly/OpenCoder-1.5B-Instruct",
         "deepseek-ai/deepseek-coder-1.3b-instruct"
