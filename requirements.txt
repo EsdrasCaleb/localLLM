@@ -6,3 +6,4 @@ openvino
 accelerate
 flask
 optimum[openvino]
+tiktoken
