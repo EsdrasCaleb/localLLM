@@ -192,7 +192,9 @@ def generate_model_new(prompt, model_name, temperature, max_tokens):
                 device_map="auto" if device == "cuda" else None
             )
             models[model_name] = raw_pipeline
-
+        if(device == "cuda"):
+            models[model_name] = torch.nn.DataParallel(models[model_name])
+            models[model_name] = models[model_name].cuda()
     # Generate text based on the model type
     if model_name.endswith(".gguf"):
         return models[model_name].create_chat_completion(

@@ -7,11 +7,14 @@
 # Load modules (adjust based on your environment)
 #module load python/3.9              # Python version
 #module load libraries/cuda/12.6              # CUDA version (if using GPUs)
-
+module load cmake
 source $HOME/.bashrc
 # Activate virtual environment (if needed)
 conda activate llm_env_gpu
+conda install gcc_linux-64 libstdcxx-ng cmake ninja
+conda install -c conda-forge cmake make gcc libgcc gxx -y
 pip install --upgrade -r requirements.txt
+pip install --no-cache-dir llama-cpp-python
 
 # Function to execute a command and capture its output
 execute_command() {
