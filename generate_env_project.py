@@ -77,7 +77,7 @@ def create_env_files(projects_dir, models_file):
         #    download_model(model)
         model_ar = model.split("/")
         model_name = model_ar[-1]
-        model_dir = os.path.join("./enfiles", f"{indexname:03}_{model_name}")
+        model_dir = os.path.join("./enfiles", f"{model_name}")
         indexname += 1
         #model_dir = os.path.join("./enfiles", model_name)
         os.makedirs(model_dir, exist_ok=True)
