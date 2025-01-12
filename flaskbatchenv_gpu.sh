@@ -11,6 +11,7 @@ module load cmake
 source $HOME/.bashrc
 # Activate virtual environment (if needed)
 conda activate llm_env_gpu
+conda install gcc_linux-64 libstdcxx-ng cmake ninja llama-cpp-python
 pip install --upgrade -r requirements.txt
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 # Function to execute a command and capture its output
