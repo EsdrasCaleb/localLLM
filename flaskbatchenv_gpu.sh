@@ -8,11 +8,9 @@
 #module load python/3.10              # Python version
 module load libraries/cuda/12.6              # CUDA version (if using GPUs)
 module load cmake
-export CXX=$CONDA_PREFIX/bin/x86_64-redhat-linux-c++
 source $HOME/.bashrc
 # Activate virtual environment (if needed)
 conda activate llm_env_gpu
-conda install gcc_linux-64 libstdcxx-ng cmake ninja llama-cpp-python
 pip install --upgrade -r requirements.txt
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 # Function to execute a command and capture its output
