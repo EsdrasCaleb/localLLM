@@ -7,3 +7,4 @@ accelerate
 flask
 optimum[openvino]
 tiktoken
+llama-cpp-python
