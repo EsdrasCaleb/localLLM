@@ -12,7 +12,7 @@ source $HOME/.bashrc
 # Activate virtual environment (if needed)
 conda activate llm_env_gpu
 conda install gcc_linux-64 libstdcxx-ng cmake ninja
-conda install -c conda-forge cmake make gcc libgcc gxx -y
+conda install -c conda-forge cmake make gcc libgcc gxx llama-cpp conda-forge::llama-cpp-python conda-forge::llama.cpp -y
 pip install --upgrade -r requirements.txt
 pip install --no-cache-dir llama-cpp-python
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
