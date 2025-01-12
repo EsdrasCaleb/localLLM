@@ -7,6 +7,7 @@
 # Load modules (adjust based on your environment)
 #module load python/3.10              # Python version
 module load libraries/cuda/12.6              # CUDA version (if using GPUs)
+module load cmake
 export CXX=$CONDA_PREFIX/bin/x86_64-redhat-linux-c++
 source $HOME/.bashrc
 # Activate virtual environment (if needed)
