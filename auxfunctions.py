@@ -50,6 +50,7 @@ models = {}
 tokenizers = {}
 
 file_repo={
+    "phi-4-Q3_K_L.gguf": "lmstudio-community/phi-4-GGUF",
     "Phi-3.5-mini-instruct-Q8_0.gguf": "bartowski/Phi-3.5-mini-instruct-GGUF",
     "Yi-Coder-9B-Chat-Q4_K_M.gguf": "lmstudio-community/Yi-Coder-9B-Chat-GGUF",
     "EXAONE-3.5-2.4B-Instruct-BF16.gguf": "LGAI-EXAONE/EXAONE-3.5-2.4B-Instruct-GGUF",
