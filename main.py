@@ -59,14 +59,10 @@ def generate_text():
     if not model_name or not prompt:
         return jsonify({"error": "'model' and 'prompt' are required."}), 400
     try:
-        output = auxfunctions.generate_model_new(prompt=prompt,model_name=model_name,
-            temperature=temperature,max_tokens=max_tokens)
+        output = auxfunctions.generate_model(prompt=prompt, model_name=model_name,
+                                             temperature=temperature, max_tokens=max_tokens)
     except ValueError as e:
-        try:
-            output = auxfunctions.generate_model(prompt=prompt, model_name=model_name,
-                                                     temperature=temperature, max_tokens=max_tokens)
-        except ValueError as e:
-            return jsonify({"error": str(e)}), 400
+        return jsonify({"error": str(e)}), 400
     #print("rawresponse:" + output)
     # Split the output from the superprompt length
     if(model_name in ["starcoder2-3b-Q8_0.gguf"]):
@@ -229,6 +225,35 @@ def mistral_to_openai():
     except Exception as e:
         print(e)
         return jsonify({"error": "An unexpected error occurred", "details": str(e)}), 500
+
+
+@app.route("/hugging", methods=["POST", "GET"])
+def hugging_to_openai():
+    from huggingface_hub import InferenceClient
+    try:
+        # Get the OpenAI-style input
+        data = request.get_json()
+        if not data:
+            return jsonify({"error": "Invalid input"}), 400
+        model = data.get('model', 'open-codestral-mamba')
+
+        messages = auxfunctions.filterMessage(data.get('messages'))
+
+        max_tokens = data.get('max_tokens', 512)
+        temperature = data.get('temperature', 0.7)
+        client = InferenceClient(api_key=env_data["HF_TOKEN"])
+        chat_response = client.chat.completions.create(
+            model=model,
+            max_tokens=max_tokens,
+            temperature=temperature,
+            messages=messages
+        )
+
+        return jsonify(chat_response)
+    except Exception as e:
+        print(e)
+        return jsonify({"error": "An unexpected error occurred", "details": str(e)}), 500
+
 
 grok_key =  env_data["grok_key"]
 @app.route("/grok", methods=["POST","GET"])
