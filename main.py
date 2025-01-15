@@ -62,7 +62,11 @@ def generate_text():
         output = auxfunctions.generate_model_new(prompt=prompt,model_name=model_name,
             temperature=temperature,max_tokens=max_tokens)
     except ValueError as e:
-        return jsonify({"error": str(e)}), 400
+        try:
+            output = auxfunctions.generate_model(prompt=prompt, model_name=model_name,
+                                                     temperature=temperature, max_tokens=max_tokens)
+        except ValueError as e:
+            return jsonify({"error": str(e)}), 400
     #print("rawresponse:" + output)
     # Split the output from the superprompt length
     if(model_name in ["starcoder2-3b-Q8_0.gguf"]):
