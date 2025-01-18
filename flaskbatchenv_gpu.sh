@@ -53,5 +53,5 @@ command="java -jar chatunitest-standalone.jar $1 project"
 
 execute_command "$command" $1 $last_folder
 
-
+rm -r ../scratch/models
 echo "All files processed. The system will exit now."
