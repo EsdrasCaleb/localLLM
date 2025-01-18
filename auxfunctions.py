@@ -121,10 +121,10 @@ def generate_model_new(prompt, model_name, temperature, max_tokens):
     file_name = None
 
     # Detect GPUs
-    if torch.cuda.is_available():
+    if torch.cuda.is_available() and False:
         device = "cuda"
         torch.cuda.empty_cache()
-    elif torch.backends.mps.is_available():  # For macOS with Metal Performance Shaders
+    elif torch.backends.mps.is_available() and False:  # For macOS with Metal Performance Shaders
         device = "mps"
 
     # Run garbage collection to free up memory
