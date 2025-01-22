@@ -88,7 +88,7 @@ def generate_prompt(messages,model_name):
             prompt = usermessage
     elif(model_name in ["Qwen/Qwen2.5-Coder-0.5B-Instruct","Qwen/Qwen2.5-Coder-1.5B-Instruct","Qwen/Qwen2.5-Coder-7B-Instruct","infly/OpenCoder-1.5B-Instruct",
     "HuggingFaceTB/SmolLM2-1.7B-Instruct","Salesforce/xLAM-1b-fc-r","ibm-granite/granite-3.1-1b-a400m-instruct",
-    "deepseek-ai/deepseek-coder-1.3b-instruct","deepseek-ai/deepseek-coder-6.7b-instruc","tiiuae/Falcon3-1B-Instruct","google/gemma2-2b-it"] or
+    "deepseek-ai/deepseek-coder-1.3b-instruct","deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B","deepseek-ai/deepseek-coder-6.7b-instruc","tiiuae/Falcon3-1B-Instruct","google/gemma2-2b-it"] or
     model_name.endswith(".gguf")):
         prompt = messages
     else:
@@ -136,7 +136,7 @@ def generate_model_new(prompt, model_name, temperature, max_tokens):
 
     if not model_name in models:
         model_path = os.path.join(MODEL_DIR, model_name)
-        if not os.path.exists(model_path):
+        if not os.path.exists(model_path) and False:
             print("Downloading pretrained model..." + model_name)
             if file_name:
                 download_model(model_name=file_repo[file_name], file=file_name)
@@ -163,6 +163,7 @@ def generate_model_new(prompt, model_name, temperature, max_tokens):
             "Qwen/Qwen2.5-Coder-0.5B-Instruct", "Qwen/Qwen2.5-Coder-1.5B-Instruct","Qwen/Qwen2.5-Coder-7B-Instruct",
             "HuggingFaceTB/SmolLM2-1.7B-Instruct", "Salesforce/xLAM-1b-fc-r",
             "infly/OpenCoder-1.5B-Instruct", "deepseek-ai/deepseek-coder-1.3b-instruct",
+            "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B",
             "deepseek-ai/deepseek-coder-6.7b-instruc"
         ]:
             raw_model = AutoModelForCausalLM.from_pretrained(
@@ -209,7 +210,7 @@ def generate_model_new(prompt, model_name, temperature, max_tokens):
     elif model_name in [
         "HuggingFaceTB/SmolLM2-1.7B-Instruct", "Salesforce/xLAM-1b-fc-r",
         "deepseek-ai/deepseek-coder-1.3b-instruct", "infly/OpenCoder-1.5B-Instruct",
-        "deepseek-ai/deepseek-coder-6.7b-instruc"
+        "deepseek-ai/deepseek-coder-6.7b-instruc","deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
     ]:
         input_text = tokenizers[model_name].apply_chat_template(prompt, tokenize=False)
         inputs = tokenizers[model_name](input_text, return_tensors="pt", padding=True, truncation=True).to(device)
@@ -267,7 +268,7 @@ def generate_model(prompt,model_name,temperature,max_tokens):
             models[model_name] = models[model_name].to(device)
         elif model_name in ["Qwen/Qwen2.5-Coder-0.5B-Instruct","Qwen/Qwen2.5-Coder-1.5B-Instruct","Qwen/Qwen2.5-Coder-7B-Instruct",
         "HuggingFaceTB/SmolLM2-1.7B-Instruct","Salesforce/xLAM-1b-fc-r","infly/OpenCoder-1.5B-Instruct",
-        "deepseek-ai/deepseek-coder-1.3b-instruct","deepseek-ai/deepseek-coder-6.7b-instruc"
+        "deepseek-ai/deepseek-coder-1.3b-instruct","deepseek-ai/deepseek-coder-6.7b-instruct","deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
         ]:
             models[model_name] = AutoModelForCausalLM.from_pretrained(
                 model_path,
@@ -296,7 +297,7 @@ def generate_model(prompt,model_name,temperature,max_tokens):
             )['choices'][0]['message']['content']
     if model_name in ["HuggingFaceTB/SmolLM2-1.7B-Instruct","Salesforce/xLAM-1b-fc-r",
             "deepseek-ai/deepseek-coder-1.3b-instruct","infly/OpenCoder-1.5B-Instruct",
-                      "deepseek-ai/deepseek-coder-6.7b-instruc"]:
+            "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B","deepseek-ai/deepseek-coder-6.7b-instruc"]:
         input_text=tokenizers[model_name].apply_chat_template(prompt, tokenize=False)
         inputs = tokenizers[model_name](input_text, return_tensors="pt", padding=True, truncation=True).to(device)
          

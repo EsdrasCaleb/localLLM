@@ -22,3 +22,4 @@ codegemma-7b-it-Q6_K.gguf http://localhost:5000/generate_model
 matteogeniaccio.phi-4.Q3_K_M.gguf http://localhost:5000/generate_model
 Llama-3.2-3B-Instruct-f16.gguf http://localhost:5000/generate_model
 internlm2_5-7b-chat-q8_0.gguf http://localhost:5000/generate_model
+deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B http://localhost:5000/generate_model
