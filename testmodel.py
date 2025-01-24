@@ -4,7 +4,7 @@ file_path = '.env'
 env_data = load_env_file(file_path)
 # Path to the folder containing GGUF model files
 models_folder = os.path.join(env_data.get("model_dir","./models"),"gguf")
-models=["starcoder2-7b-Q8_0.gguf"]
+models=["deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"]
 prompt="give me e small java class that calculate the area of a polygon"
 messages=[
     {

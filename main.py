@@ -74,6 +74,7 @@ def generate_text():
     elif(model_name in ["HuggingFaceTB/SmolLM2-1.7B-Instruct","Salesforce/xLAM-1b-fc-r",
     "infly/OpenCoder-1.5B-Instruct","google/gemma2-2b-it",
     "deepseek-ai/deepseek-coder-1.3b-instruct","tiiuae/Falcon3-1B-Instruct",
+    "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B",
     "ibm-granite/granite-3.1-1b-a400m-instruct"] 
     or model_name.endswith(".gguf")):
         assistant_response = output
