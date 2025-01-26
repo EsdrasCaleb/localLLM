@@ -233,7 +233,7 @@ def generate_model(prompt,model_name,temperature,max_tokens):
     device = "cpu"
     file_name = None
     # If using PyTorch, free up GPU memory
-    if torch.cuda.is_available():
+    if torch.cuda.is_available() and False:
         device = "cuda"
         torch.cuda.empty_cache()
     # Run garbage collection to free up memory
