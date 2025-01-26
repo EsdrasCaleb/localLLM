@@ -121,10 +121,10 @@ def generate_model_new(prompt, model_name, temperature, max_tokens):
     file_name = None
 
     # Detect GPUs
-    if torch.cuda.is_available() and False:
+    if torch.cuda.is_available():
         device = "cuda"
         torch.cuda.empty_cache()
-    elif torch.backends.mps.is_available() and False:  # For macOS with Metal Performance Shaders
+    elif torch.backends.mps.is_available():  # For macOS with Metal Performance Shaders
         device = "mps"
 
     # Run garbage collection to free up memory
@@ -136,7 +136,7 @@ def generate_model_new(prompt, model_name, temperature, max_tokens):
 
     if not model_name in models:
         model_path = os.path.join(MODEL_DIR, model_name)
-        if not os.path.exists(model_path) and False:
+        if not os.path.exists(model_path):
             print("Downloading pretrained model..." + model_name)
             if file_name:
                 download_model(model_name=file_repo[file_name], file=file_name)
@@ -233,7 +233,7 @@ def generate_model(prompt,model_name,temperature,max_tokens):
     device = "cpu"
     file_name = None
     # If using PyTorch, free up GPU memory
-    if torch.cuda.is_available() and False:
+    if torch.cuda.is_available():
         device = "cuda"
         torch.cuda.empty_cache()
     # Run garbage collection to free up memory
