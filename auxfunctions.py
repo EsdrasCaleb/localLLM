@@ -2,7 +2,7 @@ import torch
 import argparse
 from transformers import pipeline
 from huggingface_hub import HfApi, snapshot_download
-from transformers import AutoTokenizer,AutoModelForCausalLM
+from transformers import AutoTokenizer,AutoModelForCausalLM,TextGenerationPipeline
 import shutil
 from optimum.intel.openvino import OVModelForCausalLM
 import gc
@@ -196,8 +196,12 @@ def generate_model_new(prompt, model_name, temperature, max_tokens):
             )
             models[model_name] = raw_pipeline
         if device == "cuda":
-            models[model_name] = torch.nn.DataParallel(models[model_name])
-            models[model_name] = models[model_name].cuda()
+            tokenizers[model_name] = AutoTokenizer.from_pretrained(model_path)
+            tokenizers[model_name].add_special_tokens({"pad_token": "<|reserved_special_token_0|>"})
+            tokenizers[model_name].padding_side = 'right'
+            model = torch.nn.DataParallel(models[model_name])
+            model = model.cuda()
+            models[model_name] = TextGenerationPipeline(model=model, tokenizer=tokenizers[model_name])
     # Generate text based on the model type
     if model_name.endswith(".gguf"):
         return models[model_name].create_chat_completion(
