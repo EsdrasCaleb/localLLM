@@ -247,14 +247,12 @@ def generate_model(prompt,model_name,temperature,max_tokens):
         model_name = os.path.join("gguf", model_name)
     if not model_name in models:
         model_path = os.path.join(MODEL_DIR, model_name)
-        if not os.path.exists(model_path) and env_data.get("download", False):
+        if not os.path.exists(model_path):
             print("Downloading pretrained model..."+model_name)
             if(file_name):
                 download_model(model_name=file_repo[file_name],file=file_name)
             else:
                 download_model(model_name=model_name)
-        elif(env_data.get("download", False)):
-            model_path = file_repo[file_name]
         if model_name in ["google/recurrentgemma-2b-it","google/codegemma-2b"
             ,"ibm-granite/granite-3.1-1b-a400m-instruct"]:
             models[model_name] = AutoModelForCausalLM.from_pretrained(model_path,
