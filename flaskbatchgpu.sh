@@ -26,12 +26,14 @@ execute_command() {
   echo "Executing: $command"
   local output=$(eval "$command" 2>&1)
   local exit_code=$?
+  local filename=$(basename "$file")  # Extracts only the filename
+  local timestamp=$(date +"%Y%m%d_%H%M%S")  # Generates a timestamp
   if [ $exit_code -eq 0 ]; then
-    echo "Successful execution of $env_file" >> "unilogs/executions_$file.log"
-    echo "\nLog of $env_file:\n $output\n" >> "unilogs/logs_$file.log"
+    echo "Successful execution of $env_file" >> "unilogs/executions_$filename_$timestamp.log"
+    echo "\nLog of $env_file:\n $output\n" >> "unilogs/logs_$filename_$timestamp.log"
     #rm $env_file
   else
-    echo "Problem in execution of $env_file: $output" >>"unilogs/errors_$file.log"
+    echo "Problem in execution of $env_file: $output" >>"unilogs/errors_$filename_$timestamp.log"
   fi
   # After processing each project:
   end_time=$(date +%s)
@@ -41,7 +43,6 @@ execute_command() {
 # Run main.py in the background
 python3.9 main.py >> flask_app_gpu.log 2>&1 &
 
-flask_pid=$!
 echo "Waiting for Flask app to initialize..."
 while ! curl -s http://localhost:5000/health; do
   echo "Waiting for Flask app to be ready..."

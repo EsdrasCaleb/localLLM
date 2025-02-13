@@ -2,7 +2,7 @@ execute_command() {
   local command="$1"
   local env_file="$2"
   local folder="$3"
-
+#sbatch --partition=gpu-8-h100 flaskbatchgpu.sh
   echo "Executing: $command"
   local output=$(eval "$command" 2>&1)
   local exit_code=$?
