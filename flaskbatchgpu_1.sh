@@ -38,19 +38,19 @@ execute_command() {
   echo "Processing $env_file took $elapsed_time seconds" >> timings.log
 }
 
+# Run main.py in the background
+python3.9 main.py >> "unilogs/flask_app_$last_folder.log" 2>&1 &
+
+echo "Waiting for Flask app to initialize..."
+while ! curl -s http://localhost:5000/health; do
+  echo "Waiting for Flask app to be ready..."
+  sleep 5
+done
+
 # Loop through all folders passed as arguments
 for folder in "$@"; do
   if [ -d "$folder" ]; then
     last_folder=$(basename "$folder")
-
-    # Run main.py in the background
-    python3.9 main.py >> "unilogs/flask_app_$last_folder.log" 2>&1 &
-
-    echo "Waiting for Flask app to initialize..."
-    while ! curl -s http://localhost:5000/health; do
-      echo "Waiting for Flask app to be ready..."
-      sleep 5
-    done
 
     # Loop through each environment file in the current folder and execute the command
     for env_file in "$folder"/*; do
