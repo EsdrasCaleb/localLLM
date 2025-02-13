@@ -21,12 +21,11 @@ export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 execute_command() {
   local command="$1"
   local env_file="$2"
-  local file="$3"
   start_time=$(date +%s)
   echo "Executing: $command"
   local output=$(eval "$command" 2>&1)
   local exit_code=$?
-  local filename=$(basename "$file")  # Extracts only the filename
+  local filename=$(basename "$env_file")  # Extracts only the filename
   local timestamp=$(date +"%Y%m%d_%H%M%S")  # Generates a timestamp
   if [ $exit_code -eq 0 ]; then
     echo "Successful execution of $env_file" >> "unilogs/executions_$filename_$timestamp.log"
@@ -65,7 +64,7 @@ for folder in enfiles/*; do
       # Construct the command
       command="java -jar chatunitest-standalone.jar $env_file project"
       # Execute the command and capture output
-      execute_command "$command" "$env_file" "$folder"
+      execute_command "$command" "$env_file"
       echo "Readed file $env_file"
     done
     echo "Clear Models"
