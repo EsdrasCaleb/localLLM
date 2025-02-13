@@ -1,19 +1,20 @@
 #!/bin/bash
-#SBATCH --job-name=flask_chattester_gpu        # Job name
-#SBATCH --output=flask_gpu_%j.log    # Log file (%j = job ID)
-#SBATCH --time=2-00:00:00            # Test greather model in 2 days
-
+#SBATCH --job-name=flask_uni        # Job name
+#SBATCH --output=flask_uni_%j.log    # Log file (%j = job ID)
+#SBATCH --time=2-00:00:00            # Test greater model in 2 days
 
 # Load modules (adjust based on your environment)
-module load softwares/python/3.10.5-gnu8              # Python version
-module load libraries/cuda/12.6           # CUDA version (if using GPUs)
-
+#module load python/3.10              # Python version
+module load libraries/cuda/12.6              # CUDA version (if using GPUs)
+module load cmake
 source $HOME/.bashrc
 # Activate virtual environment (if needed)
-source venv/bin/activate
-pip3.9 install --upgrade pip
-pip3.9 install -r requirements.txt
-pip3.9 install --upgrade torch torchvision torchaudio
+conda activate llm_env_gpu
+#conda install gcc_linux-64 libstdcxx-ng cmake ninja
+#conda install -c conda-forge cmake make gcc libgcc gxx -y
+#pip install --upgrade -r requirements.txt
+#pip install --no-cache-dir llama-cpp-python
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
 # Function to execute a command and capture its output
 execute_command() {
@@ -24,56 +25,44 @@ execute_command() {
   echo "Executing: $command"
   local output=$(eval "$command" 2>&1)
   local exit_code=$?
-
   if [ $exit_code -eq 0 ]; then
-    echo "Successful execution of $folder/$env_file" >>executions_gpu_1.log
-    echo "\nLog of $folder/$env_file:\n $output\n" >> logs_gpu_1.log
-    rm $env_file
+    echo "Successful execution of $env_file" >> "unilogs/executions_$folder.log"
+    echo "\nLog of $env_file:\n $output\n" >> "unilogs/logs_$folder.log"
+    #rm $env_file
   else
-    echo "Problem in execution of $folder/$env_file: $output" >>errors_gpu_1.log
+    echo "Problem in execution of $env_file: $output" >>"unilogs/errors_$folder.log"
   fi
   # After processing each project:
   end_time=$(date +%s)
   elapsed_time=$((end_time - start_time))
-  echo "Processing $env_file took $elapsed_time seconds" >> timings_gpu_1.log
+  echo "Processing $env_file took $elapsed_time seconds" >> timings.log
 }
 
-# Run main.py in the background
-python3.9 main.py >> flask_app_gpu_1.log 2>&1 &
-
-flask_pid=$!
-echo "Waiting for Flask app to initialize..."
-while ! curl -s http://localhost:5000/health; do
-  echo "Waiting for Flask app to be ready..."
-  sleep 5
-done
-
-
-# Loop through each folder in the "envs" directory
-for folder in $(ls -d enfiles/* | sort -r); do
-#for folder in enfiles/*; do
+# Loop through all folders passed as arguments
+for folder in "$@"; do
   if [ -d "$folder" ]; then
-    case "$folder" in
-            *gg)
-                continue ;; # Skip folders ending in "gg"
-    esac
-    echo "Processing folder: $folder"
+    last_folder=$(basename "$folder")
 
-    # Loop through each .env file in the folder
+    # Run main.py in the background
+    python3.9 main.py >> "unilogs/flask_app_$last_folder.log" 2>&1 &
+
+    echo "Waiting for Flask app to initialize..."
+    while ! curl -s http://localhost:5000/health; do
+      echo "Waiting for Flask app to be ready..."
+      sleep 5
+    done
+
+    # Loop through each environment file in the current folder and execute the command
     for env_file in "$folder"/*; do
-      if [[ "$(basename "$env_file")" == 7_* ]]; then
-            # Construct the command
-            command="java -jar chatunitest-standalone.jar $env_file project"
-            # Execute the command and capture output
-            execute_command "$command" "$env_file" "$folder"
+      if [ -f "$env_file" ]; then
+        command="java -jar chatunitest-standalone.jar $env_file project"
+        execute_command "$command" "$env_file" "$last_folder"
       fi
     done
-    echo "Clear Models"
-    python3.9  clear_models.py
+  else
+    echo "Directory $folder does not exist. Skipping..."
   fi
 done
 
-# Stop Flask app
-#kill $flask_pid
-
+#rm -r ../scratch/models
 echo "All files processed. The system will exit now."
