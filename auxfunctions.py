@@ -285,16 +285,20 @@ def generate_model(prompt,model_name,temperature,max_tokens):
             )
             tokenizers[model_name] = AutoTokenizer.from_pretrained(model_path)
         elif model_name in ["tiiuae/Falcon3-1B-Instruct","01-ai/Yi-Coder-1.5B","google/gemma2-2b-it"]:
-            models[model_name] = pipeline("text-generation",
-                                          model=model_path, device_map=device)
+            models[model_name] = AutoModelForCausalLM.from_pretrained(model_path).to(device)
+
+            #models[model_name] = pipeline("text-generation",
+            #                              model=model_path, device_map=device)
+            tokenizers[model_name] = AutoTokenizer.from_pretrained(model_path)
         else:
             # Load model and tokenizer
             tokenizers[model_name] = AutoTokenizer.from_pretrained(model_path)
             tokenizers[model_name].add_special_tokens({"pad_token": "<|reserved_special_token_0|>"})
             tokenizers[model_name].padding_side = 'right'
-            models[model_name] = pipeline("text-generation",pad_token_id=tokenizers[model_name].pad_token_id
-                                          ,tokenizer=tokenizers[model_name],
-                                          model=model_path, device_map=device)
+            #models[model_name] = pipeline("text-generation",pad_token_id=tokenizers[model_name].pad_token_id
+            #                              ,tokenizer=tokenizers[model_name],
+            #                              model=model_path, device_map=device)
+            models[model_name] = AutoModelForCausalLM.from_pretrained(model_path).to(device)
     if model_name.endswith(".gguf"):
         return models[model_name].create_chat_completion(
                 messages=prompt,
@@ -347,7 +351,18 @@ def generate_model(prompt,model_name,temperature,max_tokens):
             **tokenizers[model_name](prompt, return_tensors="pt").to(device),do_sample=True,
             pad_token_id=tokenizers[model_name].pad_token_id,max_new_tokens=max_tokens,
             eos_token_id=tokenizers[model_name].eos_token_id, temperature=temperature)[0])
-    return models[model_name](prompt,temperature=temperature,max_new_tokens=max_tokens,return_full_text=False,do_sample=True)[0]['generated_text']
+    #return models[model_name](prompt,temperature=temperature,max_new_tokens=max_tokens,return_full_text=False,do_sample=True)[0]['generated_text']
+    inputs = tokenizers[model_name](prompt, return_tensors="pt", padding=True, truncation=True).to(device)
+    outputs = models[model_name].generate(
+        inputs["input_ids"],
+        max_new_tokens=max_tokens,
+        temperature=temperature,
+        do_sample=True,
+        pad_token_id=tokenizers[model_name].pad_token_id,
+        eos_token_id=tokenizers[model_name].eos_token_id
+    )
+    generated_text = tokenizers[model_name].decode(outputs[0], skip_special_tokens=True)
+    return generated_text
 
 # 1. List available text generation models from Hugging Face Hub
 def list_hf_models():
