@@ -107,10 +107,7 @@ def create_env_files(projects_dir, models_file):
                             line = line.replace("{model_name}", model_name)
                             line = line.replace("{project_path}", project_path)
                             line = line.replace("{project_path_dir}", project_path.replace('.', '/'))
-                            if timeout:
-                              line = line.replace("{timeout}", timeout)
-                            else:
-                              line = line.replace("{timeout}", "0")
+                            line = line.replace("{timeout}", "0")
                             f.write(line)
 
 # Example usage
