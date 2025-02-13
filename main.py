@@ -61,7 +61,7 @@ def generate_text():
     try:
         #output = auxfunctions.generate_model(prompt=prompt, model_name=model_name,
         #                                     temperature=temperature, max_tokens=max_tokens)
-        output = auxfunctions.generate_model_new(prompt=prompt, model_name=model_name,
+        output = auxfunctions.generate_model(prompt=prompt, model_name=model_name,
                 temperature = temperature, max_tokens = max_tokens)
     except ValueError as e:
         return jsonify({"error": str(e)}), 400
