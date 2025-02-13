@@ -184,10 +184,14 @@ def openai_to_gemini():
         print(e)
         return jsonify({"error": "An unexpected error occurred", "details": str(e)}), 500
 
-mistral_key = env_data["MISTRAL_API_KEY"]
 
+mistral_keys = env_data["MISTRAL_API_KEY"].split(",")
+mistral_index = 0
 @app.route("/mistral", methods=["POST","GET"])
 def mistral_to_openai():
+    global mistral_index
+    mistral_key = mistral_keys[mistral_index]
+    mistral_index = (1 + mistral_index) % (len(mistral_keys))
     from mistralai import Mistral
     try:
         # Get the OpenAI-style input
@@ -197,7 +201,6 @@ def mistral_to_openai():
         model = data.get('model','open-codestral-mamba')
     
         messages = auxfunctions.filterMessage(data.get('messages'))
-
         max_tokens = data.get('max_tokens', 512)
         temperature = data.get('temperature', 0.7)
         client = Mistral(api_key=mistral_key)

@@ -53,6 +53,12 @@ def create_env_files(projects_dir, models_file):
                 model_urls[model] = url
             elif len(parts) == 1:
                 model_urls[parts[0]] = "http://localhost:5000/generate_model"
+            elif len(parts) == 3:
+                model, url, key = parts
+                model_urls[model] = url
+            elif len(parts) == 4:
+                model, url, key, timeout = parts
+                model_urls[model] = url
 
     # Get project folders
     projects = {}
@@ -84,11 +90,11 @@ def create_env_files(projects_dir, models_file):
         
         for project,project_path in projects.items():
             index = project.split("_")[0]
-            if(int(index)>1):
+            if(int(index)>8):
                 continue
             project_name = project.split("_")[1]
-            
-            for intention in ["true", "false"]:
+
+            for intention in ["true"]:
                 env_file_path = os.path.join(model_dir, f"{project}_int{intention}_env")
                 with open(env_file_path, "w") as f:
                     with open("template.env", "r") as template:
@@ -100,6 +106,13 @@ def create_env_files(projects_dir, models_file):
                             line = line.replace("{model}", model)
                             line = line.replace("{model_name}", model_name)
                             line = line.replace("{project_path}", project_path)
+                            line = line.replace("{project_path_dir}", project_path.replace('.', '/'))
+                            if key:
+                              line = line.replace("XXXKEYXXX", key)
+                            if timeout:
+                              line = line.replace("{timeout}", timeout)
+                            else:
+                              line = line.replace("{timeout}", "0")
                             f.write(line)
 
 # Example usage

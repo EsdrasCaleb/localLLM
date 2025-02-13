@@ -1,8 +1,4 @@
 import os
-import re
-from auxfunctions import load_env_file,download_model,file_repo
-file_path = '.env'
-env_data = load_env_file(file_path)
 
 
 def load_project_path(project, projects_dir,classfile):
@@ -49,12 +45,19 @@ def create_env_files(projects_dir, models_file):
     model_urls = {}
     with open(models_file, "r") as f:
         for line in f:
+            key = None
+            timeout = None
             parts = line.strip().split()
             if len(parts) == 2:
                 model, url = parts
-                model_urls[model] = url
             elif len(parts) == 1:
                 model_urls[parts[0]] = "http://localhost:5000/generate_model"
+            elif len(parts) == 3:
+                model, url, timeout = parts
+                model_urls[model] = url
+            elif len(parts) == 4:
+                model, url, timeout,key = parts
+            model_urls[model] = {"url":url, "timeout":timeout, "key":key}
 
     # Get project folders
     projects = {}
@@ -70,38 +73,37 @@ def create_env_files(projects_dir, models_file):
         if not os.path.exists(target_folder_path):
             os.makedirs(target_folder_path)
         projects[project] = load_project_path(project,projects_dir,class_file)
-    indexname = 0
-    for model, url in model_urls.items():
-        if model.endswith(".gguf"):
-            file_name = model
-            download_model(model_name=file_repo[file_name], file=file_name)
-        else:
-            download_model(model)
-        model_ar = model.split("/")
-        model_name = model_ar[-1]
-        model_dir = os.path.join("./enfiles", f"{indexname:03}_{model_name}")
-        indexname += 1
-        #model_dir = os.path.join("./enfiles", model_name)
-        os.makedirs(model_dir, exist_ok=True)
-        
-        for project,project_path in projects.items():
-            index = project.split("_")[0]
-            project_name = project.split("_")[1]
-            
-            for intention in ["true", "false"]:
-                env_file_path = os.path.join(model_dir, f"{project}_int{intention}_env")
+    for project, project_path in projects.items():
+        index = project.split("_")[0]
+        if (int(index) > 7):
+            continue
+        project_name = project.split("_")[1]
+        dir_p = os.path.join("./enfiles", project)
+        os.makedirs(dir_p, exist_ok=True)
+        indexname = 0
+        for model, model_ob in model_urls.items():
+            model_ar = model.split("/")
+            model_name = model_ar[-1]
+            indexname += 1
+            for intention in ["true"]:
+                env_file_path = os.path.join(dir_p, f"{indexname:03}_{model_name}_env")
                 with open(env_file_path, "w") as f:
                     with open("template.env", "r") as template:
                         for line in template:
                             line = line.replace("{index}", index)
                             line = line.replace("{project}", project_name)
                             line = line.replace("{intention}", intention)
-                            line = line.replace("{url}", url)
+                            line = line.replace("{url}", model_ob["url"])
                             line = line.replace("{model}", model)
                             line = line.replace("{model_name}", model_name)
                             line = line.replace("{project_path}", project_path)
-                            if url == "https://api.openai.com/v1/chat/completions":
-                              line = line.replace("XXXKEYXXX", env_data.get('gpt_key',"XXXKEYXXX"))
+                            line = line.replace("{project_path_dir}", project_path.replace('.', '/'))
+                            if model_ob["key"]:
+                                line = line.replace("XXXKEYXXX", model_ob["key"])
+                            if model_ob["timeout"]:
+                                line = line.replace("{timeout}", model_ob["timeout"])
+                            else:
+                                line = line.replace("{timeout}", "0")
                             f.write(line)
 
 # Example usage
