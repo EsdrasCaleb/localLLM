@@ -17,6 +17,7 @@ conda activate llm_env_gpu
 #pip install --no-cache-dir llama-cpp-python
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 # Function to execute a command and capture its output
+
 execute_command() {
   local command="$1"
   local env_file="$2"
