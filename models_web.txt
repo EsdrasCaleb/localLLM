@@ -1,9 +1,9 @@
-gemini-1.5-flash http://localhost:5000/google    1000
-open-codestral-mamba    http://localhost:5000/mistral    1000
-gpt-o3-mini https://api.openai.com/v1/chat/completions  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,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,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  5000
-Qwen2.5-Coder-32B-Instruct  https://api.sambanova.ai/v1/chat/completions    73caa84a-f219-4b2c-b125-d43e87086f04    5000
-codestral https://codestral.mistral.ai/v1/chat/completions  oSEypf2EqmcitP0lj3W0bnec1VOmmar7,ju1tvgyN91fMjjqgTx8kabUrNL1uAf6z    1000
-gemini-1.5-flash-8b http://localhost:5000/google    1000
-microsoft/phi-3-medium-128k-instruct:free https://openrouter.ai/api/v1  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   5000
-gpt-4o-mini https://api.openai.com/v1/chat/completions  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,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,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  5000
-Meta-Llama-3.2-3B-Instruct https://api.sambanova.ai/v1/chat/completions 73caa84a-f219-4b2c-b125-d43e87086f04    5000
+gemini-1.5-flash http://localhost:5000/google   100
+open-codestral-mamba    http://localhost:5000/mistral   100
+gpt-o3-mini https://api.openai.com/v1/chat/completions  5000  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,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,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
+Qwen2.5-Coder-32B-Instruct  https://api.sambanova.ai/v1/chat/completions    5000    73caa84a-f219-4b2c-b125-d43e87086f04
+codestral-latest https://codestral.mistral.ai/v1/chat/completions  100  oSEypf2EqmcitP0lj3W0bnec1VOmmar7,ju1tvgyN91fMjjqgTx8kabUrNL1uAf6z
+gemini-1.5-flash-8b http://localhost:5000/google    100
+microsoft/phi-3-medium-128k-instruct:free https://openrouter.ai/api/v1  5000  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
+gpt-4o-mini https://api.openai.com/v1/chat/completions 5000  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,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,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
+Meta-Llama-3.2-3B-Instruct https://api.sambanova.ai/v1/chat/completions 5000 73caa84a-f219-4b2c-b125-d43e87086f04

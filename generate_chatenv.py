@@ -86,7 +86,7 @@ def create_env_files(projects_dir, models_file):
             model_name = model_ar[-1]
             indexname += 1
             for intention in ["true"]:
-                env_file_path = os.path.join(dir_p, f"{indexname:03}_{model_name}_env")
+                env_file_path = os.path.join(dir_p, f"{indexname:03}_{model_name}.env")
                 with open(env_file_path, "w") as f:
                     with open("template.env", "r") as template:
                         for line in template:

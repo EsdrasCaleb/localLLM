@@ -95,7 +95,7 @@ def create_env_files(projects_dir, models_file):
             project_name = project.split("_")[1]
 
             for intention in ["true"]:
-                env_file_path = os.path.join(model_dir, f"{project}_int{intention}_env")
+                env_file_path = os.path.join(model_dir, f"{project}_int{intention}.env")
                 with open(env_file_path, "w") as f:
                     with open("template.env", "r") as template:
                         for line in template:

@@ -1,44 +1,43 @@
 #!/bin/bash
-#SBATCH --job-name=flask_chattester_gpu        # Job name
-#SBATCH --output=flask_gpu_%j.log    # Log file (%j = job ID)
+#SBATCH --job-name=flask_uni        # Job name
+#SBATCH --output=flask_uni_%j.log    # Log file (%j = job ID)
 #SBATCH --time=2-00:00:00            # Test greather model in 2 days
-#SBATCH --nodes=1               # Use one node
-#SBATCH --ntasks=4              # Run four tasks (processes)
-#SBATCH --cpus-per-task=4       # Each task uses four CPU cores
 
 
 # Load modules (adjust based on your environment)
-#module load python/3.9              # Python version
-module load libraries/cuda/12.6           # CUDA version (if using GPUs)
-
+#module load python/3.10              # Python version
+module load libraries/cuda/12.6              # CUDA version (if using GPUs)
+module load cmake
 source $HOME/.bashrc
 # Activate virtual environment (if needed)
 conda activate llm_env_gpu
-pip install --upgrade torch torchvision torchaudio
-
+#conda install gcc_linux-64 libstdcxx-ng cmake ninja
+#conda install -c conda-forge cmake make gcc libgcc gxx -y
+#pip install --upgrade -r requirements.txt
+#pip install --no-cache-dir llama-cpp-python
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 # Function to execute a command and capture its output
+
 execute_command() {
   local command="$1"
   local env_file="$2"
-  local folder="$3"
+  local file="$3"
   start_time=$(date +%s)
   echo "Executing: $command"
   local output=$(eval "$command" 2>&1)
   local exit_code=$?
-
   if [ $exit_code -eq 0 ]; then
-    echo "Successful execution of $folder/$env_file" >>executions_gpu.log
-    echo "\nLog of $folder/$env_file:\n $output\n" >> logs_gpu.log
-    rm $env_file
+    echo "Successful execution of $env_file" >> "unilogs/executions_$file.log"
+    echo "\nLog of $env_file:\n $output\n" >> "unilogs/logs_$file.log"
+    #rm $env_file
   else
-    echo "Problem in execution of $folder/$env_file: $output" >>errors_gpu.log
+    echo "Problem in execution of $env_file: $output" >>"unilogs/errors_$file.log"
   fi
   # After processing each project:
   end_time=$(date +%s)
   elapsed_time=$((end_time - start_time))
-  echo "Processing $env_file took $elapsed_time seconds" >> timings_gpu.log
+  echo "Processing $env_file took $elapsed_time seconds" >> timings.log
 }
-
 # Run main.py in the background
 python3.9 main.py >> flask_app_gpu.log 2>&1 &
 
