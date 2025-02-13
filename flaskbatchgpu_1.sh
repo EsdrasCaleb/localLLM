@@ -59,6 +59,8 @@ for folder in "$@"; do
         execute_command "$command" "$env_file" "$last_folder"
       fi
     done
+    echo "Clear Models"
+    python3.9 clear_models.py
   else
     echo "Directory $folder does not exist. Skipping..."
   fi
