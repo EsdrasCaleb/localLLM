@@ -107,8 +107,6 @@ def create_env_files(projects_dir, models_file):
                             line = line.replace("{model_name}", model_name)
                             line = line.replace("{project_path}", project_path)
                             line = line.replace("{project_path_dir}", project_path.replace('.', '/'))
-                            if key:
-                              line = line.replace("XXXKEYXXX", key)
                             if timeout:
                               line = line.replace("{timeout}", timeout)
                             else:

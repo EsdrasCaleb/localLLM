@@ -65,6 +65,7 @@ for folder in enfiles/*; do
       command="java -jar chatunitest-standalone.jar $env_file project"
       # Execute the command and capture output
       execute_command "$command" "$env_file" "$folder"
+      echo "Readed file $env_file"
     done
     echo "Clear Models"
     python3.9 clear_models.py
