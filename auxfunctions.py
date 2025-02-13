@@ -264,12 +264,15 @@ def generate_model(prompt,model_name,temperature,max_tokens):
             models[model_name] = Llama(model_path,n_ctx=128000,
                 verbose=False, gpu_layers=100)
         elif model_name in ["OpenVINO/codegen25-7b-multi-int4-ov","OpenVINO/codegen25-7b-multi-fp16-ov"]:
+            cdevice = "CPU"
+            if device == "cuda":
+                cdevice = "GPU"
             tokenizers[model_name] = AutoTokenizer.from_pretrained(model_path, trust_remote_code=True)
             tokenizers[model_name].pad_token = tokenizers[model_name].eos_token
             tokenizers[model_name].add_special_tokens({"pad_token": "<pad>"})
             tokenizers[model_name].padding_side = 'right'
             models[model_name] = OVModelForCausalLM.from_pretrained(model_path, trust_remote_code=True)
-            models[model_name] = models[model_name].to(device)
+            models[model_name] = models[model_name].to(cdevice)
         elif model_name in ["Qwen/Qwen2.5-Coder-0.5B-Instruct","Qwen/Qwen2.5-Coder-1.5B-Instruct","Qwen/Qwen2.5-Coder-7B-Instruct",
         "HuggingFaceTB/SmolLM2-1.7B-Instruct","Salesforce/xLAM-1b-fc-r","infly/OpenCoder-1.5B-Instruct",
         "deepseek-ai/deepseek-coder-1.3b-instruct","deepseek-ai/deepseek-coder-6.7b-instruct","deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
