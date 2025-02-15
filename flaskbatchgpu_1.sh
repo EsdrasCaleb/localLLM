@@ -39,7 +39,7 @@ execute_command() {
 }
 
 # Run main.py in the background
-python3.9 main.py >> flask_app_gpu.log 2>&1 &
+python3.9 main.py >> "flask_app_gpu_$(date +\%Y-\%m-\%d).log" 2>&1 &
 
 echo "Waiting for Flask app to initialize..."
 while ! curl -s http://localhost:5000/health; do

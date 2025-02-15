@@ -1,8 +1,6 @@
 import os
 
 
-
-
 def load_project_path(project, projects_dir,classfile):
     """
     Loads project path from classes.txt file for a specific project.
