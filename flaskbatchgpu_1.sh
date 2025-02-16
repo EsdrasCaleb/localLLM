@@ -22,7 +22,7 @@ execute_command() {
   local env_file="$2"
   local folder="$3"
   start_time=$(date +%s)
-  echo "Executing: $command"
+  echo "$(date '+%Y-%m-%d %H:%M:%S') Executing: $command"
   local output=$(eval "$command" 2>&1)
   local exit_code=$?
   if [ $exit_code -eq 0 ]; then
