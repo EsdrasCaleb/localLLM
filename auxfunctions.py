@@ -283,13 +283,13 @@ def generate_model(prompt,model_name,temperature,max_tokens):
                 device_map=device,
                 trust_remote_code=True
             )
-            tokenizers[model_name] = AutoTokenizer.from_pretrained(model_path)
+            tokenizers[model_name] = AutoTokenizer.from_pretrained(model_path,trust_remote_code=True)
         elif model_name in ["tiiuae/Falcon3-1B-Instruct","01-ai/Yi-Coder-1.5B","google/gemma2-2b-it"]:
-            models[model_name] = AutoModelForCausalLM.from_pretrained(model_path).to(device)
+            #models[model_name] = AutoModelForCausalLM.from_pretrained(model_path).to(device)
 
-            #models[model_name] = pipeline("text-generation",
-            #                              model=model_path, device_map=device)
-            tokenizers[model_name] = AutoTokenizer.from_pretrained(model_path)
+            models[model_name] = pipeline("text-generation",
+                                          model=model_path, device_map=device)
+            #tokenizers[model_name] = AutoTokenizer.from_pretrained(model_path)
         else:
             # Load model and tokenizer
             tokenizers[model_name] = AutoTokenizer.from_pretrained(model_path)
@@ -351,6 +351,9 @@ def generate_model(prompt,model_name,temperature,max_tokens):
             **tokenizers[model_name](prompt, return_tensors="pt").to(device),do_sample=True,
             pad_token_id=tokenizers[model_name].pad_token_id,max_new_tokens=max_tokens,
             eos_token_id=tokenizers[model_name].eos_token_id, temperature=temperature)[0])
+    if model_name in ["tiiuae/Falcon3-1B-Instruct"]:
+        return models[model_name](prompt, temperature=temperature, max_new_tokens=max_tokens, return_full_text=False,
+                                  do_sample=True)[0]['generated_text']
     #return models[model_name](prompt,temperature=temperature,max_new_tokens=max_tokens,return_full_text=False,do_sample=True)[0]['generated_text']
     inputs = tokenizers[model_name](prompt, return_tensors="pt", padding=True, truncation=True).to(device)
     outputs = models[model_name].generate(
