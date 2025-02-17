@@ -307,7 +307,7 @@ def generate_model(prompt,model_name,temperature,max_tokens):
                 top_p=0.9
             )['choices'][0]['message']['content']
     if model_name in ["HuggingFaceTB/SmolLM2-1.7B-Instruct","Salesforce/xLAM-1b-fc-r",
-            "deepseek-ai/deepseek-coder-1.3b-instruct","infly/OpenCoder-1.5B-Instruct",
+            "deepseek-ai/deepseek-coder-1.3b-instruct",
             "deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B","deepseek-ai/deepseek-coder-6.7b-instruc"]:
         input_text=tokenizers[model_name].apply_chat_template(prompt, tokenize=False)
         inputs = tokenizers[model_name](input_text, return_tensors="pt", padding=True, truncation=True).to(device)
@@ -317,6 +317,28 @@ def generate_model(prompt,model_name,temperature,max_tokens):
                 attention_mask=inputs["attention_mask"],eos_token_id=tokenizers[model_name].eos_token_id,
                 top_p=0.9, do_sample=True)
         return tokenizers[model_name].decode(outputs[0][len(inputs[0]):], skip_special_tokens=True)
+    if model_name in [ "infly/OpenCoder-1.5B-Instruct"]:
+        input_text = tokenizers[model_name].apply_chat_template(prompt, tokenize=False)
+        inputs = tokenizers[model_name](input_text, return_tensors="pt", padding=True, truncation=True).to(device)
+
+        # Geração de saída
+        outputs = models[model_name].generate(
+            inputs["input_ids"],
+            max_new_tokens=max_tokens,
+            temperature=temperature,
+            pad_token_id=tokenizers[model_name].pad_token_id,
+            attention_mask=inputs["attention_mask"],
+            eos_token_id=tokenizers[model_name].eos_token_id,
+            top_p=0.9,
+            do_sample=True
+        )
+
+        # Aqui, usamos a forma correta para cortar a parte gerada
+        generated_tokens = outputs[0, inputs["input_ids"].shape[-1]:]
+
+        # Decodificando os tokens gerados
+        return tokenizers[model_name].decode(generated_tokens, skip_special_tokens=True)
+
     if model_name in ["Qwen/Qwen2.5-Coder-0.5B-Instruct","Qwen/Qwen2.5-Coder-1.5B-Instruct","Qwen/Qwen2.5-Coder-7B-Instruct",
     "ibm-granite/granite-3.1-1b-a400m-instruct"]:
         text = tokenizers[model_name].apply_chat_template(
