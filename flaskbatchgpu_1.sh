@@ -22,7 +22,7 @@ execute_command() {
   local env_file="$2"
   local folder="$3"
   start_time=$(date +%s)
-  echo "Executing: $command"
+  echo "$(date '+%Y-%m-%d %H:%M:%S') Executing: $command"
   local output=$(eval "$command" 2>&1)
   local exit_code=$?
   if [ $exit_code -eq 0 ]; then
@@ -39,7 +39,7 @@ execute_command() {
 }
 
 # Run main.py in the background
-python3.9 main.py >> flask_app_gpu.log 2>&1 &
+python3.9 main.py >> "flask_app_gpu_$(date +\%Y-\%m-\%d).log" 2>&1 &
 
 echo "Waiting for Flask app to initialize..."
 while ! curl -s http://localhost:5000/health; do
