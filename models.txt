@@ -1,4 +1,1 @@
-gpt-o3-mini https://api.openai.com/v1/chat/completions  5000  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
-unsloth/Llama-3.2-3B-Instruct https://chutes-unsloth-llama-3-2-3b-instruct.chutes.ai/v1/chat/completions    1000    cpk_3652949666d143c3b81043ee66818afd.ce582b4c36a0598f85415122813ce5fc.OSpPTDrVtST12Wo30JgaCohoxcBNyBA8
-Qwen/Qwen2.5-Coder-32B-Instruct https://chutes-qwen-qwen2-5-coder-32b-instruct.chutes.ai/v1/chat/completions    1000    cpk_3652949666d143c3b81043ee66818afd.ce582b4c36a0598f85415122813ce5fc.OSpPTDrVtST12Wo30JgaCohoxcBNyBA8
-gpt-4o-mini https://api.openai.com/v1/chat/completions 5000  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
+infly/OpenCoder-1.5B-Instruct http://localhost:5000/generate_model

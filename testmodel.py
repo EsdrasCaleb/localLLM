@@ -4,7 +4,7 @@ file_path = '.env'
 env_data = load_env_file(file_path)
 # Path to the folder containing GGUF model files
 models_folder = os.path.join(env_data.get("model_dir","./models"),"gguf")
-models=["deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"]
+models=["infly/OpenCoder-1.5B-Instruct"]
 prompt="give me e small java class that calculate the area of a polygon"
 messages=[
     {
@@ -18,17 +18,18 @@ messages=[
     }
 ]
 # Iterate through all files in the folder
+print(models)
 for model_name in models:
     print(f"Testing model: {model_name}")
 
     
     prompt,sysmessage,usermessage = generate_prompt(messages=messages,model_name=model_name)
-
+    print(prompt)
     # Create chat completion
     result = generate_model(
         prompt=prompt,
         model_name=model_name,
-        max_tokens=256,
+        max_tokens=1,
         temperature=0.7
     )
 

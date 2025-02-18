@@ -22,7 +22,7 @@ execute_command() {
   local env_file="$2"
   local folder="$3"
   start_time=$(date +%s)
-  echo "Executing: $command"
+  echo "$(date '+%Y-%m-%d %H:%M:%S') Executing: $command"
   local output=$(eval "$command" 2>&1)
   local exit_code=$?
   if [ $exit_code -eq 0 ]; then
@@ -39,7 +39,7 @@ execute_command() {
 }
 
 # Run main.py in the background
-python3.9 main.py >> "flask_app_gpu_$(date +\%Y-\%m-\%d).log" 2>&1 &
+python3.9 main.py >> "flask_app_gpu_$(date '+%Y-%m-%d_%H_%M_%S').log" 2>&1 &
 
 echo "Waiting for Flask app to initialize..."
 while ! curl -s http://localhost:5000/health; do
@@ -59,6 +59,8 @@ for folder in "$@"; do
         execute_command "$command" "$env_file" "$last_folder"
       fi
     done
+    echo "Clear Models"
+    python3.9 clear_models.py
   else
     echo "Directory $folder does not exist. Skipping..."
   fi
