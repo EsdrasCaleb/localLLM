@@ -7,11 +7,14 @@ def check_response(response):
   else:
       print(f"Failed with status code {response.status_code}: {response.text}")
 # Replace with the Gemini API URL
-api_url = "http://localhost:5000/generate_model"
 
 # Replace with your API key if authentication is required
 headers = {
     "Content-Type": "application/json",
+}
+headers = {
+"Content-Type": "application/json",
+"Authorization": "Bearer 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"
 }
 
 

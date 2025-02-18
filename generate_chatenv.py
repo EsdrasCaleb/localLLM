@@ -104,6 +104,10 @@ def create_env_files(projects_dir, models_file):
                                 line = line.replace("{timeout}", model_ob["timeout"])
                             else:
                                 line = line.replace("{timeout}", "0")
+                            if(model=='o1-mini'):
+                                line = line.replace("{temp}", "1")
+                            else:
+                                line = line.replace("{temp}", "0.5")
                             f.write(line)
 
 # Example usage
