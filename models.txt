@@ -1,13 +1,1 @@
-Qwen/Qwen2.5-Coder-0.5B-Instruct http://localhost:5000/generate_model
-meta-llama/Llama-3.2-1B-Instruct http://localhost:5000/generate_model
-deepseek-ai/deepseek-coder-1.3b-instruct http://localhost:5000/generate_model
-ibm-granite/granite-3.1-1b-a400m-instruct http://localhost:5000/generate_model
-Salesforce/xLAM-1b-fc-r http://localhost:5000/generate_model
-tiiuae/Falcon3-1B-Instruct http://localhost:5000/generate_model
-HuggingFaceTB/SmolLM2-1.7B-Instruct http://localhost:5000/generate_model
-OpenVINO/codegen25-7b-multi-int4-ov http://localhost:5000/generate_model
-infly/OpenCoder-1.5B-Instruct http://localhost:5000/generate_model
-google/gemma-2-2b-it http://localhost:5000/generate_model
-Qwen/Qwen2.5-Coder-1.5B-Instruct http://localhost:5000/generate_model
-meta-llama/Llama-3.2-3B-Instruct http://localhost:5000/generate_model
 01-ai/Yi-Coder-1.5B http://localhost:5000/generate_model

@@ -50,7 +50,7 @@ def count_assertions_in_methods(java_file):
 
     for _, node in tree.filter(javalang.tree.MethodDeclaration):
         total_methods += 1
-        assertion_count = sum(1 for _, stmt in node.filter(javalang.tree.MethodInvocation) if stmt.member.startswith("assert"))
+        assertion_count = sum(1 for _, stmt in node.filter(javalang.tree.MethodInvocation) if stmt.member.startswith("assert") or stmt.member.startswith("fail"))
 
         total_assertions += assertion_count
         if assertion_count == 0:
