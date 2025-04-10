@@ -1,1 +1,2 @@
+Qwen/Qwen2.5-Coder-0.5B-Instruct http://localhost:5000/generate_model
 01-ai/Yi-Coder-1.5B http://localhost:5000/generate_model

@@ -30,9 +30,8 @@ artifactId={project}
 compileSourceRoots=../SF110/{index}_{project}/src/main/java
 buildPath=../SF110/{index}_{project}/target
 artifactPath=../SF110/{index}_{project}/{project}.jar
-classPaths=../SF110/lib/evosuite.jar:../SF110/lib/:/tmp/chatunitest-info/{project}/build/{project_path_dir}/{project}/data/:../SF110/{index}_{project}:../SF110/{index}_{project}/lib:../SF110/{index}_{project}/test-lib:../SF110/{index}_{project}/target:src/main/resources/dependency:target/classes
+classPaths=../SF110/lib/evosuite.jar:../SF110/lib/:/tmp/chatunitest-info/{project}/build/{project_path_dir}/{project}/data/:../SF110/{index}_{project}:../SF110/{index}_{project}/lib:../SF110/{index}_{project}/test-lib:../SF110/{index}_{project}/target:{chattesterpath}/src/main/resources/dependency:target/classes
 packaging=jar
-noExecution=true
 """
 
 
@@ -115,24 +114,48 @@ def get_models():
 
 def get_projects():
     try:
-        projects = [d for d in os.listdir(PROJECTS_DIR) if os.path.isdir(os.path.join(PROJECTS_DIR, d))]
-        if not projects:
-            sys.exit(f"No projects found in {PROJECTS_DIR}. Exiting.")
+        all_dirs = [d for d in os.listdir(PROJECTS_DIR) if os.path.isdir(os.path.join(PROJECTS_DIR, d))]
+
+        # Filter projects that start with a number followed by underscore
+        numbered_projects = []
+        for project in all_dirs:
+            parts = project.split('_', 1)
+            if len(parts) == 2:
+                try:
+                    number = int(parts[0])
+                    numbered_projects.append((number, project))
+                except ValueError:
+                    continue
+
+        # Sort projects by number
+        numbered_projects.sort()
+
+        if not numbered_projects:
+            sys.exit(f"No numbered projects found in {PROJECTS_DIR}. Exiting.")
     except FileNotFoundError:
         sys.exit(f"Error: {PROJECTS_DIR} not found.")
 
+    # Filter to show only projects 1-7
+    projects_1_to_7 = []
     print("\nAvailable projects:")
-    for i, project in enumerate(projects, start=1):
-        print(f"{i}. {project}")
+    for number, project in numbered_projects:
+        if 1 <= number <= 7:
+            projects_1_to_7.append(project)
+            print(f"{number}. {project}")
+
+    if not projects_1_to_7:
+        sys.exit("No projects with numbers 1-7 found. Exiting.")
 
     selected_projects = input("Enter project numbers separated by commas: ").strip()
-    selected_indices = [int(i) - 1 for i in selected_projects.split(",")]
+    selected_numbers = [int(i) for i in selected_projects.split(",")]
 
-    for i in selected_indices:
-        if i < 0 or i >= len(projects):
+    # Validate selected numbers
+    for num in selected_numbers:
+        if num < 1 or num > 7:
             sys.exit("Invalid project selection. Exiting.")
 
-    return [projects[i] for i in selected_indices]
+    # Return the selected projects
+    return [proj for num, proj in numbered_projects if num in selected_numbers]
 
 
 def generate_env_file(project, model, api_key):

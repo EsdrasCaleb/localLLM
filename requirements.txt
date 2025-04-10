@@ -2,12 +2,6 @@ torch
 transformers
 datasets
 scipy
-openvino
 accelerate
 flask
-optimum[openvino]
-openvino
-openvino-cuda
-openvino-dev
 tiktoken
-llama-cpp-python
