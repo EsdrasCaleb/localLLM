@@ -21,7 +21,7 @@ onlyUpdateClass=true
 max_prompt_tokens=3000
 temperature={temp}
 plugin={project}
-timeout=30
+timeout={timeout}
 baseDir=../SF110/{index}_{project}
 groupId={project_path}
 chatunitest-tests=../SF110/{index}_{project}/chatunitest-tests_{model_name}/
@@ -30,7 +30,7 @@ artifactId={project}
 compileSourceRoots=../SF110/{index}_{project}/src/main/java
 buildPath=../SF110/{index}_{project}/target
 artifactPath=../SF110/{index}_{project}/{project}.jar
-classPaths=../SF110/lib/evosuite.jar:../SF110/lib/:/tmp/chatunitest-info/{project}/build/{project_path_dir}/{project}/data/:../SF110/{index}_{project}:../SF110/{index}_{project}/lib:../SF110/{index}_{project}/test-lib:../SF110/{index}_{project}/target:{chattesterpath}/src/main/resources/dependency:target/classes
+classPaths=../SF110/lib/evosuite.jar:../SF110/lib/:/tmp/chatunitest-info/{project}/build/{project_path_dir}/{project}/data/:../SF110/{index}_{project}:../SF110/{index}_{project}/lib:../SF110/{index}_{project}/test-lib:../SF110/{index}_{project}/target:./src/main/resources/dependency
 packaging=jar
 """
 
