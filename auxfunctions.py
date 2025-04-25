@@ -1,10 +1,7 @@
 import torch
-import argparse
-from transformers import pipeline
 from huggingface_hub import HfApi, snapshot_download
-from transformers import AutoTokenizer,AutoModelForCausalLM,TextGenerationPipeline
+from transformers import pipeline, AutoTokenizer,AutoModelForCausalLM,TextGenerationPipeline
 import shutil
-from optimum.intel.openvino import OVModelForCausalLM
 import gc
 import os
 
@@ -264,6 +261,7 @@ def generate_model(prompt,model_name,temperature,max_tokens):
             models[model_name] = Llama(model_path,n_ctx=128000,
                 verbose=False, gpu_layers=100)
         elif model_name in ["OpenVINO/codegen25-7b-multi-int4-ov","OpenVINO/codegen25-7b-multi-fp16-ov"]:
+            from optimum.intel.openvino import OVModelForCausalLM
             cdevice = "CPU"
             if device == "cuda":
                 cdevice = "GPU"

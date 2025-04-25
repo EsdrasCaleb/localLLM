@@ -5,3 +5,10 @@ scipy
 accelerate
 flask
 tiktoken
+lizard
+pandas
+javalang
+np
+shutil
+huggingface_hub
+gc
