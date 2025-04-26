@@ -189,7 +189,7 @@ def openai_to_gemini():
         print(e)
         return jsonify({"error": "An unexpected error occurred", "details": str(e)}), 500
 
-if("MISTRAL_API_KEY" in  env_data):
+if("MISTRAL_API_KEY" in env_data):
     mistral_keys = env_data["MISTRAL_API_KEY"].split(",")
     mistral_index = 0
 @app.route("/mistral", methods=["POST","GET"])
@@ -265,7 +265,7 @@ def hugging_to_openai():
         print(e)
         return jsonify({"error": "An unexpected error occurred", "details": str(e)}), 500
 
-if("grok_key" in  env_data):
+if("grok_key" in env_data):
     grok_key =  env_data["grok_key"]
 @app.route("/grok", methods=["POST","GET"])
 def grok_to_openai():
