@@ -1,6 +1,6 @@
-gemini-1.5-flash http://localhost:5000/google   100
-open-codestral-mamba    http://localhost:5000/mistral   100
+gemini-1.5-flash http://localhost:5000/google 100
+open-codestral-mamba http://localhost:5000/mistral 100
 gpt-4o-mini https://api.openai.com/v1/chat/completions 5000 gpt_key
-codestral-latest https://codestral.mistral.ai/v1/chat/completions  100
-gemini-1.5-flash-8b http://localhost:5000/google    100
-Qwen/Qwen2.5-Coder-32B-Instruct https://chutes-qwen-qwen2-5-coder-32b-instruct.chutes.ai/v1/chat/completions    1000
+codestral-latest https://codestral.mistral.ai/v1/chat/completions 100
+gemini-1.5-flash-8b http://localhost:5000/google 100
+Qwen/Qwen2.5-Coder-32B-Instruct https://chutes-qwen-qwen2-5-coder-32b-instruct.chutes.ai/v1/chat/completions 1000

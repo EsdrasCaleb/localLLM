@@ -110,9 +110,9 @@ def generate_text():
         }
     })
     
-
-gemini_keys = env_data["g_tokens"].split(",")
-gemini_index = 0
+if("g_tokens" in env_data):
+    gemini_keys = env_data["g_tokens"].split(",")
+    gemini_index = 0
 
 @app.route("/google", methods=["POST","GET"])
 def openai_to_gemini():
@@ -189,9 +189,9 @@ def openai_to_gemini():
         print(e)
         return jsonify({"error": "An unexpected error occurred", "details": str(e)}), 500
 
-
-mistral_keys = env_data["MISTRAL_API_KEY"].split(",")
-mistral_index = 0
+if("MISTRAL_API_KEY" in  env_data):
+    mistral_keys = env_data["MISTRAL_API_KEY"].split(",")
+    mistral_index = 0
 @app.route("/mistral", methods=["POST","GET"])
 def mistral_to_openai():
     global mistral_index
@@ -265,8 +265,8 @@ def hugging_to_openai():
         print(e)
         return jsonify({"error": "An unexpected error occurred", "details": str(e)}), 500
 
-
-grok_key =  env_data["grok_key"]
+if("grok_key" in  env_data):
+    grok_key =  env_data["grok_key"]
 @app.route("/grok", methods=["POST","GET"])
 def grok_to_openai():
     try:

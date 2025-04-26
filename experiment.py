@@ -491,13 +491,13 @@ def get_projects():
 
 
 def generate_chatenv_file(project, model_string, api_key):
-    model_arr = model_string.split("    ")
+    model_arr = model_string.split(" ")
     time_out = 30
     project_arr = project.split("_")
     model_name = model_arr[0].replace("/", "_")
     with open('chattstermapping1_7.json', 'r') as f:
         projects_chattester_mapping = json.load(f)
-    input_string =(iter(projects_chattester_mapping[project]))
+    input_string =next(iter(projects_chattester_mapping[project]))
     last_dot_index = input_string.rfind('.')
     up_to_last_dot = input_string[:last_dot_index + 1]
 
@@ -542,21 +542,28 @@ def get_model_projects(select_project=False):
 def start_flask_server():
     # Start the Flask server in the background
     flask_process = subprocess.Popen(['python', 'main.py'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    print("Flask server started in the background.")
 
     # Give the server a few seconds to start
     status = False
     # Check if the server is running by making a test request
     while not status:
         try:
-            response = requests.get("http://127.0.0.1:5000/health")  # Adjust URL if needed
+            response = requests.get("http://localhost:5000/health")  # Adjust URL if needed
             if response.status_code == 200:
                 print("Server is running.")
                 status = True
+                break
             else:
                 print(f"Server returned status code {response.status_code}.")
         except requests.exceptions.RequestException as e:
             print(f"Error while checking server: {e}")
+        # Capture the output and print it to the console
+        for stdout_line in iter(flask_process.stdout.readline, b''):  # Iterate over the lines of stdout
+            print(stdout_line.decode(), end='')  # Decode bytes to string and print (with no extra newline)
+
+        for stderr_line in iter(flask_process.stderr.readline, b''):  # Iterate over the lines of stderr
+            print(stderr_line.decode(), end='')  # Decode bytes to string and print (with no extra newline)
+
         time.sleep(3)
     return flask_process
 
