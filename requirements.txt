@@ -10,4 +10,4 @@ pandas
 javalang
 np
 huggingface_hub
-Mistral
+mistral

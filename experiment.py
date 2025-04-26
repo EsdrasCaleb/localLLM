@@ -557,12 +557,6 @@ def start_flask_server():
                 print(f"Server returned status code {response.status_code}.")
         except requests.exceptions.RequestException as e:
             print(f"Error while checking server: {e}")
-        # Capture the output and print it to the console
-        for stdout_line in iter(flask_process.stdout.readline, b''):  # Iterate over the lines of stdout
-            print(stdout_line.decode(), end='')  # Decode bytes to string and print (with no extra newline)
-
-        for stderr_line in iter(flask_process.stderr.readline, b''):  # Iterate over the lines of stderr
-            print(stderr_line.decode(), end='')  # Decode bytes to string and print (with no extra newline)
 
         time.sleep(3)
     return flask_process
