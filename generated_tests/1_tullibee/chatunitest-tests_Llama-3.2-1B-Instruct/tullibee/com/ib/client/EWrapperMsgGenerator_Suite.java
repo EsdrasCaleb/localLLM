@@ -1,0 +1,10 @@
+package com.ib.client;
+
+import org.junit.runner.RunWith;
+import org.junit.platform.runner.JUnitPlatform;
+import org.junit.platform.suite.api.SelectClasses;
+
+@RunWith(value = JUnitPlatform.class)
+@SelectClasses(value = { EWrapperMsgGenerator_tickPrice_0_1_Test.class, EWrapperMsgGenerator_tickSize_1_1_Test.class, EWrapperMsgGenerator_tickOptionComputation_2_0_Test.class, EWrapperMsgGenerator_tickGeneric_3_1_Test.class, EWrapperMsgGenerator_tickString_4_1_Test.class, EWrapperMsgGenerator_tickEFP_5_0_Test.class, EWrapperMsgGenerator_orderStatus_6_0_Test.class, EWrapperMsgGenerator_openOrder_7_0_Test.class, EWrapperMsgGenerator_openOrderEnd_8_1_Test.class, EWrapperMsgGenerator_updateAccountValue_9_0_Test.class, EWrapperMsgGenerator_updatePortfolio_10_0_Test.class, EWrapperMsgGenerator_updateAccountTime_11_0_Test.class, EWrapperMsgGenerator_accountDownloadEnd_12_0_Test.class, EWrapperMsgGenerator_nextValidId_13_0_Test.class, EWrapperMsgGenerator_contractDetails_14_0_Test.class, EWrapperMsgGenerator_contractMsg_16_0_Test.class, EWrapperMsgGenerator_contractDetailsEnd_18_3_Test.class, EWrapperMsgGenerator_Suite.class })
+public class EWrapperMsgGenerator_Suite {
+}

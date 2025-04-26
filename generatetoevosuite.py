@@ -49,12 +49,10 @@ def generate_paths(class_name, root_path):
 # Aplicar a transformação para gerar os caminhos
 df[['file', 'source_file']] = df.apply(lambda row: pd.Series(generate_paths(row['class'], row['root_path'])), axis=1)
 
-df['unique_tested_methods'] = df.apply(lambda row: count_unique_methods_tested(row['file'], row['source_file']), axis=1)
-project_method_counts = df.groupby('project')['unique_tested_methods'].sum()
-project_method_counts.to_csv("test.csv")
+#df['unique_tested_methods'] = df.apply(lambda row: count_unique_methods_tested(row['file'], row['source_file']), axis=1)
+#project_method_counts = df.groupby('project')['unique_tested_methods'].sum()
+#project_method_counts.to_csv("test.csv")
 
-
-raise Exception("End")
 
 # Filtrar para manter apenas as linhas onde o arquivo evosuite existe
 df = df[df["file"].apply(os.path.exists)]

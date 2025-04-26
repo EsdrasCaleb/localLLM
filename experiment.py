@@ -729,6 +729,61 @@ projects_chattester_mapping = {
 }
 }
 
+def load_or_create_env(env_path=".env"):
+  if not os.path.exists(env_path):
+    with open(env_path, 'w') as f:
+      f.write("# .env file created\n")
+
+
+  with open(env_path, 'r') as f:
+    for line in f:
+      # Remove leading/trailing whitespace and newline characters
+      line = line.strip()
+
+      # Ignore comments and empty lines
+      if line and not line.startswith("#"):
+        key_value = line.split("=", 1)
+
+        # Ensure there are exactly two parts: key and value
+        if len(key_value) == 2:
+          key, value = key_value
+          key = key.strip()
+          value = value.strip()
+
+          # Optionally, interpret booleans and numbers
+          if value.lower() in ["true", "false"]:
+            value = value.lower() == "true"
+          elif value.isdigit():
+            value = int(value)
+
+          env_dict[key] = value
+
+    return env_dict
+
+env_dict = load_or_create_env()
+
+def add_env_variable(key, value, env_path=".env"):
+  env_dict[key] = value
+  if not os.path.exists(env_path):
+    load_or_create_env(env_path)
+
+  lines = []
+  found = False
+
+  with open(env_path, 'r') as f:
+    lines = f.readlines()
+
+  for i, line in enumerate(lines):
+    if line.strip().startswith(f"{key}="):
+      lines[i] = f"{key}={value}\n"
+      found = True
+      break
+
+  if not found:
+    lines.append(f"{key}={value}\n")
+
+  with open(env_path, 'w') as f:
+    f.writelines(lines)
 
 def run_test_smell_detector(input_csv_path,  jar_name="TestSmellDetector.jar"):
   # Chama o JAR com o arquivo CSV de entrada
@@ -749,6 +804,36 @@ def run_test_smell_detector(input_csv_path,  jar_name="TestSmellDetector.jar"):
   os.remove(output_csv)
 
   return df
+
+def count_unique_methods_tested(evosuite_file, source_file):
+  if not os.path.exists(evosuite_file) or not os.path.exists(source_file):
+    return 0
+
+  try:
+    with open(source_file, 'r', encoding='utf-8') as f:
+      sut_code = f.read()
+  except UnicodeDecodeError:
+    with open(source_file, 'r', encoding='latin1') as f:
+      sut_code = f.read()
+
+  try:
+    sut_tree = javalang.parse.parse(sut_code)
+  except:
+    return 0
+
+  sut_methods = set()
+  for _, node in sut_tree.filter(javalang.tree.MethodDeclaration):
+    sut_methods.add(node.name)
+
+  try:
+    with open(evosuite_file, 'r', encoding='utf-8') as f:
+      test_code = f.read()
+  except UnicodeDecodeError:
+    with open(evosuite_file, 'r', encoding='latin1') as f:
+      test_code = f.read()
+
+  methods_tested = {m for m in sut_methods if f".{m}(" in test_code}
+  return len(methods_tested)
 
 def find_existing_evosuite_tests(projects_chattester_mapping, projects_dir):
     result = {}
@@ -791,10 +876,11 @@ def merge_test_data(final_dt, smell_dt):
   final_columns = [
     "project", "file", "num_interactions", "num_corrections", "result", "model", "test_number",
     "mutation_null", "mutation_var", "mutation_bool", "mutation_aritime", "mutation_logic", "mutation_relat",
-    "number_of_tests","NumberOfMethods", "Assertion Roulette", "Conditional Test Logic", "Constructor Initialization",
-    "Default Test", "EmptyTest", "Exception Catching Throwing", "General Fixture", "Mystery Guest", "Print Statement",
-    "Redundant Assertion", "Sensitive Equality", "Verbose Test", "Sleepy Test", "Eager Test", "Lazy Test",
-    "Duplicate Assert", "Unknown Test", "IgnoredTest", "Resource Optimism", "Magic Number Test", "Dependent Test"
+    "number_of_sut_methods","number_of_tests","NumberOfMethods", "Assertion Roulette", "Conditional Test Logic",
+    "Constructor Initialization","Default Test", "EmptyTest", "Exception Catching Throwing", "General Fixture",
+    "Mystery Guest", "Print Statement","Redundant Assertion", "Sensitive Equality", "Verbose Test", "Sleepy Test",
+    "Eager Test", "Lazy Test","Duplicate Assert", "Unknown Test", "IgnoredTest", "Resource Optimism",
+    "Magic Number Test", "Dependent Test"
   ]
 
   return merged_df[final_columns]
@@ -802,6 +888,17 @@ def merge_test_data(final_dt, smell_dt):
 
 def generate_dt_from_evosuite_files(existing_files_by_project):
   data = []
+
+  # Montar todos os caminhos sut_paths_by_project
+  sut_paths_by_project = {}
+  for project in existing_files_by_project.keys():
+    filename = f"evosuittestsemll_{project}"
+    if os.path.exists(filename):
+      df_sut = pd.read_csv(filename, header=None, names=["project", "file", "source_file"])
+      for _, row in df_sut.iterrows():
+        sut_paths_by_project[row["file"]] = row["source_file"]
+    else:
+      print(f"Arquivo {filename} não encontrado para o projeto {project}")
 
   for project, files in existing_files_by_project.items():
     for file_path in files:
@@ -813,6 +910,12 @@ def generate_dt_from_evosuite_files(existing_files_by_project):
         print(f"Erro ao ler {file_path}: {e}")
         num_tests = -1
 
+      source_file = sut_paths_by_project.get(file_path, None)
+      if source_file:
+        num_sut_methods = count_unique_methods_tested(file_path, source_file)
+      else:
+        num_sut_methods = 0
+
       data.append([
         project,  # project
         file_path,  # file
@@ -822,13 +925,15 @@ def generate_dt_from_evosuite_files(existing_files_by_project):
         "evosuite",  # model
         0,  # test_number
         -1, -1, -1, -1, -1, -1,  # mutation_* colunas
+        num_sut_methods,
         num_tests
       ])
 
   df = pd.DataFrame(data, columns=[
     "project", "file", "num_interactions", "num_corrections", "result", "model",
     "test_number", "mutation_null", "mutation_var", "mutation_bool",
-    "mutation_aritime", "mutation_logic", "mutation_relat","number_of_tests"
+    "mutation_aritime", "mutation_logic", "mutation_relat",
+    "number_of_sut_methods", "number_of_tests"
   ])
 
   return df
@@ -897,15 +1002,15 @@ def check_benchmark():
         if not os.path.exists(PROJECTS_DIR):
             sys.exit("SF110 directory not found. Exiting.")
 
-
 def select_option():
     print("\nChoose an option:")
     print("a - Run a single model benchmark")
     print("b - Run all benchmarks")
     print("c - Generate EvoSuite benchmark")
+    print("d - Fuse all generated data in one file")
 
     choice = input("Enter your choice (a/b/c): ").strip().lower()
-    if choice not in ("a", "b", "c"):
+    if choice not in ("a", "b", "c","d"):
         sys.exit("Invalid choice. Exiting.")
     return choice
 
@@ -923,6 +1028,7 @@ def get_models():
                 sys.exit(f"No models found in {models_file}. Exiting.")
     except FileNotFoundError:
         sys.exit(f"Error: {models_file} not found.")
+
 
     print("\nAvailable models:")
     for i, model in enumerate(models, start=1):
@@ -1008,6 +1114,14 @@ def generate_env_file(project, model, api_key):
 
     print(f"Generated {env_filename}")
 
+env_data =load_or_create_env(env_path=".env")
+
+def get_model_projects():
+  model, api_key = get_models()
+  project = get_projects()
+  generate_env_file(project, model, api_key)
+  return project, model
+
 
 def main():
     check_requirements()
@@ -1016,25 +1130,28 @@ def main():
       option = sys.argv[1]
     else:
       option = select_option()
-    if(option == "c"):
-      evosuite_data,smell_evo_data = find_existing_evosuite_tests(projects_chattester_mapping,PROJECTS_DIR)
-      df = pd.DataFrame(smell_evo_data)
-      pd.set_option('display.max_colwidth', None)  # mostra conteúdo completo das colunas
-      df.to_csv("evotssmell.csv", index=False, header=False)
-      ts_df = run_test_smell_detector("evotssmell.csv")
-      finaldt = generate_dt_from_evosuite_files(evosuite_data)
-      finaldt = merge_test_data(finaldt,ts_df)
-      finaldt[['lizard_nloc', 'lizard_ccn', 'lizard_token', 'lizard_function_count']] = finaldt['file'].apply(
-        lambda x: pd.Series(analyze_code_metrics(x)))
-      finaldt[['total_assertion', 'methods_without_assertions', 'total_methods']] = finaldt['file'].apply(
-        lambda x: pd.Series(count_assertions_in_methods(x)))
-      finaldt.to_csv("evosuite_final.csv", index=False)
-      return
-    model, api_key = get_models()
-    projects = get_projects()
+    match(option):
+      case "a":
+        projects, model = get_model_projects()
 
-    for project in projects:
-        generate_env_file(project, model, api_key)
+      case "b":
+        projects, model = get_model_projects()
+      case "c":
+        evosuite_data,smell_evo_data = find_existing_evosuite_tests(projects_chattester_mapping,PROJECTS_DIR)
+        df = pd.DataFrame(smell_evo_data)
+        #pd.set_option('display.max_colwidth', None)  # mostra conteúdo completo das colunas
+        df.to_csv("evotssmell.csv", index=False, header=False)
+        ts_df = run_test_smell_detector("evotssmell.csv")
+        finaldt = generate_dt_from_evosuite_files(evosuite_data)
+        finaldt = merge_test_data(finaldt,ts_df)
+        finaldt[['lizard_nloc', 'lizard_ccn', 'lizard_token', 'lizard_function_count']] = finaldt['file'].apply(
+          lambda x: pd.Series(analyze_code_metrics(x)))
+        finaldt[['total_assertion', 'methods_without_assertions', 'total_methods']] = finaldt['file'].apply(
+          lambda x: pd.Series(count_assertions_in_methods(x)))
+        finaldt.to_csv("evosuite_final.csv", index=False)
+        print("Evosuite files in 'evosuite_final.csv'")
+      case "d":
+        print("All files merged into finaldata.csv")
 
 
 if __name__ == "__main__":

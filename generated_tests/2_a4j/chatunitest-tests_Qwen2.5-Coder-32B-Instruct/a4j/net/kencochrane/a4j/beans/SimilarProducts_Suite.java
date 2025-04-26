@@ -1,0 +1,10 @@
+package net.kencochrane.a4j.beans;
+
+import org.junit.runner.RunWith;
+import org.junit.platform.runner.JUnitPlatform;
+import org.junit.platform.suite.api.SelectClasses;
+
+@RunWith(value = JUnitPlatform.class)
+@SelectClasses(value = { SimilarProducts_getProduct_3_4_Test.class, SimilarProducts_toString_4_0_Test.class })
+public class SimilarProducts_Suite {
+}

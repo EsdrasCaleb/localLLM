@@ -1,0 +1,94 @@
+package com.ib.client;
+
+import org.mockito.*;
+import org.junit.jupiter.api.*;
+import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+import java.util.Vector;
+
+public class Order_equals_0_0_Test {
+
+    @Test
+    public void testEquals() {
+        Order order1 = new Order();
+        Order order2 = new Order();
+        Order order3 = new Order();
+        order1.m_orderId = 100;
+        order1.m_clientId = 1;
+        order1.m_permId = 1;
+        order1.m_action = "Buy";
+        order1.m_totalQuantity = 10;
+        order1.m_lmtPrice = 100.0;
+        order1.m_auxPrice = 0.0;
+        order1.m_ocaType = 1;
+        order1.m_transmit = false;
+        order1.m_parentId = 0;
+        order1.m_blockOrder = false;
+        order1.m_sweepToFill = false;
+        order1.m_displaySize = 1;
+        order1.m_triggerMethod = 1;
+        order1.m_outsideRth = false;
+        order1.m_hidden = false;
+        order1.m_goodAfterTime = "";
+        order1.m_goodTillDate = "";
+        order1.m_overridePercentageConstraints = false;
+        order1.m_rule80A = "";
+        order1.m_allOrNone = false;
+        order1.m_minQty = 0;
+        order1.m_percentOffset = 0.0;
+        order1.m_trailStopPrice = 0.0;
+        order1.m_origin = 0;
+        order1.m_shortSaleSlot = 0;
+        order1.m_discretionaryAmt = 0.0;
+        order1.m_eTradeOnly = false;
+        order1.m_firmQuoteOnly = false;
+        order1.m_nbboPriceCap = 0.0;
+        order1.m_auctionStrategy = 0;
+        order1.m_startingPrice = 0.0;
+        order1.m_stockRefPrice = 0.0;
+        order1.m_delta = 0.0;
+        order1.m_stockRangeLower = 0.0;
+        order1.m_stockRangeUpper = 0.0;
+        order1.m_volatility = 0.0;
+        order1.m_volatilityType = 0;
+        order1.m_continuousUpdate = 0;
+        order1.m_referencePriceType = 0;
+        order1.m_deltaNeutralAuxPrice = 0.0;
+        order1.m_basisPoints = 0.0;
+        order1.m_basisPointsType = 0;
+        order1.m_scaleInitLevelSize = 0;
+        order1.m_scaleSubsLevelSize = 0;
+        order1.m_scalePriceIncrement = 0.0;
+        order1.m_whatIf = false;
+        order1.m_notHeld = false;
+        Order order4 = new Order();
+        order4.m_orderId = 200;
+        order4.m_clientId = 2;
+        order4.m_permId = 2;
+        order4.m_action = "Sell";
+        order4.m_totalQuantity = 10;
+        order4.m_lmtPrice = 100.0;
+        order4.m_auxPrice = 0.0;
+        order4.m_ocaType = 2;
+        order4.m_transmit = false;
+        order4.m_parentId = 0;
+        order4.m_blockOrder = false;
+        order4.m_sweepToFill = false;
+        order4.m_displaySize = 1;
+        order4.m_triggerMethod = 1;
+        order4.m_outsideRth = false;
+        order4.m_hidden = false;
+        order4.m_goodAfterTime = "";
+        order4.m_goodTillDate = "";
+        order4.m_overridePercentageConstraints = false;
+        order4.m_rule80A = "";
+        order4.m_allOrNone = false;
+        order4.m_minQty = 0;
+        order4.m_percentOffset = 0.0;
+        order4.m_trailStopPrice = 0.0;
+        order4.m_origin = 0;
+        order4.m_shortSaleSlot = 0;
+    }
+}

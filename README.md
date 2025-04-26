@@ -30,6 +30,9 @@ A Flask-based server for managing and running VLLM models with Hugging Face inte
 
 ## Usage
 
+### All in one execution
+python experiment.py
+
 ### Start the Server
 Run the following command:
 ```bash

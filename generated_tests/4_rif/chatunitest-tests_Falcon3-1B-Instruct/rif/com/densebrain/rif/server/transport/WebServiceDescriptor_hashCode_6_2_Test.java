@@ -1,0 +1,22 @@
+package com.densebrain.rif.server.transport;
+
+import org.mockito.*;
+import org.junit.jupiter.api.*;
+import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+public class WebServiceDescriptor_hashCode_6_2_Test {
+
+    @Test
+    public void testHashCode() {
+        // Arrange
+        WebServiceDescriptor descriptor = new WebServiceDescriptor(WebServiceDescriptor.class, "targetNamespace", "typesNamespace");
+        // Act
+        int expectedHash = 12345;
+        int actualHash = descriptor.hashCode();
+        // Assert
+        assertEquals(expectedHash, actualHash, "The hashCode method did not return the expected hash code.");
+    }
+}

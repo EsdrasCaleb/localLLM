@@ -1,0 +1,10 @@
+package net.kencochrane.a4j.beans;
+
+import org.junit.runner.RunWith;
+import org.junit.platform.runner.JUnitPlatform;
+import org.junit.platform.suite.api.SelectClasses;
+
+@RunWith(value = JUnitPlatform.class)
+@SelectClasses(value = { BlendedSearch_toString_3_0_Test.class, BlendedSearch_printProductList_4_3_Test.class, BlendedSearch_Suite.class, BlendedSearch_printProductList_4_2_Test.class })
+public class BlendedSearch_Suite {
+}

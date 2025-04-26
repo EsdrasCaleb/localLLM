@@ -1,0 +1,10 @@
+package net.kencochrane.a4j.file;
+
+import org.junit.runner.RunWith;
+import org.junit.platform.runner.JUnitPlatform;
+import org.junit.platform.suite.api.SelectClasses;
+
+@RunWith(value = JUnitPlatform.class)
+@SelectClasses(value = { FileUtil_downloadOneASINFile_0_0_Test.class, FileUtil_deleteFile_1_1_Test.class, FileUtil_isAgeGood_2_0_Test.class, FileUtil_getASINFile_4_0_Test.class, FileUtil_downloadBrowseNodeFile_6_1_Test.class, FileUtil_getBrowseNodeFile_7_1_Test.class, FileUtil_downloadBlendedSearchFile_9_0_Test.class, FileUtil_downloadKeywordSearchFile_10_2_Test.class, FileUtil_fetchBlendedSearchFile_11_2_Test.class, FileUtil_fetchKeywordSearchFile_12_0_Test.class, FileUtil_downloadGenericSearchFile_13_0_Test.class, FileUtil_fetchGenericSearchFile_14_0_Test.class, FileUtil_downloadThirdPartySearchFile_15_0_Test.class, FileUtil_getAccessories_17_0_Test.class, FileUtil_downloadAccessoriesFile_18_0_Test.class, FileUtil_getSimilarItems_20_1_Test.class, FileUtil_downloadSimilaritesFile_21_1_Test.class, FileUtil_downloadCart_23_0_Test.class })
+public class FileUtil_Suite {
+}
