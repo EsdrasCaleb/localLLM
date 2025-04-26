@@ -6,6 +6,39 @@ import javalang
 # Carregar o CSV de entrada
 df = pd.read_csv("evosuitaux.csv")
 
+def count_unique_methods_tested(evosuite_file, source_file):
+    if not os.path.exists(evosuite_file) or not os.path.exists(source_file):
+        return 0
+
+    try:
+        with open(source_file, 'r', encoding='utf-8') as f:
+            sut_code = f.read()
+    except UnicodeDecodeError:
+        with open(source_file, 'r', encoding='latin1') as f:
+            sut_code = f.read()
+
+    try:
+        sut_tree = javalang.parse.parse(sut_code)
+    except:
+        return 0
+
+    sut_methods = set()
+    for _, node in sut_tree.filter(javalang.tree.MethodDeclaration):
+        sut_methods.add(node.name)
+
+    try:
+        with open(evosuite_file, 'r', encoding='utf-8') as f:
+            test_code = f.read()
+    except UnicodeDecodeError:
+        with open(evosuite_file, 'r', encoding='latin1') as f:
+            test_code = f.read()
+
+    methods_tested = {m for m in sut_methods if f".{m}(" in test_code}
+    return len(methods_tested)
+
+
+
+
 # Função para gerar os caminhos dos arquivos
 def generate_paths(class_name, root_path):
     package_path = class_name.replace('.', '/')
@@ -15,6 +48,13 @@ def generate_paths(class_name, root_path):
 
 # Aplicar a transformação para gerar os caminhos
 df[['file', 'source_file']] = df.apply(lambda row: pd.Series(generate_paths(row['class'], row['root_path'])), axis=1)
+
+df['unique_tested_methods'] = df.apply(lambda row: count_unique_methods_tested(row['file'], row['source_file']), axis=1)
+project_method_counts = df.groupby('project')['unique_tested_methods'].sum()
+project_method_counts.to_csv("test.csv")
+
+
+raise Exception("End")
 
 # Filtrar para manter apenas as linhas onde o arquivo evosuite existe
 df = df[df["file"].apply(os.path.exists)]
