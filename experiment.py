@@ -1,3 +1,4 @@
+import json
 import os
 import sys
 import subprocess
@@ -6,6 +7,8 @@ import pandas as pd
 import re
 import lizard
 import javalang
+import time
+import requests
 
 REQUIREMENTS_FILE = "requirements.txt"
 LOCAL_MODELS_FILE = "models_local.txt"
@@ -30,7 +33,7 @@ timeout={timeout}
 baseDir=../SF110/{index}_{project}
 groupId={project_path}
 chatunitest-tests=../SF110/{index}_{project}/chatunitest-tests_{model_name}/
-benchmark_file=evosuitcsvs/evosuit_{project}.csv
+benchmark_file=data/{project}_{model}.csv
 artifactId={project}
 compileSourceRoots=../SF110/{index}_{project}/src/main/java
 buildPath=../SF110/{index}_{project}/target
@@ -39,702 +42,12 @@ classPaths=../SF110/lib/evosuite.jar:../SF110/lib/:/tmp/chatunitest-info/{projec
 packaging=jar
 """
 
-projects_chattester_mapping = {
-    "1_tullibee":{
-  "com.ib.client.EException": [],
-  "com.ib.client.CodeMsgPair": [
-    "code()",
-    "msg()"
-  ],
-  "com.ib.client.Contract": [
-    "clone()",
-    "equals(Object)"
-  ],
-  "com.ib.client.ScannerSubscription": [
-    "numberOfRows()",
-    "instrument()",
-    "locationCode()",
-    "scanCode()",
-    "abovePrice()",
-    "belowPrice()",
-    "aboveVolume()",
-    "averageOptionVolumeAbove()",
-    "marketCapAbove()",
-    "marketCapBelow()",
-    "moodyRatingAbove()",
-    "moodyRatingBelow()",
-    "spRatingAbove()",
-    "spRatingBelow()",
-    "maturityDateAbove()",
-    "maturityDateBelow()",
-    "couponRateAbove()",
-    "couponRateBelow()",
-    "excludeConvertible()",
-    "scannerSettingPairs()",
-    "stockTypeFilter()",
-    "numberOfRows(int)",
-    "instrument(String)",
-    "locationCode(String)",
-    "scanCode(String)",
-    "abovePrice(double)",
-    "belowPrice(double)",
-    "aboveVolume(int)",
-    "averageOptionVolumeAbove(int)",
-    "marketCapAbove(double)",
-    "marketCapBelow(double)",
-    "moodyRatingAbove(String)",
-    "moodyRatingBelow(String)",
-    "spRatingAbove(String)",
-    "spRatingBelow(String)",
-    "maturityDateAbove(String)",
-    "maturityDateBelow(String)",
-    "couponRateAbove(double)",
-    "couponRateBelow(double)",
-    "excludeConvertible(String)",
-    "scannerSettingPairs(String)",
-    "stockTypeFilter(String)"
-  ],
-  "com.ib.client.EReader": [
-    "run()",
-    "stop()"
-  ],
-  "com.ib.client.EClientSocket": [
-    "faMsgTypeName(int)",
-    "serverVersion()",
-    "TwsConnectionTime()",
-    "eConnect(String, int, int)",
-    "eDisconnect()",
-    "cancelScannerSubscription(int)",
-    "reqScannerParameters()",
-    "reqScannerSubscription(int, ScannerSubscription)",
-    "reqMktData(int, Contract, String, boolean)",
-    "cancelHistoricalData(int)",
-    "cancelRealTimeBars(int)",
-    "reqHistoricalData(int, Contract, String, String, String, String, int, int)",
-    "reqRealTimeBars(int, Contract, int, String, boolean)",
-    "reqContractDetails(int, Contract)",
-    "reqMktDepth(int, Contract, int)",
-    "cancelMktData(int)",
-    "cancelMktDepth(int)",
-    "exerciseOptions(int, Contract, int, int, String, int)",
-    "placeOrder(int, Contract, Order)",
-    "reqAccountUpdates(boolean, String)",
-    "reqExecutions(int, ExecutionFilter)",
-    "cancelOrder(int)",
-    "reqOpenOrders()",
-    "reqIds(int)",
-    "reqNewsBulletins(boolean)",
-    "cancelNewsBulletins()",
-    "reqAutoOpenOrders(boolean)",
-    "reqAllOpenOrders()",
-    "reqManagedAccts()",
-    "requestFA(int)",
-    "replaceFA(int, String)",
-    "reqCurrentTime()",
-    "reqFundamentalData(int, Contract, String)",
-    "cancelFundamentalData(int)",
-    "dataInputStream()"
-  ],
-  "com.ib.client.ContractDetails": [],
-  "com.ib.client.OrderState": [
-    "equals(Object)"
-  ],
-  "com.ib.client.Execution": [
-    "equals(Object)"
-  ],
-  "com.ib.client.ExecutionFilter": [
-    "equals(Object)"
-  ],
-  "com.ib.client.ComboLeg": [
-    "equals(Object)"
-  ],
-  "com.ib.client.EClientErrors": [],
-  "com.ib.client.EWrapperMsgGenerator": [
-    "tickPrice(int, int, double, int)",
-    "tickSize(int, int, int)",
-    "tickOptionComputation(int, int, double, double, double, double)",
-    "tickGeneric(int, int, double)",
-    "tickString(int, int, String)",
-    "tickEFP(int, int, double, String, double, int, String, double, double)",
-    "orderStatus(int, String, int, int, double, int, int, double, int, String)",
-    "openOrder(int, Contract, Order, OrderState)",
-    "openOrderEnd()",
-    "updateAccountValue(String, String, String, String)",
-    "updatePortfolio(Contract, int, double, double, double, double, double, String)",
-    "updateAccountTime(String)",
-    "accountDownloadEnd(String)",
-    "nextValidId(int)",
-    "contractDetails(int, ContractDetails)",
-    "contractMsg(Contract)",
-    "bondContractDetails(int, ContractDetails)",
-    "contractDetailsEnd(int)",
-    "execDetails(int, Contract, Execution)",
-    "execDetailsEnd(int)",
-    "updateMktDepth(int, int, int, int, double, int)",
-    "updateMktDepthL2(int, int, String, int, int, double, int)",
-    "updateNewsBulletin(int, int, String, String)",
-    "managedAccounts(String)",
-    "receiveFA(int, String)",
-    "historicalData(int, String, double, double, double, double, int, int, double, boolean)",
-    "realtimeBar(int, long, double, double, double, double, long, double, int)",
-    "scannerParameters(String)",
-    "scannerData(int, int, ContractDetails, String, String, String, String)",
-    "scannerDataEnd(int)",
-    "currentTime(long)",
-    "fundamentalData(int, String)",
-    "deltaNeutralValidation(int, UnderComp)",
-    "tickSnapshotEnd(int)"
-  ],
-  "com.ib.client.Util": [
-    "StringIsEmpty(String)",
-    "NormalizeString(String)",
-    "StringCompare(String, String)",
-    "StringCompareIgnCase(String, String)",
-    "VectorEqualsUnordered(Vector, Vector)",
-    "IntMaxString(int)",
-    "DoubleMaxString(double)"
-  ],
-  "com.ib.client.TagValue": [
-    "equals(Object)"
-  ],
-  "com.ib.client.TickType": [
-    "getField(int)"
-  ],
-  "com.ib.client.UnderComp": [
-    "equals(Object)"
-  ],
-  "com.ib.client.Order": [
-    "equals(Object)"
-  ],
-  "com.ib.client.AnyWrapperMsgGenerator": [
-    "error(Exception)",
-    "error(String)",
-    "error(int, int, String)",
-    "connectionClosed()",
-    "ioError(Exception)"
-  ]
-},
-    "2_a4j":{
-  "net.kencochrane.a4j.beans.Authors": [
-    "getAuthor(int)",
-    "toString()"
-  ],
-  "net.kencochrane.a4j.beans.ThirdPartyProductDetails": [
-    "toString()"
-  ],
-  "net.kencochrane.a4j.beans.BrowseList": [
-    "toString()"
-  ],
-  "net.kencochrane.a4j.beans.Directors": [
-    "getDirector(int)",
-    "toString()"
-  ],
-  "net.kencochrane.a4j.beans.RecentlyViewed": [
-    "addProduct(MiniProduct)",
-    "isInList(String)"
-  ],
-  "net.kencochrane.a4j.beans.SimilarProducts": [
-    "getProduct(int)",
-    "toString()"
-  ],
-  "net.kencochrane.a4j.util.LoadProperties": [
-    "instance()"
-  ],
-  "net.kencochrane.a4j.beans.SellerProfileDetails": [
-    "toString()"
-  ],
-  "net.kencochrane.a4j.util.a4jUtil": [
-    "URLFriendlyName(String)",
-    "stripString(String, String)",
-    "getPrice(String)",
-    "arrayToCommaString(ArrayList)",
-    "encodeString(String)",
-    "dencodeString(String)"
-  ],
-  "net.kencochrane.a4j.DAO.Search": [
-    "Blended(String, String)",
-    "Keyword(String, String, String, String)",
-    "Generic(String, String, String, String, String, String)",
-    "ActorSearch(String, String, String)",
-    "ArtistSearch(String, String, String)",
-    "AuthorSearch(String, String)",
-    "DirectorSearch(String, String, String)",
-    "ManufactureSearch(String, String, String)",
-    "UpcSearch(String, String, String)",
-    "ListmaniaSearch(String)",
-    "WishListSearch(String)",
-    "ThirdParty(String, String, String, String)",
-    "SimilaritesSearch(String, String)"
-  ],
-  "net.kencochrane.a4j.beans.Reviews": [
-    "toString()"
-  ],
-  "net.kencochrane.a4j.beans.MiniProduct": [
-    "toString()"
-  ],
-  "net.kencochrane.a4j.beans.SellerProfile": [
-    "toString()"
-  ],
-  "net.kencochrane.a4j.file.FileUtil": [
-    "downloadOneASINFile(String, String, String, String, String)",
-    "deleteFile(String)",
-    "isAgeGood(File)",
-    "renameFile(String, String)",
-    "getASINFile(String, String, String, String)",
-    "fetchASINFile(String, String, String, String)",
-    "downloadBrowseNodeFile(String, String, String, String)",
-    "getBrowseNodeFile(String, String, String)",
-    "fetchBNFile(String, String, String)",
-    "downloadBlendedSearchFile(String, String)",
-    "downloadKeywordSearchFile(String, String, String, String)",
-    "fetchBlendedSearchFile(String, String)",
-    "fetchKeywordSearchFile(String, String, String, String)",
-    "downloadGenericSearchFile(String, String, String, String, String, String)",
-    "fetchGenericSearchFile(String, String, String, String, String, String)",
-    "downloadThirdPartySearchFile(String, String, String, String)",
-    "fetchThirdPartySearchFile(String, String, String, String)",
-    "getAccessories(String, ArrayList)",
-    "downloadAccessoriesFile(String, ArrayList, String)",
-    "fetchAccessories(String, ArrayList)",
-    "getSimilarItems(String, String)",
-    "downloadSimilaritesFile(String, String, String)",
-    "fetchSimilarItems(String, String)",
-    "downloadCart(String)"
-  ],
-  "net.kencochrane.a4j.beans.Lists": [
-    "getListId(int)",
-    "toString()"
-  ],
-  "net.kencochrane.a4j.beans.FullProduct": [
-    "addAccessory(MiniProduct)",
-    "addSimilarItem(MiniProduct)",
-    "printFullProduct()"
-  ],
-  "net.kencochrane.a4j.data.Query": [
-    "queryGenerator(String, String, String, String, ArrayList)",
-    "sendRequest(String)",
-    "browseNodeQueryGenerator(String, String, String, String, String)",
-    "BlendedSearchGenerator(String, String)",
-    "KeywordSearchGenerator(String, String, String, String)",
-    "SearchQueryGenerator(String, String, String, String, String, String)",
-    "SearchThirdPartyGenerator(String, String, String, String)",
-    "AddtoCart(String, String)",
-    "AddToExistingCart(String, String, String, String)",
-    "ClearCart(String, String)",
-    "GetItemsFromCart(String, String)",
-    "ModifyCart(String, String, String, String)",
-    "RemoveFromCart(String, String, String)"
-  ],
-  "net.kencochrane.a4j.beans.BrowseNode": [
-    "addSubNode(BrowseNode)",
-    "getSubNode(String)",
-    "printNode()",
-    "toString()"
-  ],
-  "net.kencochrane.a4j.A4j": [
-    "getFullProductFromASIN(String, String, String)",
-    "BlendedSearch(String, String)",
-    "KeywordSearch(String, String, String, String)",
-    "ActorSearch(String, String, String)",
-    "ArtistSearch(String, String, String)",
-    "AuthorSearch(String, String)",
-    "DirectorSearch(String, String, String)",
-    "ManufactureSearch(String, String, String)",
-    "UpcSearch(String, String, String)",
-    "ListmaniaSearch(String)",
-    "WishListSearch(String)",
-    "ThirdParty(String, String, String, String)",
-    "AddtoCart(String, String)",
-    "addToExistingCart(String, String, String, String)",
-    "clearCart(String, String)",
-    "modifyCart(String, String, String, String)",
-    "GetItemsFromCart(String, String)",
-    "RemoveFromCart(String, String, String)"
-  ],
-  "net.kencochrane.a4j.beans.ListingProductInfo": [],
-  "net.kencochrane.a4j.beans.ProductDetails": [
-    "toString()"
-  ],
-  "net.kencochrane.a4j.beans.Artists": [
-    "getArtist(int)",
-    "toString()"
-  ],
-  "net.kencochrane.a4j.beans.Tracks": [
-    "getTrack(int)",
-    "toString()"
-  ],
-  "net.kencochrane.a4j.beans.Item": [
-    "toString()"
-  ],
-  "net.kencochrane.a4j.beans.SellerSearch": [],
-  "net.kencochrane.a4j.beans.CustomerReview": [
-    "toString()"
-  ],
-  "net.kencochrane.a4j.beans.Items": [
-    "toString()"
-  ],
-  "net.kencochrane.a4j.DAO.Cart": [
-    "AddtoCart(String, String)",
-    "addToExistingCart(String, String, String, String)",
-    "clearCart(String, String)",
-    "modifyCart(String, String, String, String)",
-    "GetItemsFromCart(String, String)",
-    "RemoveFromCart(String, String, String)"
-  ],
-  "net.kencochrane.a4j.beans.Mode": [],
-  "net.kencochrane.a4j.beans.Starring": [
-    "getActor(int)",
-    "toString()"
-  ],
-  "net.kencochrane.a4j.beans.Platforms": [
-    "getPlatform(int)",
-    "toString()"
-  ],
-  "net.kencochrane.a4j.DAO.Product": [
-    "getProduct(String, String, String)"
-  ],
-  "net.kencochrane.a4j.beans.ProductLine": [
-    "toString()",
-    "printProductList()"
-  ],
-  "net.kencochrane.a4j.beans.ShoppingCartResponse": [],
-  "net.kencochrane.a4j.beans.BlendedSearch": [
-    "toString()",
-    "printProductList()"
-  ],
-  "net.kencochrane.a4j.beans.ModeList": [
-    "addMode(Mode)",
-    "getMode(String)"
-  ],
-  "net.kencochrane.a4j.beans.ShoppingCart": [
-    "toString()",
-    "getItem(String)"
-  ],
-  "net.kencochrane.a4j.beans.SellerFeedback": [
-    "toString()"
-  ],
-  "net.kencochrane.a4j.beans.Features": [
-    "getFeature(int)",
-    "toString()"
-  ],
-  "net.kencochrane.a4j.beans.SellerSearchDetails": [],
-  "net.kencochrane.a4j.beans.ListingProductDetails": [
-    "toString()"
-  ],
-  "net.kencochrane.a4j.beans.Accessories": [
-    "getAccessory(int)",
-    "toString()"
-  ],
-  "net.kencochrane.a4j.beans.FeedBack": [
-    "toString()"
-  ],
-  "net.kencochrane.a4j.beans.ProductInfo": [
-    "toString()",
-    "printProductList()"
-  ],
-  "net.kencochrane.a4j.beans.ThirdPartyProductInfo": [
-    "toString()"
-  ]
-},
-    "3_gaj":{
-  "brain.ga.Genome": [
-    "initialize()",
-    "compareTo(Object)"
-  ],
-  "brain.ga.UniformCrossover": [
-    "cross(Genome, Genome)"
-  ],
-  "brain.ga.GAEnumAllelesSet": [
-    "allele()",
-    "allele(int)",
-    "size()"
-  ],
-  "brain.ga.SectMutator": [
-    "mutate(Genome, double)"
-  ],
-  "brain.ga.VectorAllelesGenome": [],
-  "brain.ga.RankSelector": [
-    "select(Population)"
-  ],
-  "brain.ga.GAAlgorithm": [
-    "evolve()"
-  ],
-  "brain.ga.Population": [
-    "initialize(GAEnumAllelesSet)",
-    "selectNextGenome()",
-    "get(int)",
-    "sort()"
-  ],
-  "brain.ga.VectorGenome": [
-    "getGene(int)"
-  ],
-  "brain.ga.GAUtilities": [
-    "flipCoin(double)",
-    "nextPos(int)"
-  ]
-},
-    "4_rif":{
-  "com.densebrain.rif.server.RIFImplementationManager": [
-    "registerImplementation(Class, Object)",
-    "invoke(String, String, Object[])"
-  ],
-  "com.densebrain.rif.server.RIFService": [
-    "invoke(String, String, String)"
-  ],
-  "com.densebrain.rif.client.RIFInvoker": [
-    "invoke(String, Object[])"
-  ],
-  "com.densebrain.rif.server.transport.WebServiceContainer": [
-    "newInstance(String, int, String)",
-    "newInstance(ConfigurationContext)",
-    "configureService(Class, String, String)",
-    "configureService(WebServiceDescriptor)",
-    "restartContainer()",
-    "startContainer()",
-    "stopContainer()",
-    "getEPRForService(String, String)"
-  ],
-  "com.densebrain.rif.client.service.types.Factory": [
-    "parse(javax.xml.stream.XMLStreamReader)"
-  ],
-  "com.densebrain.rif.client.RIFManagerFactory": [
-    "getManager(String)",
-    "getInvoker(String, Class)",
-    "getImpl(String, Class)"
-  ],
-  "com.densebrain.rif.client.service.types.InvokeResponse": [
-    "getPullParser(javax.xml.namespace.QName)"
-  ],
-  "com.densebrain.rif.client.RIFClassLoader": [],
-  "com.densebrain.rif.server.transport.WebServiceDescriptor": [
-    "hashCode()",
-    "equals(Object)"
-  ],
-  "com.densebrain.rif.server.test.TestWS": [],
-  "com.densebrain.rif.client.RIFManager": [
-    "getInvoker(Class)"
-  ],
-  "com.densebrain.rif.client.service.RIFServiceStub": [
-    "invoke(com.densebrain.rif.client.service.types.Invoke)"
-  ],
-  "com.densebrain.rif.client.service.types.Invoke": [
-    "getPullParser(javax.xml.namespace.QName)"
-  ],
-  "com.densebrain.rif.server.RIFServer": [
-    "start()",
-    "stop()"
-  ],
-  "com.densebrain.rif.util.ObjectUtility": [
-    "serializeObject(Object)",
-    "encodeBytes(byte[])",
-    "deserializeObjectBase64Encoded(String)",
-    "deserializeObject(byte[])",
-    "decodeString(String)"
-  ]
-},
-  "5_templateit":{
-  "org.apache.poi.hssf.usermodel.HSSFDataFormat": [
-    "getBuiltinFormat(String)",
-    "getFormat(String)",
-    "getFormat(short)",
-    "getBuiltinFormat(short)"
-  ],
-  "org.templateit.DynamicTemplate": [
-    "height()",
-    "width()",
-    "absoluteReference(int, int)",
-    "getRowHeight(int)",
-    "getCell(int, int)"
-  ],
-  "org.templateit.util.DelimitedFileReader": [
-    "hasNext()",
-    "next()",
-    "remove()"
-  ],
-  "org.templateit.TemplateIt": [
-    "main(String[])"
-  ],
-  "org.templateit.util.FormulaUtil": [
-    "offsetRelativeReferences(HSSFWorkbook, String, int, int)"
-  ],
-  "org.templateit.Poi2ItextUtil": [
-    "colorPOI2Itext(HSSFColor)",
-    "copyBackgroundColor(HSSFCell, PdfPCell)",
-    "copyCellHorisontalAlignment(HSSFCell, PdfPCell)",
-    "copyCellBorders(HSSFCell, PdfPCell)",
-    "resetRightBorder(HSSFCell, PdfPCell)",
-    "chooseFont(HSSFFont)",
-    "chooseFontFamily(HSSFFont, int)",
-    "chooseFont(short)"
-  ],
-  "org.templateit.PdfWriter": [
-    "writePdf(OutputStream)"
-  ],
-  "org.templateit.TemplateProcessor": [
-    "process(Iterator, File)",
-    "process(Iterator, OutputStream)",
-    "keepSheet(String)",
-    "generateNewSheet(String, String, Iterator)"
-  ],
-  "org.templateit.MergeData": [
-    "collectMergeData()",
-    "getMergeRegionAt(int, int)"
-  ]
-},
-    "6_jnfe":{
-  "br.com.jnfe.base.service.NFeCalculatorImpl": [
-    "calculate(ICMS)",
-    "calculate(ICMSST)",
-    "calculate(ICMSExt)",
-    "calculate(IPI)",
-    "calculate(PIS)",
-    "calculate(COFINS)"
-  ],
-  "br.com.jnfe.base.service.LoggingFaultMessageResolver": [
-    "resolveFault(WebServiceMessage)"
-  ],
-  "br.com.jnfe.base.TUFs": [],
-  "br.com.jnfe.base.service.DOMNFeKeyInfoBuilder": [
-    "newKeyInfo(Certificate)"
-  ],
-  "br.com.jnfe.base.TransportKeyStoreBean": [
-    "afterPropertiesSet()",
-    "toString()",
-    "openTransportStore()",
-    "openTransportKeyManagerFactory()"
-  ],
-  "br.com.jnfe.base.DefaultNamespacePrefixMapper": [
-    "getPreferredPrefix(String, String, boolean)"
-  ],
-  "br.com.jnfe.base.service.DOMNFeFileReader": [
-    "loadAndSign(String, String)",
-    "loadAndSign(InputStream, String)"
-  ],
-  "br.com.jnfe.base.service.DOMNFeSigantureFactoryBean": [
-    "afterPropertiesSet()"
-  ],
-  "br.com.jnfe.base.pl006.RequestAdapterImpl": [
-    "newCabec()",
-    "newRequest(String, String, String)"
-  ],
-  "br.com.jnfe.base.pl005d.RequestAdapterImpl": [
-    "newCabec()",
-    "newRequest(String, String, String)"
-  ],
-  "br.com.jnfe.base.service.DOMNFeSignatureHandler": [
-    "sign(XMLStructure, String)"
-  ],
-  "br.com.jnfe.base.service.Pkcs12SecurityHandlerBean": [
-    "handle(Element, Element, SecurityCallBack)",
-    "afterPropertiesSet()",
-    "loadKeyStore()"
-  ],
-  "br.com.jnfe.base.service.DOMNFeSignatureBuilder": [
-    "afterPropertiesSet()",
-    "build(Element, Element, Certificate, PrivateKey)"
-  ],
-  "br.com.jnfe.base.service.SimpleSecurityHandlerBean": [
-    "handle(Element, Element, SecurityCallBack)",
-    "afterPropertiesSet()"
-  ],
-  "br.com.jnfe.base.util.SecurityUtils": [
-    "openStore(String, Resource, char[])",
-    "openStore(Resource, char[])",
-    "openStore(String, String, char[])",
-    "openStore(String, char[])",
-    "openTrustStore(char[])",
-    "openTrustStore(String, char[])",
-    "installCertificate(String, String)",
-    "installCertificate(String, String, String)",
-    "main(String[])"
-  ],
-  "br.com.jnfe.base.TProvince": [
-    "toString()"
-  ],
-  "br.com.jnfe.base.ConsReciNFe": []
-},
-"7_sfmis":{
-  "com.hf.sfm.util.BasePara": [
-    "single2plannar()"
-  ],
-  "com.hf.sfm.system.business.Login": [
-    "destroy()",
-    "doGet(HttpServletRequest, HttpServletResponse)",
-    "doPost(HttpServletRequest, HttpServletResponse)",
-    "init()"
-  ],
-  "com.hf.sfm.sfmis.personinfo.business.PersonInfoMgr": [
-    "saveOrUpdate(APersonInfo)",
-    "deleteByIds(String[])"
-  ],
-  "com.hf.sfm.util.HibernateSessionFactory": [
-    "currentSession()",
-    "closeSession()",
-    "main(String[])"
-  ],
-  "com.hf.sfm.system.pdo.AWorker": [],
-  "com.hf.sfm.system.pdo.Menu": [],
-  "com.hf.sfm.crypt.Base64": [
-    "altBase64ToByteArray(String)",
-    "base64ToByteArray(String)",
-    "byteArrayToAltBase64(byte[])",
-    "byteArrayToBase64(byte[])",
-    "main(String[])"
-  ],
-  "com.hf.sfm.util.DataSource": [
-    "getPlanarArrData(BasePara)",
-    "getGridData(BasePara)",
-    "getComboData(BasePara)",
-    "getSession(HttpSession, String)",
-    "main(String[])"
-  ],
-  "com.hf.sfm.sfmis.personinfo.pdo.APersonInfo": [],
-  "com.hf.sfm.system.business.MenuManage": [
-    "saveOrUpdate(Menu)",
-    "del(String[])"
-  ],
-  "com.hf.sfm.system.pdo.AGroup": [],
-  "com.hf.sfm.util.DaoFactory": [
-    "currentSession()",
-    "closeSession()",
-    "commit()",
-    "beginTransaction()",
-    "rollback()",
-    "encrypt(String)",
-    "decrypt(String)",
-    "save(Object)",
-    "update(Object)",
-    "closeAll()"
-  ],
-  "com.hf.sfm.sfmis.department.pdo.ADepartment": [],
-  "com.hf.sfm.system.business.WorkerMgr": [
-    "saveOrUpdate(AWorker)",
-    "deleteByIds(String[])"
-  ],
-  "com.hf.sfm.util.ListRange": [],
-  "com.hf.sfm.util.OddParamsOfArrayInLoader": [],
-  "com.hf.sfm.util.Loader": [
-    "run(BasePara)",
-    "parseXML()",
-    "loadDataWithSql()",
-    "getParams(Query, String[][])",
-    "collectToMap(String)",
-    "collectToMap()"
-  ],
-  "com.hf.sfm.filter.setCharacterEncodingFilter": [
-    "destroy()",
-    "doFilter(ServletRequest, ServletResponse, FilterChain)",
-    "init(FilterConfig)"
-  ]
-}
-}
-
 def load_or_create_env(env_path=".env"):
   if not os.path.exists(env_path):
     with open(env_path, 'w') as f:
       f.write("# .env file created\n")
 
-
+  env_dict = {}
   with open(env_path, 'r') as f:
     for line in f:
       # Remove leading/trailing whitespace and newline characters
@@ -785,6 +98,11 @@ def add_env_variable(key, value, env_path=".env"):
   with open(env_path, 'w') as f:
     f.writelines(lines)
 
+
+def run_chattester(env_path, command):
+  # Chama o JAR com o arquivo CSV de entrada
+  subprocess.run(["java", "-jar", "chatunitest-standalone.jar",env_path,*command], check=True)
+
 def run_test_smell_detector(input_csv_path,  jar_name="TestSmellDetector.jar"):
   # Chama o JAR com o arquivo CSV de entrada
   subprocess.run(["java", "-jar", jar_name, input_csv_path], check=True)
@@ -816,10 +134,7 @@ def count_unique_methods_tested(evosuite_file, source_file):
     with open(source_file, 'r', encoding='latin1') as f:
       sut_code = f.read()
 
-  try:
-    sut_tree = javalang.parse.parse(sut_code)
-  except:
-    return 0
+  sut_tree = javalang.parse.parse(sut_code)
 
   sut_methods = set()
   for _, node in sut_tree.filter(javalang.tree.MethodDeclaration):
@@ -835,9 +150,47 @@ def count_unique_methods_tested(evosuite_file, source_file):
   methods_tested = {m for m in sut_methods if f".{m}(" in test_code}
   return len(methods_tested)
 
-def find_existing_evosuite_tests(projects_chattester_mapping, projects_dir):
+def find_existing_evosuite_tests(projects_dir):
+  import glob
+
+  result = {}
+  data = []
+
+  for project in os.listdir(projects_dir):
+    if not (project.startswith(tuple(f"{i}_" for i in range(1, 8)))):
+      continue
+
+    project_path = os.path.join(projects_dir, project, "evosuite-tests")
+    if not os.path.isdir(project_path):
+      continue
+
+    project_name = project.split("_", 1)[1]
+    existing_files = set()
+
+    for evo_path in glob.glob(os.path.join(project_path, "**", "*EvoSuiteTest.java"), recursive=True):
+      if evo_path not in existing_files:
+        existing_files.add(evo_path)
+
+        class_rel_path = os.path.relpath(evo_path, project_path).replace("EvoSuiteTest.java", ".java")
+        sut_path = os.path.join(projects_dir, project, "src", "main", "java", class_rel_path)
+
+        if os.path.isfile(sut_path):
+          data.append([project_name, evo_path, sut_path])
+        else:
+          print(f"error cant find destination class to {evo_path}")
+
+    if existing_files:
+      result[project_name] = list(existing_files)
+
+  return result, data
+
+
+def find_existing_evosuite_tests_chat(projects_dir):
     result = {}
     data = []
+    with open('chattstermapping1_7.json', 'r') as f:
+        projects_chattester_mapping = json.load(f)
+
     for project, classes in projects_chattester_mapping.items():
         project_path = os.path.join(projects_dir, project, "evosuite-tests")
         existing_files = []
@@ -994,19 +347,26 @@ def check_requirements():
 
 
 def check_benchmark():
-    if not os.path.exists(PROJECTS_DIR):
+    global PROJECTS_DIR
+    while not os.path.exists(PROJECTS_DIR):
         print(f"\nBenchmark not found at {PROJECTS_DIR}.")
         print(f"Please download it from {BENCHMARK_URL}")
         print(f"Extract it to the root folder and rename it to 'SF110'.\n")
-        input("Press Enter after completing this step...")
-        if not os.path.exists(PROJECTS_DIR):
-            sys.exit("SF110 directory not found. Exiting.")
+
+        # Ask the user for the correct path until it exists
+        PROJECTS_DIR = input("Please provide the correct path to the SF110 directory: ").strip()
+
+        if os.path.exists(PROJECTS_DIR):
+            print(f"Path exists: {PROJECTS_DIR}")
+        else:
+            print(f"Directory {PROJECTS_DIR} not found. Please try again.")
+    print(f"Benchmark found at {PROJECTS_DIR}. Proceeding...")
 
 def select_option():
     print("\nChoose an option:")
-    print("a - Run a single model benchmark")
-    print("b - Run all benchmarks")
-    print("c - Generate EvoSuite benchmark")
+    print("a - Run a model evaluation")
+    print("b - Run a project benchmark")
+    print("c - Generate EvoSuite benchmark data")
     print("d - Fuse all generated data in one file")
 
     choice = input("Enter your choice (a/b/c): ").strip().lower()
@@ -1040,15 +400,15 @@ def get_models():
 
     selected_model = models[model_index]
 
-    api_key = ""
+    api_key = "XXXXXXX"
     if model_type == "web":
-      if((model_index==0 or model_index==5) and "g_tokens" not in env_dict):
+      if((model_index==0 or model_index==4) and "g_tokens" not in env_dict):
         print("You don't have Google Gemini API keys configured.")
         print("Generate your Gemini API keys here:")
         print("  - https://aistudio.google.com/app/apikey")
         keys = input("Paste your Gemini API keys here, separated by commas if you have more than one: ").strip()
         add_env_variable("g_tokens", keys)
-      if (model_index == 1 or model_index == 4):
+      if (model_index == 1 or model_index == 3):
         if("MISTRAL_API_KEY" not in env_dict):
           print("You don't have a Mistral API key configured.")
           print("Generate your Mistral API key here:")
@@ -1064,12 +424,12 @@ def get_models():
           key = input("Paste your OpenAI API key here, separated by commas if you have more than one: ").strip()
           add_env_variable("gpt_key", key)
         api_key = env_dict["gpt_key"]
-      if (model_index == 6):
+      if (model_index == 5):
         if "CHUTES_API_KEY" not in env_dict:
           print("You don't have a Chutes.ai API key configured.")
           print("Generate your Chutes.ai API key here:")
           print("  - https://chutes.ai/app/api")
-          key = input("Paste your Chutes.ai API key here, separated by commas if you have more than one: ").strip()
+          key = input("Paste your Chutes.ai (the fee varies) API key here, separated by commas if you have more than one: ").strip()
           add_env_variable("CHUTES_API_KEY", key)
           env_dict["CHUTES_API_KEY"] = key
     else:
@@ -1116,47 +476,89 @@ def get_projects():
     if not projects_1_to_7:
         sys.exit("No projects with numbers 1-7 found. Exiting.")
 
-    selected_projects = input("Enter project numbers separated by commas: ").strip()
-    selected_numbers = [int(i) for i in selected_projects.split(",")]
+    selected_project = input("Enter project number: ").strip()
 
-    # Validate selected numbers
-    for num in selected_numbers:
-        if num < 1 or num > 7:
-            sys.exit("Invalid project selection. Exiting.")
+    try:
+        selected_number = int(selected_project)
+    except ValueError:
+        sys.exit("Invalid input. Must be a number.")
 
-    # Return the selected projects
-    return [proj for num, proj in numbered_projects if num in selected_numbers]
+    for num, proj in numbered_projects:
+        if num == selected_number:
+            return proj
+
+    sys.exit("Selected project not found. Exiting.")
 
 
-def generate_env_file(project, model, api_key):
+def generate_chatenv_file(project, model_string, api_key):
+    model_arr = model_string.split("    ")
+    time_out = 30
+    project_arr = project.split("_")
+    model_name = model_arr[0].replace("/", "_")
+    with open('chattstermapping1_7.json', 'r') as f:
+        projects_chattester_mapping = json.load(f)
+    input_string =(iter(projects_chattester_mapping[project]))
+    last_dot_index = input_string.rfind('.')
+    up_to_last_dot = input_string[:last_dot_index + 1]
+
+    # Convert dots to slashes
+    converted_to_slashes = input_string.replace('.', '/')
+    if(len(model_arr)>2):
+        time_out = model_arr[2]
     env_content = ENV_TEMPLATE.format(
-        api_key=api_key or "XXXKEYXXX",
-        url="https://example.com",  # Modify as needed
-        model=model,
-        timeout=30,
+        api_key=api_key,
+        url=model_arr[1],
+        model=model_arr[0],
+        timeout=time_out,
         intention="true",
         temp=0.7,
-        project=project,
-        index=1,  # Modify as needed
-        project_path=project,
-        project_path_dir=project,
-        model_name=model
+        project=project_arr[1],
+        index=project_arr[0],
+        project_path=up_to_last_dot,
+        project_path_dir=converted_to_slashes,
+        model_name=model_name
     )
-
-    env_filename = f"{project}.env"
+    # Check if the folder exists, if not, create it
+    if not os.path.exists("enfiles"):
+        os.makedirs("enfiles")
+    env_filename = f"enfiles/{project}_{model_name}.env"
     with open(env_filename, "w") as file:
         file.write(env_content)
-
+    return env_filename
     print(f"Generated {env_filename}")
 
 env_data =load_or_create_env(env_path=".env")
 
-def get_model_projects():
+def get_model_projects(select_project=False):
   model, api_key = get_models()
-  project = get_projects()
-  generate_env_file(project, model, api_key)
-  return project, model
+  project = "1_tullibee"
+  if(select_project):
+    project = get_projects()
+  envfile = generate_chatenv_file(project, model, api_key)
+  return envfile
 
+
+# Function to start Flask server in background
+def start_flask_server():
+    # Start the Flask server in the background
+    flask_process = subprocess.Popen(['python', 'main.py'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    print("Flask server started in the background.")
+
+    # Give the server a few seconds to start
+    status = False
+    # Check if the server is running by making a test request
+    while not status:
+        try:
+            response = requests.get("http://127.0.0.1:5000/health")  # Adjust URL if needed
+            if response.status_code == 200:
+                print("Server is running.")
+                status = True
+            else:
+                print(f"Server returned status code {response.status_code}.")
+        except requests.exceptions.RequestException as e:
+            print(f"Error while checking server: {e}")
+        time.sleep(3)
+    return flask_process
 
 def main():
     check_requirements()
@@ -1165,14 +567,17 @@ def main():
       option = sys.argv[1]
     else:
       option = select_option()
+    # Check if the folder exists, if not, create it
+    if not os.path.exists("data"):
+        os.makedirs("data")
+    array_command = []
     match(option):
       case "a":
-        projects, model = get_model_projects()
-
+        array_command=['method','UnderComp','equals']
       case "b":
-        projects, model = get_model_projects()
+        array_command=['project']
       case "c":
-        evosuite_data,smell_evo_data = find_existing_evosuite_tests(projects_chattester_mapping,PROJECTS_DIR)
+        evosuite_data, smell_evo_data = find_existing_evosuite_tests_chat(PROJECTS_DIR)
         df = pd.DataFrame(smell_evo_data)
         #pd.set_option('display.max_colwidth', None)  # mostra conteúdo completo das colunas
         df.to_csv("evotssmell.csv", index=False, header=False)
@@ -1183,11 +588,36 @@ def main():
           lambda x: pd.Series(analyze_code_metrics(x)))
         finaldt[['total_assertion', 'methods_without_assertions', 'total_methods']] = finaldt['file'].apply(
           lambda x: pd.Series(count_assertions_in_methods(x)))
-        finaldt.to_csv("evosuite_final.csv", index=False)
-        print("Evosuite files in 'evosuite_final.csv'")
-      case "d":
-        print("All files merged into finaldata.csv")
 
+        finaldt.to_csv("data/evosuite_final.csv", index=False)
+        print("Evosuite files in 'data/evosuite_final.csv'")
+      case "d":
+        csv_files = [os.path.join('data', f) for f in os.listdir('data') if f.endswith(".csv")]
+
+        if len(csv_files) < 127:
+          print(f"ALERT: Only {len(csv_files)} CSV files found, expected at least 127.")
+        dfs = []
+        for idx, csv_file in enumerate(csv_files):
+          df = pd.read_csv(csv_file)
+          if idx == 0:
+              dfs.append(df)
+          else:
+              dfs.append(df.iloc[1:] if not df.empty else df)  # ignora header se necessário
+
+        # Concatena e salva
+        final_df = pd.concat(dfs, ignore_index=True)
+        final_df.to_csv("finaldata.csv", index=False)
+        print("All files merged into finaldata.csv")
+    if len(array_command)>0 :
+        enfile = get_model_projects(len(array_command)==1)
+        flask_process = start_flask_server()
+        run_chattester(enfile, array_command)
+        if flask_process:
+            flask_process.terminate()  # Sends SIGTERM signal to the process
+            flask_process.wait()  # Wait for the process to terminate
+            print("Flask server stopped.")
+        else:
+            print("Flask server is not running.")
 
 if __name__ == "__main__":
     main()

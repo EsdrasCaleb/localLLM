@@ -30,6 +30,11 @@ def list_models_endpoint():
     return jsonify(auxfunctions.list_hf_models())
 
 
+@app.route("/health", methods=["GET"])
+def health():
+    # Respond with a simple 200 OK and a message
+    return "Server is healthy!", 200
+
 @app.route('/download_model', methods=['POST','GET'])
 def download_model_endpoint():
     data = request.get_json()

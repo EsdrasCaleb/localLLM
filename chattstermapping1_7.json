@@ -1,0 +1,689 @@
+{
+    "1_tullibee":{
+  "com.ib.client.EException": [],
+  "com.ib.client.CodeMsgPair": [
+    "code()",
+    "msg()"
+  ],
+  "com.ib.client.Contract": [
+    "clone()",
+    "equals(Object)"
+  ],
+  "com.ib.client.ScannerSubscription": [
+    "numberOfRows()",
+    "instrument()",
+    "locationCode()",
+    "scanCode()",
+    "abovePrice()",
+    "belowPrice()",
+    "aboveVolume()",
+    "averageOptionVolumeAbove()",
+    "marketCapAbove()",
+    "marketCapBelow()",
+    "moodyRatingAbove()",
+    "moodyRatingBelow()",
+    "spRatingAbove()",
+    "spRatingBelow()",
+    "maturityDateAbove()",
+    "maturityDateBelow()",
+    "couponRateAbove()",
+    "couponRateBelow()",
+    "excludeConvertible()",
+    "scannerSettingPairs()",
+    "stockTypeFilter()",
+    "numberOfRows(int)",
+    "instrument(String)",
+    "locationCode(String)",
+    "scanCode(String)",
+    "abovePrice(double)",
+    "belowPrice(double)",
+    "aboveVolume(int)",
+    "averageOptionVolumeAbove(int)",
+    "marketCapAbove(double)",
+    "marketCapBelow(double)",
+    "moodyRatingAbove(String)",
+    "moodyRatingBelow(String)",
+    "spRatingAbove(String)",
+    "spRatingBelow(String)",
+    "maturityDateAbove(String)",
+    "maturityDateBelow(String)",
+    "couponRateAbove(double)",
+    "couponRateBelow(double)",
+    "excludeConvertible(String)",
+    "scannerSettingPairs(String)",
+    "stockTypeFilter(String)"
+  ],
+  "com.ib.client.EReader": [
+    "run()",
+    "stop()"
+  ],
+  "com.ib.client.EClientSocket": [
+    "faMsgTypeName(int)",
+    "serverVersion()",
+    "TwsConnectionTime()",
+    "eConnect(String, int, int)",
+    "eDisconnect()",
+    "cancelScannerSubscription(int)",
+    "reqScannerParameters()",
+    "reqScannerSubscription(int, ScannerSubscription)",
+    "reqMktData(int, Contract, String, boolean)",
+    "cancelHistoricalData(int)",
+    "cancelRealTimeBars(int)",
+    "reqHistoricalData(int, Contract, String, String, String, String, int, int)",
+    "reqRealTimeBars(int, Contract, int, String, boolean)",
+    "reqContractDetails(int, Contract)",
+    "reqMktDepth(int, Contract, int)",
+    "cancelMktData(int)",
+    "cancelMktDepth(int)",
+    "exerciseOptions(int, Contract, int, int, String, int)",
+    "placeOrder(int, Contract, Order)",
+    "reqAccountUpdates(boolean, String)",
+    "reqExecutions(int, ExecutionFilter)",
+    "cancelOrder(int)",
+    "reqOpenOrders()",
+    "reqIds(int)",
+    "reqNewsBulletins(boolean)",
+    "cancelNewsBulletins()",
+    "reqAutoOpenOrders(boolean)",
+    "reqAllOpenOrders()",
+    "reqManagedAccts()",
+    "requestFA(int)",
+    "replaceFA(int, String)",
+    "reqCurrentTime()",
+    "reqFundamentalData(int, Contract, String)",
+    "cancelFundamentalData(int)",
+    "dataInputStream()"
+  ],
+  "com.ib.client.ContractDetails": [],
+  "com.ib.client.OrderState": [
+    "equals(Object)"
+  ],
+  "com.ib.client.Execution": [
+    "equals(Object)"
+  ],
+  "com.ib.client.ExecutionFilter": [
+    "equals(Object)"
+  ],
+  "com.ib.client.ComboLeg": [
+    "equals(Object)"
+  ],
+  "com.ib.client.EClientErrors": [],
+  "com.ib.client.EWrapperMsgGenerator": [
+    "tickPrice(int, int, double, int)",
+    "tickSize(int, int, int)",
+    "tickOptionComputation(int, int, double, double, double, double)",
+    "tickGeneric(int, int, double)",
+    "tickString(int, int, String)",
+    "tickEFP(int, int, double, String, double, int, String, double, double)",
+    "orderStatus(int, String, int, int, double, int, int, double, int, String)",
+    "openOrder(int, Contract, Order, OrderState)",
+    "openOrderEnd()",
+    "updateAccountValue(String, String, String, String)",
+    "updatePortfolio(Contract, int, double, double, double, double, double, String)",
+    "updateAccountTime(String)",
+    "accountDownloadEnd(String)",
+    "nextValidId(int)",
+    "contractDetails(int, ContractDetails)",
+    "contractMsg(Contract)",
+    "bondContractDetails(int, ContractDetails)",
+    "contractDetailsEnd(int)",
+    "execDetails(int, Contract, Execution)",
+    "execDetailsEnd(int)",
+    "updateMktDepth(int, int, int, int, double, int)",
+    "updateMktDepthL2(int, int, String, int, int, double, int)",
+    "updateNewsBulletin(int, int, String, String)",
+    "managedAccounts(String)",
+    "receiveFA(int, String)",
+    "historicalData(int, String, double, double, double, double, int, int, double, boolean)",
+    "realtimeBar(int, long, double, double, double, double, long, double, int)",
+    "scannerParameters(String)",
+    "scannerData(int, int, ContractDetails, String, String, String, String)",
+    "scannerDataEnd(int)",
+    "currentTime(long)",
+    "fundamentalData(int, String)",
+    "deltaNeutralValidation(int, UnderComp)",
+    "tickSnapshotEnd(int)"
+  ],
+  "com.ib.client.Util": [
+    "StringIsEmpty(String)",
+    "NormalizeString(String)",
+    "StringCompare(String, String)",
+    "StringCompareIgnCase(String, String)",
+    "VectorEqualsUnordered(Vector, Vector)",
+    "IntMaxString(int)",
+    "DoubleMaxString(double)"
+  ],
+  "com.ib.client.TagValue": [
+    "equals(Object)"
+  ],
+  "com.ib.client.TickType": [
+    "getField(int)"
+  ],
+  "com.ib.client.UnderComp": [
+    "equals(Object)"
+  ],
+  "com.ib.client.Order": [
+    "equals(Object)"
+  ],
+  "com.ib.client.AnyWrapperMsgGenerator": [
+    "error(Exception)",
+    "error(String)",
+    "error(int, int, String)",
+    "connectionClosed()",
+    "ioError(Exception)"
+  ]
+},
+    "2_a4j":{
+  "net.kencochrane.a4j.beans.Authors": [
+    "getAuthor(int)",
+    "toString()"
+  ],
+  "net.kencochrane.a4j.beans.ThirdPartyProductDetails": [
+    "toString()"
+  ],
+  "net.kencochrane.a4j.beans.BrowseList": [
+    "toString()"
+  ],
+  "net.kencochrane.a4j.beans.Directors": [
+    "getDirector(int)",
+    "toString()"
+  ],
+  "net.kencochrane.a4j.beans.RecentlyViewed": [
+    "addProduct(MiniProduct)",
+    "isInList(String)"
+  ],
+  "net.kencochrane.a4j.beans.SimilarProducts": [
+    "getProduct(int)",
+    "toString()"
+  ],
+  "net.kencochrane.a4j.util.LoadProperties": [
+    "instance()"
+  ],
+  "net.kencochrane.a4j.beans.SellerProfileDetails": [
+    "toString()"
+  ],
+  "net.kencochrane.a4j.util.a4jUtil": [
+    "URLFriendlyName(String)",
+    "stripString(String, String)",
+    "getPrice(String)",
+    "arrayToCommaString(ArrayList)",
+    "encodeString(String)",
+    "dencodeString(String)"
+  ],
+  "net.kencochrane.a4j.DAO.Search": [
+    "Blended(String, String)",
+    "Keyword(String, String, String, String)",
+    "Generic(String, String, String, String, String, String)",
+    "ActorSearch(String, String, String)",
+    "ArtistSearch(String, String, String)",
+    "AuthorSearch(String, String)",
+    "DirectorSearch(String, String, String)",
+    "ManufactureSearch(String, String, String)",
+    "UpcSearch(String, String, String)",
+    "ListmaniaSearch(String)",
+    "WishListSearch(String)",
+    "ThirdParty(String, String, String, String)",
+    "SimilaritesSearch(String, String)"
+  ],
+  "net.kencochrane.a4j.beans.Reviews": [
+    "toString()"
+  ],
+  "net.kencochrane.a4j.beans.MiniProduct": [
+    "toString()"
+  ],
+  "net.kencochrane.a4j.beans.SellerProfile": [
+    "toString()"
+  ],
+  "net.kencochrane.a4j.file.FileUtil": [
+    "downloadOneASINFile(String, String, String, String, String)",
+    "deleteFile(String)",
+    "isAgeGood(File)",
+    "renameFile(String, String)",
+    "getASINFile(String, String, String, String)",
+    "fetchASINFile(String, String, String, String)",
+    "downloadBrowseNodeFile(String, String, String, String)",
+    "getBrowseNodeFile(String, String, String)",
+    "fetchBNFile(String, String, String)",
+    "downloadBlendedSearchFile(String, String)",
+    "downloadKeywordSearchFile(String, String, String, String)",
+    "fetchBlendedSearchFile(String, String)",
+    "fetchKeywordSearchFile(String, String, String, String)",
+    "downloadGenericSearchFile(String, String, String, String, String, String)",
+    "fetchGenericSearchFile(String, String, String, String, String, String)",
+    "downloadThirdPartySearchFile(String, String, String, String)",
+    "fetchThirdPartySearchFile(String, String, String, String)",
+    "getAccessories(String, ArrayList)",
+    "downloadAccessoriesFile(String, ArrayList, String)",
+    "fetchAccessories(String, ArrayList)",
+    "getSimilarItems(String, String)",
+    "downloadSimilaritesFile(String, String, String)",
+    "fetchSimilarItems(String, String)",
+    "downloadCart(String)"
+  ],
+  "net.kencochrane.a4j.beans.Lists": [
+    "getListId(int)",
+    "toString()"
+  ],
+  "net.kencochrane.a4j.beans.FullProduct": [
+    "addAccessory(MiniProduct)",
+    "addSimilarItem(MiniProduct)",
+    "printFullProduct()"
+  ],
+  "net.kencochrane.a4j.data.Query": [
+    "queryGenerator(String, String, String, String, ArrayList)",
+    "sendRequest(String)",
+    "browseNodeQueryGenerator(String, String, String, String, String)",
+    "BlendedSearchGenerator(String, String)",
+    "KeywordSearchGenerator(String, String, String, String)",
+    "SearchQueryGenerator(String, String, String, String, String, String)",
+    "SearchThirdPartyGenerator(String, String, String, String)",
+    "AddtoCart(String, String)",
+    "AddToExistingCart(String, String, String, String)",
+    "ClearCart(String, String)",
+    "GetItemsFromCart(String, String)",
+    "ModifyCart(String, String, String, String)",
+    "RemoveFromCart(String, String, String)"
+  ],
+  "net.kencochrane.a4j.beans.BrowseNode": [
+    "addSubNode(BrowseNode)",
+    "getSubNode(String)",
+    "printNode()",
+    "toString()"
+  ],
+  "net.kencochrane.a4j.A4j": [
+    "getFullProductFromASIN(String, String, String)",
+    "BlendedSearch(String, String)",
+    "KeywordSearch(String, String, String, String)",
+    "ActorSearch(String, String, String)",
+    "ArtistSearch(String, String, String)",
+    "AuthorSearch(String, String)",
+    "DirectorSearch(String, String, String)",
+    "ManufactureSearch(String, String, String)",
+    "UpcSearch(String, String, String)",
+    "ListmaniaSearch(String)",
+    "WishListSearch(String)",
+    "ThirdParty(String, String, String, String)",
+    "AddtoCart(String, String)",
+    "addToExistingCart(String, String, String, String)",
+    "clearCart(String, String)",
+    "modifyCart(String, String, String, String)",
+    "GetItemsFromCart(String, String)",
+    "RemoveFromCart(String, String, String)"
+  ],
+  "net.kencochrane.a4j.beans.ListingProductInfo": [],
+  "net.kencochrane.a4j.beans.ProductDetails": [
+    "toString()"
+  ],
+  "net.kencochrane.a4j.beans.Artists": [
+    "getArtist(int)",
+    "toString()"
+  ],
+  "net.kencochrane.a4j.beans.Tracks": [
+    "getTrack(int)",
+    "toString()"
+  ],
+  "net.kencochrane.a4j.beans.Item": [
+    "toString()"
+  ],
+  "net.kencochrane.a4j.beans.SellerSearch": [],
+  "net.kencochrane.a4j.beans.CustomerReview": [
+    "toString()"
+  ],
+  "net.kencochrane.a4j.beans.Items": [
+    "toString()"
+  ],
+  "net.kencochrane.a4j.DAO.Cart": [
+    "AddtoCart(String, String)",
+    "addToExistingCart(String, String, String, String)",
+    "clearCart(String, String)",
+    "modifyCart(String, String, String, String)",
+    "GetItemsFromCart(String, String)",
+    "RemoveFromCart(String, String, String)"
+  ],
+  "net.kencochrane.a4j.beans.Mode": [],
+  "net.kencochrane.a4j.beans.Starring": [
+    "getActor(int)",
+    "toString()"
+  ],
+  "net.kencochrane.a4j.beans.Platforms": [
+    "getPlatform(int)",
+    "toString()"
+  ],
+  "net.kencochrane.a4j.DAO.Product": [
+    "getProduct(String, String, String)"
+  ],
+  "net.kencochrane.a4j.beans.ProductLine": [
+    "toString()",
+    "printProductList()"
+  ],
+  "net.kencochrane.a4j.beans.ShoppingCartResponse": [],
+  "net.kencochrane.a4j.beans.BlendedSearch": [
+    "toString()",
+    "printProductList()"
+  ],
+  "net.kencochrane.a4j.beans.ModeList": [
+    "addMode(Mode)",
+    "getMode(String)"
+  ],
+  "net.kencochrane.a4j.beans.ShoppingCart": [
+    "toString()",
+    "getItem(String)"
+  ],
+  "net.kencochrane.a4j.beans.SellerFeedback": [
+    "toString()"
+  ],
+  "net.kencochrane.a4j.beans.Features": [
+    "getFeature(int)",
+    "toString()"
+  ],
+  "net.kencochrane.a4j.beans.SellerSearchDetails": [],
+  "net.kencochrane.a4j.beans.ListingProductDetails": [
+    "toString()"
+  ],
+  "net.kencochrane.a4j.beans.Accessories": [
+    "getAccessory(int)",
+    "toString()"
+  ],
+  "net.kencochrane.a4j.beans.FeedBack": [
+    "toString()"
+  ],
+  "net.kencochrane.a4j.beans.ProductInfo": [
+    "toString()",
+    "printProductList()"
+  ],
+  "net.kencochrane.a4j.beans.ThirdPartyProductInfo": [
+    "toString()"
+  ]
+},
+    "3_gaj":{
+  "brain.ga.Genome": [
+    "initialize()",
+    "compareTo(Object)"
+  ],
+  "brain.ga.UniformCrossover": [
+    "cross(Genome, Genome)"
+  ],
+  "brain.ga.GAEnumAllelesSet": [
+    "allele()",
+    "allele(int)",
+    "size()"
+  ],
+  "brain.ga.SectMutator": [
+    "mutate(Genome, double)"
+  ],
+  "brain.ga.VectorAllelesGenome": [],
+  "brain.ga.RankSelector": [
+    "select(Population)"
+  ],
+  "brain.ga.GAAlgorithm": [
+    "evolve()"
+  ],
+  "brain.ga.Population": [
+    "initialize(GAEnumAllelesSet)",
+    "selectNextGenome()",
+    "get(int)",
+    "sort()"
+  ],
+  "brain.ga.VectorGenome": [
+    "getGene(int)"
+  ],
+  "brain.ga.GAUtilities": [
+    "flipCoin(double)",
+    "nextPos(int)"
+  ]
+},
+    "4_rif":{
+  "com.densebrain.rif.server.RIFImplementationManager": [
+    "registerImplementation(Class, Object)",
+    "invoke(String, String, Object[])"
+  ],
+  "com.densebrain.rif.server.RIFService": [
+    "invoke(String, String, String)"
+  ],
+  "com.densebrain.rif.client.RIFInvoker": [
+    "invoke(String, Object[])"
+  ],
+  "com.densebrain.rif.server.transport.WebServiceContainer": [
+    "newInstance(String, int, String)",
+    "newInstance(ConfigurationContext)",
+    "configureService(Class, String, String)",
+    "configureService(WebServiceDescriptor)",
+    "restartContainer()",
+    "startContainer()",
+    "stopContainer()",
+    "getEPRForService(String, String)"
+  ],
+  "com.densebrain.rif.client.service.types.Factory": [
+    "parse(javax.xml.stream.XMLStreamReader)"
+  ],
+  "com.densebrain.rif.client.RIFManagerFactory": [
+    "getManager(String)",
+    "getInvoker(String, Class)",
+    "getImpl(String, Class)"
+  ],
+  "com.densebrain.rif.client.service.types.InvokeResponse": [
+    "getPullParser(javax.xml.namespace.QName)"
+  ],
+  "com.densebrain.rif.client.RIFClassLoader": [],
+  "com.densebrain.rif.server.transport.WebServiceDescriptor": [
+    "hashCode()",
+    "equals(Object)"
+  ],
+  "com.densebrain.rif.server.test.TestWS": [],
+  "com.densebrain.rif.client.RIFManager": [
+    "getInvoker(Class)"
+  ],
+  "com.densebrain.rif.client.service.RIFServiceStub": [
+    "invoke(com.densebrain.rif.client.service.types.Invoke)"
+  ],
+  "com.densebrain.rif.client.service.types.Invoke": [
+    "getPullParser(javax.xml.namespace.QName)"
+  ],
+  "com.densebrain.rif.server.RIFServer": [
+    "start()",
+    "stop()"
+  ],
+  "com.densebrain.rif.util.ObjectUtility": [
+    "serializeObject(Object)",
+    "encodeBytes(byte[])",
+    "deserializeObjectBase64Encoded(String)",
+    "deserializeObject(byte[])",
+    "decodeString(String)"
+  ]
+},
+  "5_templateit":{
+  "org.apache.poi.hssf.usermodel.HSSFDataFormat": [
+    "getBuiltinFormat(String)",
+    "getFormat(String)",
+    "getFormat(short)",
+    "getBuiltinFormat(short)"
+  ],
+  "org.templateit.DynamicTemplate": [
+    "height()",
+    "width()",
+    "absoluteReference(int, int)",
+    "getRowHeight(int)",
+    "getCell(int, int)"
+  ],
+  "org.templateit.util.DelimitedFileReader": [
+    "hasNext()",
+    "next()",
+    "remove()"
+  ],
+  "org.templateit.TemplateIt": [
+    "main(String[])"
+  ],
+  "org.templateit.util.FormulaUtil": [
+    "offsetRelativeReferences(HSSFWorkbook, String, int, int)"
+  ],
+  "org.templateit.Poi2ItextUtil": [
+    "colorPOI2Itext(HSSFColor)",
+    "copyBackgroundColor(HSSFCell, PdfPCell)",
+    "copyCellHorisontalAlignment(HSSFCell, PdfPCell)",
+    "copyCellBorders(HSSFCell, PdfPCell)",
+    "resetRightBorder(HSSFCell, PdfPCell)",
+    "chooseFont(HSSFFont)",
+    "chooseFontFamily(HSSFFont, int)",
+    "chooseFont(short)"
+  ],
+  "org.templateit.PdfWriter": [
+    "writePdf(OutputStream)"
+  ],
+  "org.templateit.TemplateProcessor": [
+    "process(Iterator, File)",
+    "process(Iterator, OutputStream)",
+    "keepSheet(String)",
+    "generateNewSheet(String, String, Iterator)"
+  ],
+  "org.templateit.MergeData": [
+    "collectMergeData()",
+    "getMergeRegionAt(int, int)"
+  ]
+},
+    "6_jnfe":{
+  "br.com.jnfe.base.service.NFeCalculatorImpl": [
+    "calculate(ICMS)",
+    "calculate(ICMSST)",
+    "calculate(ICMSExt)",
+    "calculate(IPI)",
+    "calculate(PIS)",
+    "calculate(COFINS)"
+  ],
+  "br.com.jnfe.base.service.LoggingFaultMessageResolver": [
+    "resolveFault(WebServiceMessage)"
+  ],
+  "br.com.jnfe.base.TUFs": [],
+  "br.com.jnfe.base.service.DOMNFeKeyInfoBuilder": [
+    "newKeyInfo(Certificate)"
+  ],
+  "br.com.jnfe.base.TransportKeyStoreBean": [
+    "afterPropertiesSet()",
+    "toString()",
+    "openTransportStore()",
+    "openTransportKeyManagerFactory()"
+  ],
+  "br.com.jnfe.base.DefaultNamespacePrefixMapper": [
+    "getPreferredPrefix(String, String, boolean)"
+  ],
+  "br.com.jnfe.base.service.DOMNFeFileReader": [
+    "loadAndSign(String, String)",
+    "loadAndSign(InputStream, String)"
+  ],
+  "br.com.jnfe.base.service.DOMNFeSigantureFactoryBean": [
+    "afterPropertiesSet()"
+  ],
+  "br.com.jnfe.base.pl006.RequestAdapterImpl": [
+    "newCabec()",
+    "newRequest(String, String, String)"
+  ],
+  "br.com.jnfe.base.pl005d.RequestAdapterImpl": [
+    "newCabec()",
+    "newRequest(String, String, String)"
+  ],
+  "br.com.jnfe.base.service.DOMNFeSignatureHandler": [
+    "sign(XMLStructure, String)"
+  ],
+  "br.com.jnfe.base.service.Pkcs12SecurityHandlerBean": [
+    "handle(Element, Element, SecurityCallBack)",
+    "afterPropertiesSet()",
+    "loadKeyStore()"
+  ],
+  "br.com.jnfe.base.service.DOMNFeSignatureBuilder": [
+    "afterPropertiesSet()",
+    "build(Element, Element, Certificate, PrivateKey)"
+  ],
+  "br.com.jnfe.base.service.SimpleSecurityHandlerBean": [
+    "handle(Element, Element, SecurityCallBack)",
+    "afterPropertiesSet()"
+  ],
+  "br.com.jnfe.base.util.SecurityUtils": [
+    "openStore(String, Resource, char[])",
+    "openStore(Resource, char[])",
+    "openStore(String, String, char[])",
+    "openStore(String, char[])",
+    "openTrustStore(char[])",
+    "openTrustStore(String, char[])",
+    "installCertificate(String, String)",
+    "installCertificate(String, String, String)",
+    "main(String[])"
+  ],
+  "br.com.jnfe.base.TProvince": [
+    "toString()"
+  ],
+  "br.com.jnfe.base.ConsReciNFe": []
+},
+"7_sfmis":{
+  "com.hf.sfm.util.BasePara": [
+    "single2plannar()"
+  ],
+  "com.hf.sfm.system.business.Login": [
+    "destroy()",
+    "doGet(HttpServletRequest, HttpServletResponse)",
+    "doPost(HttpServletRequest, HttpServletResponse)",
+    "init()"
+  ],
+  "com.hf.sfm.sfmis.personinfo.business.PersonInfoMgr": [
+    "saveOrUpdate(APersonInfo)",
+    "deleteByIds(String[])"
+  ],
+  "com.hf.sfm.util.HibernateSessionFactory": [
+    "currentSession()",
+    "closeSession()",
+    "main(String[])"
+  ],
+  "com.hf.sfm.system.pdo.AWorker": [],
+  "com.hf.sfm.system.pdo.Menu": [],
+  "com.hf.sfm.crypt.Base64": [
+    "altBase64ToByteArray(String)",
+    "base64ToByteArray(String)",
+    "byteArrayToAltBase64(byte[])",
+    "byteArrayToBase64(byte[])",
+    "main(String[])"
+  ],
+  "com.hf.sfm.util.DataSource": [
+    "getPlanarArrData(BasePara)",
+    "getGridData(BasePara)",
+    "getComboData(BasePara)",
+    "getSession(HttpSession, String)",
+    "main(String[])"
+  ],
+  "com.hf.sfm.sfmis.personinfo.pdo.APersonInfo": [],
+  "com.hf.sfm.system.business.MenuManage": [
+    "saveOrUpdate(Menu)",
+    "del(String[])"
+  ],
+  "com.hf.sfm.system.pdo.AGroup": [],
+  "com.hf.sfm.util.DaoFactory": [
+    "currentSession()",
+    "closeSession()",
+    "commit()",
+    "beginTransaction()",
+    "rollback()",
+    "encrypt(String)",
+    "decrypt(String)",
+    "save(Object)",
+    "update(Object)",
+    "closeAll()"
+  ],
+  "com.hf.sfm.sfmis.department.pdo.ADepartment": [],
+  "com.hf.sfm.system.business.WorkerMgr": [
+    "saveOrUpdate(AWorker)",
+    "deleteByIds(String[])"
+  ],
+  "com.hf.sfm.util.ListRange": [],
+  "com.hf.sfm.util.OddParamsOfArrayInLoader": [],
+  "com.hf.sfm.util.Loader": [
+    "run(BasePara)",
+    "parseXML()",
+    "loadDataWithSql()",
+    "getParams(Query, String[][])",
+    "collectToMap(String)",
+    "collectToMap()"
+  ],
+  "com.hf.sfm.filter.setCharacterEncodingFilter": [
+    "destroy()",
+    "doFilter(ServletRequest, ServletResponse, FilterChain)",
+    "init(FilterConfig)"
+  ]
+}
+}
