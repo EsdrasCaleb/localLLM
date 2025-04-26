@@ -1042,7 +1042,42 @@ def get_models():
 
     api_key = ""
     if model_type == "web":
-        api_key = input("Enter the API key for the web model: ").strip()
+      if((model_index==0 or model_index==5) and "g_tokens" not in env_dict):
+        print("You don't have Google Gemini API keys configured.")
+        print("Generate your Gemini API keys here:")
+        print("  - https://aistudio.google.com/app/apikey")
+        keys = input("Paste your Gemini API keys here, separated by commas if you have more than one: ").strip()
+        add_env_variable("g_tokens", keys)
+      if (model_index == 1 or model_index == 4):
+        if("MISTRAL_API_KEY" not in env_dict):
+          print("You don't have a Mistral API key configured.")
+          print("Generate your Mistral API key here:")
+          print("  - https://console.mistral.ai/")
+          key = input("Paste your Mistral API key here, separated by commas if you have more than one: ").strip()
+          add_env_variable("MISTRAL_API_KEY", key)
+        api_key = env_dict["MISTRAL_API_KEY"]
+      if (model_index == 2):
+        if "gpt_key" not in env_dict:
+          print("You don't have an OpenAI GPT API key configured.")
+          print("Generate your OpenAI API key here:")
+          print("  - https://platform.openai.com/account/api-keys")
+          key = input("Paste your OpenAI API key here, separated by commas if you have more than one: ").strip()
+          add_env_variable("gpt_key", key)
+        api_key = env_dict["gpt_key"]
+      if (model_index == 6):
+        if "CHUTES_API_KEY" not in env_dict:
+          print("You don't have a Chutes.ai API key configured.")
+          print("Generate your Chutes.ai API key here:")
+          print("  - https://chutes.ai/app/api")
+          key = input("Paste your Chutes.ai API key here, separated by commas if you have more than one: ").strip()
+          add_env_variable("CHUTES_API_KEY", key)
+          env_dict["CHUTES_API_KEY"] = key
+    else:
+      if "HF_TOKEN" not in env_dict:
+        print("You don't have a HuggingFace access token configured.")
+        print("Generate one here: https://huggingface.co/settings/tokens")
+        token = input("Paste your HuggingFace token here: ").strip()
+        add_env_variable("HF_TOKEN", token)
 
     return selected_model, api_key
 
