@@ -8,11 +8,11 @@ execute_command() {
   local exit_code=$?
 
   if [ $exit_code -eq 0 ]; then
-    sudo -u caleb echo "Successful execution of $folder/$env_file" >>executions.log 
-    sudo -u caleb echo -e "\nLog of $folder/$env_file:\n $output\n\n" >> logs.log
+    sudo -u root echo "Successful execution of $folder/$env_file" >>executions.log 
+    sudo -u root echo -e "\nLog of $folder/$env_file:\n $output\n\n" >> logs.log
     rm $env_file
   else
-    sudo -u caleb echo "Problem in execution of $folder/$env_file: $output" >>errors.log
+    sudo -u root echo "Problem in execution of $folder/$env_file: $output" >>errors.log
   fi
 }
 #conda
@@ -35,8 +35,8 @@ for folder in enfiles/*; do
     # Loop through each .env file in the folder
     for env_file in "$folder"/*; do
       # Construct the command
-      command="sudo -u caleb java -jar chatunitest-standalone.jar $env_file project"
-      testcommand="sudo -u caleb java -jar chatunitest-standalone.jar $env_file test $env_file"
+      command="sudo -u root java -jar chatunitest-standalone.jar $env_file project"
+      testcommand="sudo -u root java -jar chatunitest-standalone.jar $env_file test $env_file"
       # Execute the command and capture output
       execute_command "$command" "$env_file" "$folder"
     done

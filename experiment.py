@@ -609,6 +609,7 @@ def main():
         final_df = pd.concat(dfs, ignore_index=True)
         final_df.to_csv("finaldata.csv", index=False)
         print("All files merged into finaldata.csv")
+
     if len(array_command)>0 :
         enfile = get_model_projects(len(array_command)==1)
         flask_process = start_flask_server()
