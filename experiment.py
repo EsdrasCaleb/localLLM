@@ -99,16 +99,102 @@ def add_env_variable(key, value, env_path=".env"):
     f.writelines(lines)
 
 
-def run_chattester(env_path, command):
-  # Chama o JAR com o arquivo CSV de entrada
+def run_chattester(env_path, command, justtest=False):
   subprocess.run(["java", "-jar", "chatunitest-standalone.jar",env_path,*command], check=True)
+  if(justtest):
+      return
+  runner_env = load_or_create_env(env_path)
+  if (not os.path.exists(runner_env["benchmark_file"])):
+      print("Error benchmark not created")
+      return -1
+  p_dt, semll_dt = generate_dt_smell(runner_env["benchmark_file"])
+  smell_file = os.path.splitext(os.path.basename(runner_env["benchmark_file"]))[0]+"smell.csv"
+  semll_dt.to_csv(smell_file, index=False, header=False)
+  ts_df = run_test_smell_detector(smell_file)
+  os.remove(smell_file)
+  finaldt = merge_test_data(p_dt, ts_df)
+  finaldt[['lizard_nloc', 'lizard_ccn', 'lizard_token', 'lizard_function_count']] = finaldt['file'].apply(
+      lambda x: pd.Series(analyze_code_metrics(x)))
+  finaldt[['total_assertion', 'methods_without_assertions', 'total_methods']] = finaldt['file'].apply(
+      lambda x: pd.Series(count_assertions_in_methods(x)))
+  final_file = "benchmarkfiles/"+os.path.splitext(os.path.basename(runner_env["benchmark_file"]))[0]+"smell.csv"
+  if not os.path.exists("benchmarkfiles"):
+      os.makedirs("benchmarkfiles")
+  finaldt.to_csv(final_file, index=False)
+
+def generate_dt_smell(csv_path):
+    df = pd.read_csv(csv_path)
+
+    # Filtra só SUCCESS e arquivos que existem
+    df = df[df['result'] == 'SUCCESS']
+    df = df[df['file'].apply(lambda x: os.path.exists(x))]
+
+    rows = []
+    second_rows = []
+
+    for _, row in df.iterrows():
+        project = row['project']
+        model = row['model']
+        file_path = row['file']
+        test_number = row['test_number']
+        num_interactions = row['num_interactions']
+        num_corrections = row['num_corrections']
+        result = row['result']
+        mutation_null = row['mutation_null']
+        mutation_var = row['mutation_var']
+        mutation_bool = row['mutation_bool']
+        mutation_aritime = row['mutation_aritime']
+        mutation_logic = row['mutation_logic']
+        mutation_relat = row['mutation_relat']
+
+        # Número de métodos SUT é fixo: 1
+        number_of_sut_methods = 1
+
+        # Conta número de @Test
+        with open(file_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        number_of_tests = len(re.findall(r'@Test\b', content))
+
+        rows.append({
+            'project': project,
+            'file': file_path,
+            'num_interactions': num_interactions,
+            'num_corrections': num_corrections,
+            'result': result,
+            'model': model,
+            'test_number': test_number,
+            'mutation_null': mutation_null,
+            'mutation_var': mutation_var,
+            'mutation_bool': mutation_bool,
+            'mutation_aritime': mutation_aritime,
+            'mutation_logic': mutation_logic,
+            'mutation_relat': mutation_relat,
+            'number_of_sut_methods': number_of_sut_methods,
+            'number_of_tests': number_of_tests
+        })
+
+        # Gera caminho sut_path
+        # file tem o caminho completo, pega a parte após chatunitest-tests_MODELNAME/
+        split_token = f'chatunitest-tests_{model.replace("/", "_")}/'
+        if split_token in file_path:
+            path_arr = os.path.dirname(file_path).split(split_token)
+            class_path_arr = row['class'].split('.')
+            sut_class_name = class_path_arr[-1] + '.java'
+            sut_path = os.path.join(path_arr[0], 'src', 'main', 'java',
+                                    "/".join(class_path_arr[0:-1]), sut_class_name)
+            if (not os.path.exists(sut_path)):
+                print("Erro class " + sut_class_name + " not found in " + sut_path)
+            second_rows.append([project, file_path, sut_path])
+    df1 = pd.DataFrame(rows)
+    df2 = pd.DataFrame(second_rows)
+
+    return df1, df2
+
 
 def run_test_smell_detector(input_csv_path,  jar_name="TestSmellDetector.jar"):
-  # Chama o JAR com o arquivo CSV de entrada
   subprocess.run(["java", "-jar", jar_name, input_csv_path], check=True)
 
 
-  # Procura o CSV de saída gerado dentro de tsDetect Output_TestSmellDetection_
   output_files = glob.glob(os.path.join("Output_TestSmellDetection_*.csv"))
   if not output_files:
     raise FileNotFoundError("Nenhum arquivo CSV foi gerado pelo TestSmellDetector.")
@@ -367,7 +453,7 @@ def select_option():
     print("a - Run a model evaluation")
     print("b - Run a project benchmark")
     print("c - Generate EvoSuite benchmark data")
-    print("d - Fuse all generated data in one file")
+    print("d - make the full benchmark")
 
     choice = input("Enter your choice (a/b/c): ").strip().lower()
     if choice not in ("a", "b", "c","d"):
@@ -389,10 +475,11 @@ def get_models():
     except FileNotFoundError:
         sys.exit(f"Error: {models_file} not found.")
 
-
+    #colocar so primeira parte
     print("\nAvailable models:")
     for i, model in enumerate(models, start=1):
-        print(f"{i}. {model}")
+        model_arr = model.split(" ")
+        print(f"{i}. {model_arr[0]}")
 
     model_index = int(input("Select a model number: ")) - 1
     if model_index < 0 or model_index >= len(models):
@@ -402,12 +489,14 @@ def get_models():
 
     api_key = "XXXXXXX"
     if model_type == "web":
-      if((model_index==0 or model_index==4) and "g_tokens" not in env_dict):
-        print("You don't have Google Gemini API keys configured.")
-        print("Generate your Gemini API keys here:")
-        print("  - https://aistudio.google.com/app/apikey")
-        keys = input("Paste your Gemini API keys here, separated by commas if you have more than one: ").strip()
-        add_env_variable("g_tokens", keys)
+      if((model_index==0 or model_index==4)):
+          if("g_tokens" not in env_dict):
+            print("You don't have Google Gemini API keys configured.")
+            print("Generate your Gemini API keys here:")
+            print("  - https://aistudio.google.com/app/apikey")
+            keys = input("Paste your Gemini API keys here, separated by commas if you have more than one: ").strip()
+            add_env_variable("g_tokens", keys)
+          api_key = env_dict["g_tokens"]
       if (model_index == 1 or model_index == 3):
         if("MISTRAL_API_KEY" not in env_dict):
           print("You don't have a Mistral API key configured.")
@@ -432,6 +521,7 @@ def get_models():
           key = input("Paste your Chutes.ai (the fee varies) API key here, separated by commas if you have more than one: ").strip()
           add_env_variable("CHUTES_API_KEY", key)
           env_dict["CHUTES_API_KEY"] = key
+        api_key = env_dict["CHUTES_API_KEY"]
     else:
       if "HF_TOKEN" not in env_dict:
         print("You don't have a HuggingFace access token configured.")
@@ -537,9 +627,11 @@ def get_model_projects(select_project=False):
   envfile = generate_chatenv_file(project, model, api_key)
   return envfile
 
+flask_process = None
 
 # Function to start Flask server in background
 def start_flask_server():
+    global flask_process
     # Start the Flask server in the background
     flask_process = subprocess.Popen(['python', 'main.py'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
@@ -554,12 +646,28 @@ def start_flask_server():
                 status = True
                 break
             else:
-                print(f"Server returned status code {response.status_code}.")
+                print(f"Error: Server returned status code {response.status_code}.")
         except requests.exceptions.RequestException as e:
-            print(f"Error while checking server: {e}")
+            print("Wating Server start")
 
         time.sleep(3)
     return flask_process
+
+def execute_model(array_command):
+    enfile = get_model_projects(len(array_command) == 1)
+    execute_benchmark(enfile, array_command)
+
+def generate_model_benchmark(model,api_key):
+    all_dirs = [d for d in os.listdir(PROJECTS_DIR) if os.path.isdir(os.path.join(PROJECTS_DIR, d))]
+
+    for project in all_dirs:
+        execute_benchmark(generate_chatenv_file(project, model, api_key),["project"])
+
+def execute_benchmark(enfile, array_command):
+    runner_env = load_or_create_env(enfile)
+    if (runner_env["url"].startswith('http://localhost:5000') and (not flask_process or flask_process.poll() is None)):
+        start_flask_server()
+    run_chattester(enfile, array_command)
 
 def main():
     check_requirements()
@@ -574,9 +682,9 @@ def main():
     array_command = []
     match(option):
       case "a":
-        array_command=['method','UnderComp','equals']
+        execute_model(['method','UnderComp','equals'])
       case "b":
-        array_command=['project']
+        execute_model(['project'])
       case "c":
         evosuite_data, smell_evo_data = find_existing_evosuite_tests_chat(PROJECTS_DIR)
         df = pd.DataFrame(smell_evo_data)
@@ -589,37 +697,81 @@ def main():
           lambda x: pd.Series(analyze_code_metrics(x)))
         finaldt[['total_assertion', 'methods_without_assertions', 'total_methods']] = finaldt['file'].apply(
           lambda x: pd.Series(count_assertions_in_methods(x)))
-
-        finaldt.to_csv("data/evosuite_final.csv", index=False)
+        if not os.path.exists("benchmarkfiles"):
+            os.makedirs("benchmarkfiles")
+        finaldt.to_csv("benchmarkfiles/evosuite_final.csv", index=False)
         print("Evosuite files in 'data/evosuite_final.csv'")
       case "d":
-        csv_files = [os.path.join('data', f) for f in os.listdir('data') if f.endswith(".csv")]
+            if "g_tokens" not in env_dict:
+              print("You don't have Google Gemini API keys configured.")
+              print("Generate your Gemini API keys here:")
+              print("  - https://aistudio.google.com/app/apikey")
+              keys = input("Paste your Gemini API keys here, separated by commas if you have more than one: ").strip()
+              add_env_variable("g_tokens", keys)
+            if ("MISTRAL_API_KEY" not in env_dict):
+              print("You don't have a Mistral API key configured.")
+              print("Generate your Mistral API key here:")
+              print("  - https://console.mistral.ai/")
+              key = input(
+                  "Paste your Mistral API key here, separated by commas if you have more than one: ").strip()
+              add_env_variable("MISTRAL_API_KEY", key)
+            if "gpt_key" not in env_dict:
+              print("You don't have an OpenAI GPT API key configured.")
+              print("Generate your OpenAI API key here:")
+              print("  - https://platform.openai.com/account/api-keys")
+              key = input(
+                  "Paste your OpenAI API key here, separated by commas if you have more than one: ").strip()
+              add_env_variable("gpt_key", key)
+            if "CHUTES_API_KEY" not in env_dict:
+              print("You don't have a Chutes.ai API key configured.")
+              print("Generate your Chutes.ai API key here:")
+              print("  - https://chutes.ai/app/api")
+              key = input(
+                  "Paste your Chutes.ai (the fee varies) API key here, separated by commas if you have more than one: ").strip()
+              add_env_variable("CHUTES_API_KEY", key)
+            if "HF_TOKEN" not in env_dict:
+              print("You don't have a HuggingFace access token configured.")
+              print("Generate one here: https://huggingface.co/settings/tokens")
+              token = input("Paste your HuggingFace token here: ").strip()
+              add_env_variable("HF_TOKEN", token)
+            print("Generating local models")
+            WEB_MODELS_FILE
+            try:
+                with open(LOCAL_MODELS_FILE, "r") as file:
+                    models = file.read().splitlines()
+                    if not models:
+                        sys.exit(f"No models found in {LOCAL_MODELS_FILE}. Exiting.")
+            except FileNotFoundError:
+                sys.exit(f"Error: {LOCAL_MODELS_FILE} not found.")
 
-        if len(csv_files) < 127:
-          print(f"ALERT: Only {len(csv_files)} CSV files found, expected at least 127.")
-        dfs = []
-        for idx, csv_file in enumerate(csv_files):
-          df = pd.read_csv(csv_file)
-          if idx == 0:
-              dfs.append(df)
-          else:
-              dfs.append(df.iloc[1:] if not df.empty else df)  # ignora header se necessário
+                # colocar so primeira parte
+            for model in models:
+                generate_model_benchmark(model,"XXXXX")
+            print("Generating web models")
+            models = []
+            try:
+                with open(WEB_MODELS_FILE, "r") as file:
+                    models = file.read().splitlines()
+                    if not models:
+                        sys.exit(f"No models found in {WEB_MODELS_FILE}. Exiting.")
+            except FileNotFoundError:
+                sys.exit(f"Error: {WEB_MODELS_FILE} not found.")
+            for model_index, model in enumerate(models, start=1):
+                if ((model_index == 0 or model_index == 4)):
+                    generate_model_benchmark(model, env_dict["g_tokens"])
+                if (model_index == 1 or model_index == 3):
+                    generate_model_benchmark(model, env_dict["MISTRAL_API_KEY"])
+                if (model_index == 2):
+                    generate_model_benchmark(model, env_dict["gpt_key"])
+                if (model_index == 5):
+                    generate_model_benchmark(model, env_dict["CHUTES_API_KEY"])
 
-        # Concatena e salva
-        final_df = pd.concat(dfs, ignore_index=True)
-        final_df.to_csv("finaldata.csv", index=False)
-        print("All files merged into finaldata.csv")
-
-    if len(array_command)>0 :
-        enfile = get_model_projects(len(array_command)==1)
-        flask_process = start_flask_server()
-        run_chattester(enfile, array_command)
-        if flask_process:
-            flask_process.terminate()  # Sends SIGTERM signal to the process
-            flask_process.wait()  # Wait for the process to terminate
-            print("Flask server stopped.")
-        else:
-            print("Flask server is not running.")
+    if flask_process:
+        flask_process.terminate()  # Sends SIGTERM signal to the process
+        flask_process.wait()  # Wait for the process to terminate
+        print("Flask server stopped.")
+    else:
+        print("Flask server is not running.")
 
 if __name__ == "__main__":
     main()
