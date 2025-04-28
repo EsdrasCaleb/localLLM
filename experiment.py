@@ -559,7 +559,7 @@ def get_projects():
     projects_1_to_7 = []
     print("\nAvailable projects:")
     for number, project in numbered_projects:
-        if number < 7:
+        if number <= 7:
             projects_1_to_7.append(project)
             print(f"{number}. {project}")
 
@@ -661,7 +661,14 @@ def generate_model_benchmark(model,api_key):
     all_dirs = [d for d in os.listdir(PROJECTS_DIR) if os.path.isdir(os.path.join(PROJECTS_DIR, d))]
 
     for project in all_dirs:
-        execute_benchmark(generate_chatenv_file(project, model, api_key),["project"])
+        parts = project.split('_', 1)
+        if len(parts) == 2:
+            try:
+                number = int(parts[0])
+            except ValueError:
+                continue
+            if number <= 7:
+                execute_benchmark(generate_chatenv_file(project, model, api_key),["project"])
 
 def execute_benchmark(enfile, array_command):
     runner_env = load_or_create_env(enfile)
