@@ -88,8 +88,8 @@ def create_env_files(projects_dir, models_file):
         
         for project,project_path in projects.items():
             index = project.split("_")[0]
-            if(int(index)>8):
-                continue
+            #if(int(index)>8):
+            #    continue
             project_name = project.split("_")[1]
 
             for intention in ["true"]:
