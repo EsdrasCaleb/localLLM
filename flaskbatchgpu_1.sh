@@ -16,6 +16,7 @@ conda activate llm_env_gpu
 #pip install --no-cache-dir llama-cpp-python
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
+rm -r /tmp/chatunitest-info/firebird
 # Function to execute a command and capture its output
 execute_command() {
   local command="$1"
