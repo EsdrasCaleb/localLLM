@@ -2,6 +2,7 @@
 #SBATCH --job-name=flask_uni        # Job name
 #SBATCH --output=flask_uni_%j.log    # Log file (%j = job ID)
 #SBATCH --time=2-00:00:00            # Test greather model in 2 days
+#SBATCH --gres=gpu:1                 # Request 1 GPU
 
 
 # Load modules (adjust based on your environment)
@@ -73,7 +74,13 @@ for folder in enfiles/*; do
       command="java -jar chatunitest-standalone.jar $env_file project"
       # Execute the command and capture output
       execute_command "$command" "$env_file"
-      mv $env_file executed/
+      # Cria o diretório de destino, preservando estrutura
+      target_dir="executed/$(basename "$folder")"
+      mkdir -p "$target_dir"
+
+      # Move o arquivo
+      mv "$env_file" "$target_dir/"
+      echo "Moved file $env_file to $target_dir/"
       echo "Readed file $env_file"
     done
     echo "Clear Models"
