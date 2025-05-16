@@ -24,7 +24,7 @@ execute_command() {
   local folder="$3"
   start_time=$(date +%s)
   echo "$(date '+%Y-%m-%d %H:%M:%S') Executing: $command"
-  local output=$(eval "$command" 2>&1)
+  local output=$(eval "$command" 2>&1 | tr -d '\0')
   local exit_code=$?
   if [ $exit_code -eq 0 ]; then
     echo "Successful execution of $env_file" >> "unilogs/executions_$folder.log"

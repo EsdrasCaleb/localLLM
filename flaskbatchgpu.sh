@@ -49,6 +49,14 @@ while ! curl -s http://localhost:5000/health; do
 done
 
 
+if [ -d executed ]; then
+  echo "Directory executed already exists."
+else
+  echo "Directory executed does not exist. Creating..."
+  mkdir executed
+  echo "Directory executed created."
+fi
+
 # Loop through each folder in the "envs" directory
 #for folder in $(ls -d enfiles/* | sort -r); do
 for folder in enfiles/*; do
@@ -65,6 +73,7 @@ for folder in enfiles/*; do
       command="java -jar chatunitest-standalone.jar $env_file project"
       # Execute the command and capture output
       execute_command "$command" "$env_file"
+      mv $env_file executed/
       echo "Readed file $env_file"
     done
     echo "Clear Models"
