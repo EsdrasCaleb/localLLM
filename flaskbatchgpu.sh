@@ -3,6 +3,7 @@
 #SBATCH --output=flask_uni_%j.log    # Log file (%j = job ID)
 #SBATCH --time=20:00:00            # 2-00:00:00
 #SBATCH --gres=gpu:1                 # Request 1 GPU
+#SBATCH --qos=preempt
 
 
 # Load modules (adjust based on your environment)
