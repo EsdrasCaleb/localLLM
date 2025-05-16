@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=flask_uni        # Job name
 #SBATCH --output=flask_uni_%j.log    # Log file (%j = job ID)
-#SBATCH --time=20:00:00            # 2-00:00:00
+#SBATCH --time=2-00:00:00            # ate 2 dias
 #SBATCH --gres=gpu:1                 # Request 1 GPU
 #SBATCH --qos=preempt
 
