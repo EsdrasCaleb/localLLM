@@ -24,7 +24,7 @@ execute_command() {
   local command="$1"
   local env_file="$2"
   start_time=$(date +%s)
-  echo "Executing: $command"
+  echo "$(date '+%Y-%m-%d %H:%M:%S') Executing: $command"
   local output=$(eval "$command" 2>&1)
   local exit_code=$?
   local filename=$(basename "$env_file")  # Extracts only the filename
