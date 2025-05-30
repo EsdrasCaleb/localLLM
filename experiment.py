@@ -672,7 +672,7 @@ def generate_model_benchmark(model,api_key):
 
 def execute_benchmark(enfile, array_command):
     runner_env = load_or_create_env(enfile)
-    if (runner_env["url"].startswith('http://localhost:5000') and (not flask_process or flask_process.poll() is None)):
+    if (runner_env["url"].startswith('http://localhost:5000') and (not flask_process)):
         start_flask_server()
     run_chattester(enfile, array_command)
 
