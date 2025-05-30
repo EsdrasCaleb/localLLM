@@ -1,3 +1,4 @@
+import csv
 import json
 import os
 import sys
@@ -9,6 +10,8 @@ import lizard
 import javalang
 import time
 import requests
+import psutil
+import threading
 
 REQUIREMENTS_FILE = "requirements.txt"
 LOCAL_MODELS_FILE = "models_local.txt"
@@ -99,7 +102,99 @@ def add_env_variable(key, value, env_path=".env"):
     f.writelines(lines)
 
 
+
 def run_chattester(env_path, command, justtest=False):
+    global flask_process
+    runner_env = load_or_create_env(env_path)
+    # Início da medição
+    start_time = time.time()
+    usage_data = []
+
+    # Captura o processo do Flask (se existir)
+    flask_ps = psutil.Process(flask_process.pid) if flask_process else None
+
+    # Lança o processo Java e monitora durante execução
+    with subprocess.Popen(["java", "-jar", "chatunitest-standalone.jar", env_path, *command]) as proc:
+        java_ps = psutil.Process(proc.pid)
+
+        try:
+            while proc.poll() is None:
+                record = {
+                    "timestamp": time.time(),
+                    "java_cpu": java_ps.cpu_percent(interval=0.1),
+                    "java_mem": java_ps.memory_info().rss / (1024 * 1024),
+                }
+
+                if flask_ps:
+                    try:
+                        record["flask_cpu"] = flask_ps.cpu_percent(interval=0.1)
+                        record["flask_mem"] = flask_ps.memory_info().rss / (1024 * 1024)
+                    except psutil.NoSuchProcess:
+                        record["flask_cpu"] = record["flask_mem"] = 0
+                else:
+                    record["flask_cpu"] = record["flask_mem"] = 0
+
+                usage_data.append(record)
+                time.sleep(0.1)  # ajuste esse intervalo conforme necessário
+        except Exception as e:
+            proc.kill()
+            raise e
+
+    # Tempo total
+    end_time = time.time()
+    total_time = end_time - start_time
+
+
+
+    iteraction = 2
+    if (not os.path.exists(runner_env["benchmark_file"])):
+        print("Error benchmark not created")
+        return -1
+    else:
+        # Read the last line and get the third column as integer
+        with open(runner_env["benchmark_file"], newline='') as csvfile:
+            reader = list(csv.reader(csvfile))
+            if reader:
+                last_line = reader[-1]
+                if len(last_line) >= 3:
+                    iteraction = int(last_line[4])
+                else:
+                    raise ValueError("Last line has fewer than 3 columns")
+            else:
+                raise ValueError("CSV file is empty")
+
+    # Salvar métricas de uso
+    usage_file = "usages.txt"
+    write_header = (not os.path.exists(usage_file))
+    with open(usage_file, "a") as f:
+        if(write_header):
+            f.write("model,timestamp,java_cpu,java_mem_MB,flask_cpu,flask_mem_MB\n")
+        iteractiontime= total_time / iteraction
+        f.write(f"{runner_env['model']},{total_time:.2f} seconds, Total time,{iteractiontime},Mean Iteraction Time,- \n")
+        for row in usage_data:
+            timestamp = row["timestamp"] - start_time
+            f.write(f"{runner_env['model']},{timestamp:.2f},{row['java_cpu']:.2f},{row['java_mem']:.2f},"
+                    f"{row['flask_cpu']:.2f},{row['flask_mem']:.2f}\n")
+    if justtest:
+        return
+
+    # Processamento pós-benchmark
+    p_dt, semll_dt = generate_dt_smell(runner_env["benchmark_file"])
+    smell_file = os.path.splitext(os.path.basename(runner_env["benchmark_file"]))[0]+"smell.csv"
+    semll_dt.to_csv(smell_file, index=False, header=False)
+    ts_df = run_test_smell_detector(smell_file)
+    os.remove(smell_file)
+    finaldt = merge_test_data(p_dt, ts_df)
+    finaldt[['lizard_nloc', 'lizard_ccn', 'lizard_token', 'lizard_function_count']] = finaldt['file'].apply(
+        lambda x: pd.Series(analyze_code_metrics(x)))
+    finaldt[['total_assertion', 'methods_without_assertions', 'total_methods']] = finaldt['file'].apply(
+        lambda x: pd.Series(count_assertions_in_methods(x)))
+    final_file = "benchmarkfiles/"+os.path.splitext(os.path.basename(runner_env["benchmark_file"]))[0]+"smell.csv"
+    if not os.path.exists("benchmarkfiles"):
+        os.makedirs("benchmarkfiles")
+    finaldt.to_csv(final_file, index=False)
+
+def run_chattester_old(env_path, command, justtest=False):
   subprocess.run(["java", "-jar", "chatunitest-standalone.jar",env_path,*command], check=True)
   if(justtest):
       return
@@ -454,9 +549,10 @@ def select_option():
     print("b - Run a project benchmark")
     print("c - Generate EvoSuite benchmark data")
     print("d - make the full benchmark")
+    print("e - make the local tests")
 
     choice = input("Enter your choice (a/b/c): ").strip().lower()
-    if choice not in ("a", "b", "c","d"):
+    if choice not in ("a", "b", "c","d","e"):
         sys.exit("Invalid choice. Exiting.")
     return choice
 
@@ -629,33 +725,44 @@ def get_model_projects(select_project=False):
 
 flask_process = None
 
+def stream_output(pipe, prefix):
+    for line in iter(pipe.readline, b''):
+        print(f"[{prefix}] {line.decode().rstrip()}")
+    pipe.close()
+
 # Function to start Flask server in background
 def start_flask_server():
     global flask_process
-    # Start the Flask server in the background
-    flask_process = subprocess.Popen(['python', 'main.py'], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    flask_process = subprocess.Popen(
+        ['python', 'main.py'],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        bufsize=1
+    )
 
-    # Give the server a few seconds to start
+    # Iniciar threads para imprimir stdout e stderr
+    threading.Thread(target=stream_output, args=(flask_process.stdout, 'STDOUT'), daemon=True).start()
+    threading.Thread(target=stream_output, args=(flask_process.stderr, 'STDERR'), daemon=True).start()
+
+    # Esperar o servidor subir
     status = False
-    # Check if the server is running by making a test request
     while not status:
         try:
-            response = requests.get("http://localhost:5000/health")  # Adjust URL if needed
+            response = requests.get("http://localhost:5000/health")
             if response.status_code == 200:
                 print("Server is running.")
                 status = True
                 break
             else:
                 print(f"Error: Server returned status code {response.status_code}.")
-        except requests.exceptions.RequestException as e:
-            print("Wating Server start")
-
+        except requests.exceptions.RequestException:
+            print("Waiting server to start...")
         time.sleep(3)
     return flask_process
 
 def execute_model(array_command):
     enfile = get_model_projects(len(array_command) == 1)
-    execute_benchmark(enfile, array_command)
+    return execute_benchmark(enfile, array_command,True)
 
 def generate_model_benchmark(model,api_key):
     all_dirs = [d for d in os.listdir(PROJECTS_DIR) if os.path.isdir(os.path.join(PROJECTS_DIR, d))]
@@ -670,11 +777,23 @@ def generate_model_benchmark(model,api_key):
             if number <= 7:
                 execute_benchmark(generate_chatenv_file(project, model, api_key),["project"])
 
-def execute_benchmark(enfile, array_command):
+def execute_benchmark(enfile, array_command,justtest=False):
+    global flask_process
     runner_env = load_or_create_env(enfile)
-    if (runner_env["url"].startswith('http://localhost:5000') and (not flask_process or flask_process.poll() is None)):
-        start_flask_server()
-    run_chattester(enfile, array_command)
+    if (runner_env["url"].startswith('http://localhost:5000')):
+        response = None
+        if(flask_process):
+            try:
+                response = requests.get("http://localhost:5000/clear_models")
+            except Exception as e:
+                print(e)
+        if response and response.status_code == 200:
+            print("Server is running.")
+        else:
+            print("Start flask")
+            print(flask_process)
+            start_flask_server()
+    return run_chattester(enfile, array_command,justtest)
 
 def main():
     check_requirements()
@@ -772,6 +891,21 @@ def main():
                     generate_model_benchmark(model, env_dict["gpt_key"])
                 if (model_index == 5):
                     generate_model_benchmark(model, env_dict["CHUTES_API_KEY"])
+      case "e":
+            print("Generating local models")
+            try:
+                with open(LOCAL_MODELS_FILE, "r") as file:
+                    models = file.read().splitlines()
+                    if not models:
+                        sys.exit(f"No models found in {LOCAL_MODELS_FILE}. Exiting.")
+            except FileNotFoundError:
+                sys.exit(f"Error: {LOCAL_MODELS_FILE} not found.")
+
+                # colocar so primeira parte
+            for model in models:
+                execute_benchmark(generate_chatenv_file("1_tullibee", model, "XXXXX"),
+                                  ['method','OrderState','equals'],True)
+
 
     if flask_process:
         flask_process.terminate()  # Sends SIGTERM signal to the process
