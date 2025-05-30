@@ -689,7 +689,7 @@ def main():
     array_command = []
     match(option):
       case "a":
-        execute_model(['method','UnderComp','equals'])
+        execute_model(['method','OrderState','equals'])
       case "b":
         execute_model(['project'])
       case "c":
