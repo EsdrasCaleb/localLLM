@@ -165,7 +165,7 @@ def run_chattester(env_path, command, justtest=False):
                 raise ValueError("CSV file is empty")
 
     # Salvar métricas de uso
-    usage_file = "usages.txt"
+    usage_file = "usages.csv"
     write_header = (not os.path.exists(usage_file))
     with open(usage_file, "a") as f:
         if(write_header):
@@ -179,10 +179,10 @@ def run_chattester(env_path, command, justtest=False):
                 max_java_cpu = row["java_cpu"]
             if(max_java_ram < row["java_mem"]):
                 max_java_ram = row["java_mem"]
-            if(max_model_cpu < row["model_cpu"]):
-                max_model_cpu = row["model_cpu"]
-            if(max_model_ram < row["model_mem"]):
-                max_model_ram = row["model_mem"]
+            if(max_model_cpu < row["flask_cpu"]):
+                max_model_cpu = row["flask_cpu"]
+            if(max_model_ram < row["flask_mem"]):
+                max_model_ram = row["flask_mem"]
             timestamp = row["timestamp"] - start_time
             f.write(f"{runner_env['model']},{timestamp:.2f},{row['java_cpu']:.2f},{row['java_mem']:.2f},"
                     f"{row['flask_cpu']:.2f},{row['flask_mem']:.2f},-\n")
