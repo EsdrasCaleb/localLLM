@@ -184,8 +184,8 @@ def run_chattester(env_path, command, justtest=False):
             if(max_model_ram < row["flask_mem"]):
                 max_model_ram = row["flask_mem"]
             timestamp = row["timestamp"] - start_time
-            f.write(f"{runner_env['model']},{timestamp:.2f},{row['java_cpu']:.2f},{row['java_mem']:.2f},"
-                    f"{row['flask_cpu']:.2f},{row['flask_mem']:.2f},-\n")
+            #f.write(f"{runner_env['model']},{timestamp:.2f},{row['java_cpu']:.2f},{row['java_mem']:.2f},"
+            #        f"{row['flask_cpu']:.2f},{row['flask_mem']:.2f},-\n")
         f.write(
             f"{runner_env['model']},{total_time:.2f},{max_java_cpu:.2f},{max_java_ram:.2f},"
             f"{max_model_cpu:.2f},{max_model_ram:.2f},{iteraction} \n")
