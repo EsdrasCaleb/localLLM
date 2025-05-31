@@ -116,18 +116,19 @@ def run_chattester(env_path, command, justtest=False):
     # Lança o processo Java e monitora durante execução
     with subprocess.Popen(["java", "-jar", "chatunitest-standalone.jar", env_path, *command]) as proc:
         java_ps = psutil.Process(proc.pid)
+        core_count = psutil.cpu_count()
 
         try:
             while proc.poll() is None:
                 record = {
                     "timestamp": time.time(),
-                    "java_cpu": java_ps.cpu_percent(interval=0.1),
+                    "java_cpu": java_ps.cpu_percent(interval=0.1)/core_count,
                     "java_mem": java_ps.memory_info().rss / (1024 * 1024),
                 }
 
                 if flask_ps:
                     try:
-                        record["flask_cpu"] = flask_ps.cpu_percent(interval=0.1)
+                        record["flask_cpu"] = flask_ps.cpu_percent(interval=0.1)/core_count
                         record["flask_mem"] = flask_ps.memory_info().rss / (1024 * 1024)
                     except psutil.NoSuchProcess:
                         record["flask_cpu"] = record["flask_mem"] = 0
@@ -168,13 +169,26 @@ def run_chattester(env_path, command, justtest=False):
     write_header = (not os.path.exists(usage_file))
     with open(usage_file, "a") as f:
         if(write_header):
-            f.write("model,timestamp,java_cpu,java_mem_MB,flask_cpu,flask_mem_MB\n")
-        iteractiontime= total_time / iteraction
-        f.write(f"{runner_env['model']},{total_time:.2f} seconds, Total time,{iteractiontime},Mean Iteraction Time,- \n")
+            f.write("model,timestamp(seconds),java_cpu(%),java_mem(MB),model_cpu(%),model_mem(MB),iteractions\n")
+        max_model_cpu =0
+        max_model_ram = 0
+        max_java_cpu = 0
+        max_java_ram = 0
         for row in usage_data:
+            if(max_java_cpu < row["java_cpu"]):
+                max_java_cpu = row["java_cpu"]
+            if(max_java_ram < row["java_mem"]):
+                max_java_ram = row["java_mem"]
+            if(max_model_cpu < row["model_cpu"]):
+                max_model_cpu = row["model_cpu"]
+            if(max_model_ram < row["model_mem"]):
+                max_model_ram = row["model_mem"]
             timestamp = row["timestamp"] - start_time
             f.write(f"{runner_env['model']},{timestamp:.2f},{row['java_cpu']:.2f},{row['java_mem']:.2f},"
-                    f"{row['flask_cpu']:.2f},{row['flask_mem']:.2f}\n")
+                    f"{row['flask_cpu']:.2f},{row['flask_mem']:.2f},-\n")
+        f.write(
+            f"{runner_env['model']},{total_time:.2f},{max_java_cpu:.2f},{max_java_ram:.2f},"
+            f"{max_model_cpu:.2f},{max_model_ram:.2f},{iteraction} \n")
     if justtest:
         return
 
