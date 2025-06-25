@@ -10,6 +10,7 @@
 #module load python/3.10              # Python version
 module load libraries/cuda/12.6              # CUDA version (if using GPUs)
 module load cmake
+source ~/.bashrc
 source $HOME/.bashrc
 # Activate virtual environment (if needed)
 conda activate llm_env_gpu
@@ -42,7 +43,7 @@ execute_command() {
   echo "Processing $env_file took $elapsed_time seconds" >> timings.log
 }
 # Run main.py in the background
-python3.9 main.py >> flask_app_gpu.log 2>&1 &
+python main.py >> flask_app_gpu.log 2>&1 &
 
 echo "Waiting for Flask app to initialize..."
 while ! curl -s http://localhost:5000/health; do
@@ -85,7 +86,7 @@ for folder in enfiles/*; do
       echo "Readed file $env_file"
     done
     echo "Clear Models"
-    python3.9 clear_models.py
+    python clear_models.py
   fi
 done
 
