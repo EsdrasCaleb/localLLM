@@ -13,7 +13,7 @@ module load cmake
 source ~/.bashrc
 source $HOME/.bashrc
 # Activate virtual environment (if needed)
-conda activate llm_env_gpu
+conda activate llm_env_intel
 #conda install gcc_linux-64 libstdcxx-ng cmake ninja
 #conda install -c conda-forge cmake make gcc libgcc gxx -y
 #pip install --upgrade -r requirements.txt
