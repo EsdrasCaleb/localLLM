@@ -2,7 +2,7 @@
 #SBATCH --job-name=flask_uni        # Job name
 #SBATCH --output=flask_uni_%j.log    # Log file (%j = job ID)
 #SBATCH --time=2-00:00:00            # Test greater model in 2 days
-#SBATCH --gres=gpu:1                 # Request 1 GPU
+#SBATCH --gres=gpu:2                 # Request 1 GPU
 
 # Load modules (adjust based on your environment)
 #module load python/3.10              # Python version
