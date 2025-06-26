@@ -2,7 +2,7 @@
 #SBATCH --job-name=flask_uni        # Job name
 #SBATCH --output=log_flask_uni_%j.log    # Log file (%j = job ID)
 #SBATCH --time=2-00:00:00            # tempo maximo no a100
-#SBATCH --gres=gpu:2                 # Request 1 GPU
+#SBATCH --gres=gpu:1                 # Request 1 GPU
 #SBATCH --qos=preempt
 
 

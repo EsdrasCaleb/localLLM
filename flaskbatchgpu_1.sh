@@ -2,7 +2,7 @@
 #SBATCH --job-name=flask_uni        # Job name
 #SBATCH --output=flask_uni_%j.log    # Log file (%j = job ID)
 #SBATCH --time=2-00:00:00            # Test greater model in 2 days
-#SBATCH --gres=gpu:2                 # Request 1 GPU
+#SBATCH --gres=gpu:1                 # Request 1 GPU
 
 # Load modules (adjust based on your environment)
 #module load python/3.10              # Python version
@@ -19,7 +19,7 @@ conda activate llm_env_gpu
 #pip install --no-cache-dir llama-cpp-python
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
-#rm -r /tmp/chatunitest-info/firebird
+rm -r /tmp/chatunitest-info/hft-bomberman_inttrue
 # Function to execute a command and capture its output
 execute_command() {
   local command="$1"
