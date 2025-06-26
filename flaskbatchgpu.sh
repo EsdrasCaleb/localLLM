@@ -1,9 +1,8 @@
 #!/bin/bash
 #SBATCH --job-name=flask_uni        # Job name
-#SBATCH --partition=gpu-4-a100
 #SBATCH --output=log_flask_uni_%j.log    # Log file (%j = job ID)
 #SBATCH --time=2-00:00:00            # tempo maximo no a100
-#SBATCH --gres=gpu:1                 # Request 1 GPU
+#SBATCH --gres=gpu:2                 # Request 1 GPU
 #SBATCH --qos=preempt
 
 
@@ -14,7 +13,7 @@ module load cmake
 source ~/.bashrc
 source $HOME/.bashrc
 # Activate virtual environment (if needed)
-conda activate llm_env_intel
+conda activate llm_env_gpu
 #conda install gcc_linux-64 libstdcxx-ng cmake ninja
 #conda install -c conda-forge cmake make gcc libgcc gxx -y
 #pip install --upgrade -r requirements.txt
