@@ -283,10 +283,11 @@ def generate_model(prompt,model_name,temperature,max_tokens):
             )
             tokenizers[model_name] = AutoTokenizer.from_pretrained(model_path,trust_remote_code=True)
         elif model_name in ["tiiuae/Falcon3-1B-Instruct","01-ai/Yi-Coder-1.5B","google/gemma2-2b-it"]:
+            print(device)
             models[model_name] = AutoModelForCausalLM.from_pretrained(model_path).to(device)
 
             #models[model_name] = pipeline("text-generation", model=model_path, device_map=device)
-            tokenizers[model_name] = AutoTokenizer.from_pretrained(model_path)
+            tokenizers[model_name] = AutoTokenizer.from_pretrained(model_path).to(device)
         else:
             # Load model and tokenizer
             tokenizers[model_name] = AutoTokenizer.from_pretrained(model_path)
@@ -356,6 +357,7 @@ def generate_model(prompt,model_name,temperature,max_tokens):
 
         return tokenizers[model_name].batch_decode(generated_ids, skip_special_tokens=True)[0]  
     if model_name in ["google/recurrentgemma-2b-it","google/codegemma-2b"]:
+        print(device)
         return tokenizers[model_name].decode(models[model_name].generate(
             **tokenizers[model_name](prompt, return_tensors="pt").to(device),
             max_new_tokens=max_tokens+len(prompt),eos_token_id=tokenizers[model_name].eos_token_id,
