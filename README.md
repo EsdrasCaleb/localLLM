@@ -8,6 +8,19 @@ A Flask-based server for managing and running VLLM models with Hugging Face inte
 - Python 3.8 or later
 - Pip
 
+### Dependencies
+They are in the jar file but you can download and check them.
+
+The ChatTesterMut, composed of the ChatUnitTest core and the ChatUniTest stand-alone, are available in:
+
+- https://github.com/EsdrasCaleb/chatunitest-core  
+- https://github.com/EsdrasCaleb/chatunitest-standalone
+
+The projects used in the benchmark are in:
+
+- http://www.evosuite.org/files/SF110-20130704-src.zip
+
+
 ### Steps
 1. Clone the repository:
    ```bash
