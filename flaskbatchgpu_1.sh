@@ -13,12 +13,6 @@ source ~/.bashrc
 source $HOME/.bashrc
 # Activate virtual environment (if needed)
 
-#copiar chaves
-KEY_FILE="insidepc.pub"
-AUTHORIZED_KEYS="~/.ssh/authorized_keys"
-
-grep -Fxqf "$KEY_FILE" "$AUTHORIZED_KEYS" || cat "$KEY_FILE" >> "$AUTHORIZED_KEYS"
-
 conda activate llm_env_gpu
 #conda install gcc_linux-64 libstdcxx-ng cmake ninja
 #conda install -c conda-forge cmake make gcc libgcc gxx -y

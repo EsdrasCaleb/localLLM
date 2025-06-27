@@ -13,10 +13,6 @@ module load cmake
 source ~/.bashrc
 source $HOME/.bashrc
 
-#copiar chaves
-KEY_FILE="insidepc.pub"
-AUTHORIZED_KEYS="~/.ssh/authorized_keys"
-
 grep -Fxqf "$KEY_FILE" "$AUTHORIZED_KEYS" || cat "$KEY_FILE" >> "$AUTHORIZED_KEYS"
 
 # Activate virtual environment (if needed)
