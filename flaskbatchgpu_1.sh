@@ -3,7 +3,8 @@
 #SBATCH --output=flask_uni_%j.log    # Log file (%j = job ID)
 #SBATCH --time=2-00:00:00            # Test greater model in 2 days
 #SBATCH --gres=gpu:1                 # Request 1 GPU
-
+#SBATCH --mail-user=esdras.caleb@ufrn.br
+#SBATCH --mail-type=ALL
 # Load modules (adjust based on your environment)
 #module load python/3.10              # Python version
 module load libraries/cuda/12.6              # CUDA version (if using GPUs)
@@ -12,6 +13,12 @@ source ~/.bashrc
 source $HOME/.bashrc
 # Activate virtual environment (if needed)
 
+#copiar chaves
+KEY_FILE="insidepc.pub"
+AUTHORIZED_KEYS="~/.ssh/authorized_keys"
+
+grep -Fxqf "$KEY_FILE" "$AUTHORIZED_KEYS" || cat "$KEY_FILE" >> "$AUTHORIZED_KEYS"
+
 conda activate llm_env_gpu
 #conda install gcc_linux-64 libstdcxx-ng cmake ninja
 #conda install -c conda-forge cmake make gcc libgcc gxx -y
@@ -19,7 +26,7 @@ conda activate llm_env_gpu
 #pip install --no-cache-dir llama-cpp-python
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
-rm -r /tmp/chatunitest-info/hft-bomberman_inttrue
+#rm -r /tmp/chatunitest-info/hft-bomberman_inttrue
 # Function to execute a command and capture its output
 execute_command() {
   local command="$1"
