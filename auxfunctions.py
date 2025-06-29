@@ -85,7 +85,8 @@ def generate_prompt(messages,model_name):
             prompt = usermessage
     elif(model_name in ["Qwen/Qwen2.5-Coder-0.5B-Instruct","Qwen/Qwen2.5-Coder-1.5B-Instruct","Qwen/Qwen2.5-Coder-7B-Instruct","infly/OpenCoder-1.5B-Instruct",
     "HuggingFaceTB/SmolLM2-1.7B-Instruct","Salesforce/xLAM-1b-fc-r","ibm-granite/granite-3.1-1b-a400m-instruct",
-    "deepseek-ai/deepseek-coder-1.3b-instruct","deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B","deepseek-ai/deepseek-coder-6.7b-instruc","tiiuae/Falcon3-1B-Instruct","google/gemma2-2b-it"] or
+    "deepseek-ai/deepseek-coder-1.3b-instruct","deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B","deepseek-ai/deepseek-coder-6.7b-instruc","tiiuae/Falcon3-1B-Instruct",
+                        "google/gemma-2-2b-it","google/gemma2-2b-it"] or
     model_name.endswith(".gguf")):
         prompt = messages
     else:
@@ -282,7 +283,7 @@ def generate_model(prompt,model_name,temperature,max_tokens):
                 trust_remote_code=True
             )
             tokenizers[model_name] = AutoTokenizer.from_pretrained(model_path,trust_remote_code=True)
-        elif model_name in ["tiiuae/Falcon3-1B-Instruct","01-ai/Yi-Coder-1.5B","google/gemma2-2b-it"]:
+        elif model_name in ["tiiuae/Falcon3-1B-Instruct","01-ai/Yi-Coder-1.5B","google/gemma2-2b-it","google/gemma-2-2b-it"]:
             #models[model_name] = AutoModelForCausalLM.from_pretrained(model_path).to(device)
 
             models[model_name] = pipeline("text-generation",
