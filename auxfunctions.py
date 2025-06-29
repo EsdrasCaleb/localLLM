@@ -85,8 +85,7 @@ def generate_prompt(messages,model_name):
             prompt = usermessage
     elif(model_name in ["Qwen/Qwen2.5-Coder-0.5B-Instruct","Qwen/Qwen2.5-Coder-1.5B-Instruct","Qwen/Qwen2.5-Coder-7B-Instruct","infly/OpenCoder-1.5B-Instruct",
     "HuggingFaceTB/SmolLM2-1.7B-Instruct","Salesforce/xLAM-1b-fc-r","ibm-granite/granite-3.1-1b-a400m-instruct",
-    "deepseek-ai/deepseek-coder-1.3b-instruct","deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B","deepseek-ai/deepseek-coder-6.7b-instruc","tiiuae/Falcon3-1B-Instruct","google/gemma2-2b-it",
-    "google/gemma-2-2b-it"] or
+    "deepseek-ai/deepseek-coder-1.3b-instruct","deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B","deepseek-ai/deepseek-coder-6.7b-instruc","tiiuae/Falcon3-1B-Instruct","google/gemma2-2b-it"] or
     model_name.endswith(".gguf")):
         prompt = messages
     else:
@@ -172,7 +171,7 @@ def generate_model_new(prompt, model_name, temperature, max_tokens):
             models[model_name] = torch.nn.DataParallel(raw_model).to(device)
             tokenizers[model_name] = AutoTokenizer.from_pretrained(model_path)
         elif model_name in [
-            "tiiuae/Falcon3-1B-Instruct", "01-ai/Yi-Coder-1.5B", "google/gemma2-2b-it","google/gemma-2-2b-it"
+            "tiiuae/Falcon3-1B-Instruct", "01-ai/Yi-Coder-1.5B", "google/gemma2-2b-it"
         ]:
             raw_pipeline = pipeline(
                 "text-generation",
@@ -283,11 +282,12 @@ def generate_model(prompt,model_name,temperature,max_tokens):
                 trust_remote_code=True
             )
             tokenizers[model_name] = AutoTokenizer.from_pretrained(model_path,trust_remote_code=True)
-        elif model_name in ["tiiuae/Falcon3-1B-Instruct","01-ai/Yi-Coder-1.5B","google/gemma2-2b-it","google/gemma-2-2b-it"]:
-            models[model_name] = AutoModelForCausalLM.from_pretrained(model_path).to(device)
+        elif model_name in ["tiiuae/Falcon3-1B-Instruct","01-ai/Yi-Coder-1.5B","google/gemma2-2b-it"]:
+            #models[model_name] = AutoModelForCausalLM.from_pretrained(model_path).to(device)
 
-            #models[model_name] = pipeline("text-generation", model=model_path, device_map=device)
-            tokenizers[model_name] = AutoTokenizer.from_pretrained(model_path).to(device)
+            models[model_name] = pipeline("text-generation",
+                                          model=model_path, device_map=device)
+            #tokenizers[model_name] = AutoTokenizer.from_pretrained(model_path)
         else:
             # Load model and tokenizer
             tokenizers[model_name] = AutoTokenizer.from_pretrained(model_path)
@@ -357,7 +357,6 @@ def generate_model(prompt,model_name,temperature,max_tokens):
 
         return tokenizers[model_name].batch_decode(generated_ids, skip_special_tokens=True)[0]  
     if model_name in ["google/recurrentgemma-2b-it","google/codegemma-2b"]:
-        print(device)
         return tokenizers[model_name].decode(models[model_name].generate(
             **tokenizers[model_name](prompt, return_tensors="pt").to(device),
             max_new_tokens=max_tokens+len(prompt),eos_token_id=tokenizers[model_name].eos_token_id,
