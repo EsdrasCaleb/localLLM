@@ -94,6 +94,12 @@ def create_env_files(projects_dir, models_file):
 
             for intention in ["true"]:
                 env_file_path = os.path.join(model_dir, f"{project}_int{intention}.env")
+                executed_path = os.path.join("./executed", model_name, f"{project}_int{intention}.env")
+
+                # Se já existe em algum dos dois lugares, pula
+                if os.path.exists(env_file_path) or os.path.exists(executed_path):
+                    print(f"Pulando {env_file_path} (já existe)")
+                    continue
                 with open(env_file_path, "w") as f:
                     with open("template.env", "r") as template:
                         for line in template:

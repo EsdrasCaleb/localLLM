@@ -61,15 +61,17 @@ for folder in "$@"; do
     for env_file in "$folder"/*; do
       if [ -f "$env_file" ]; then
         command="java -jar chatunitest-standalone.jar $env_file project"
-        execute_command "$command" "$env_file" "$last_folder"
-        # Cria o diretório de destino, preservando estrutura
-        target_dir="executed/$(basename "$folder")"
-        mkdir -p "$target_dir"
+        if execute_command "$command" "$env_file" "$last_folder"; then
+          # Só executa isso se o comando acima tiver sucesso
+          target_dir="executed/$(basename "$folder")"
+          mkdir -p "$target_dir"
 
-        # Move o arquivo
-        mv "$env_file" "$target_dir/"
-        echo "Moved file $env_file to $target_dir/"
-        echo "Readed file $env_file"
+          mv "$env_file" "$target_dir/"
+          echo "Moved file $env_file to $target_dir/"
+          echo "Readed file $env_file"
+        else
+          echo "Erro ao processar $env_file. Não movido."
+        fi
       fi
     done
     echo "Clear Models"
