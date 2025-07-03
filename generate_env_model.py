@@ -83,7 +83,7 @@ def create_env_files(projects_dir, models_file):
         #else:
         #    download_model(model)
         timeout = "0"
-        if timeouts[model]:
+        if model in timeouts:
             timeout = timeouts[model]
         model_ar = model.split("/")
         model_name = model_ar[-1]
