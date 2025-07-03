@@ -52,10 +52,10 @@ def create_env_files(projects_dir, models_file):
             elif len(parts) == 1:
                 model_urls[parts[0]] = "http://localhost:5000/generate_model"
             elif len(parts) == 3:
-                model, url, key = parts
+                model, url, timeout = parts
                 model_urls[model] = url
             elif len(parts) == 4:
-                model, url, key, timeout = parts
+                model, url, timeout, key = parts
                 model_urls[model] = url
 
     # Get project folders
