@@ -43,6 +43,7 @@ def create_env_files(projects_dir, models_file):
     """
     # Load model and URL pairs from models_file
     model_urls = {}
+    timeouts ={}
     with open(models_file, "r") as f:
         for line in f:
             parts = line.strip().split()
@@ -54,9 +55,11 @@ def create_env_files(projects_dir, models_file):
             elif len(parts) == 3:
                 model, url, timeout = parts
                 model_urls[model] = url
+                timeouts[model] = timeout
             elif len(parts) == 4:
                 model, url, timeout, key = parts
                 model_urls[model] = url
+                timeouts[model] = timeout
 
     # Get project folders
     projects = {}
@@ -79,6 +82,9 @@ def create_env_files(projects_dir, models_file):
         #    download_model(model_name=file_repo[file_name], file=file_name)
         #else:
         #    download_model(model)
+        timeout = "0"
+        if timeouts[model]:
+            timeout = timeouts[model]
         model_ar = model.split("/")
         model_name = model_ar[-1]
         model_dir = os.path.join("./enfiles", f"{model_name}")
@@ -111,7 +117,7 @@ def create_env_files(projects_dir, models_file):
                             line = line.replace("{model_name}", model_name)
                             line = line.replace("{project_path}", project_path)
                             line = line.replace("{project_path_dir}", project_path.replace('.', '/'))
-                            line = line.replace("{timeout}", "0")
+                            line = line.replace("{timeout}", timeout)
                             line = line.replace("{temp}", "0.5")
                             f.write(line)
 
