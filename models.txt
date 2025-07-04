@@ -1,4 +1,4 @@
 google/gemma-2-2b-it http://localhost:5000/generate_model
 Salesforce/xLAM-1b-fc-r http://localhost:5000/generate_model
 deepseek-ai/deepseek-coder-1.3b-instruct http://localhost:5000/generate_model
-gemini-1.5-flash http://localhost:5000/google 3000
+gemini-1.5-flash http://localhost:5000/google 30000
