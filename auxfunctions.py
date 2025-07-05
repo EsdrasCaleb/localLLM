@@ -378,14 +378,16 @@ def generate_model(prompt,model_name,temperature,max_tokens):
     #return models[model_name](prompt,temperature=temperature,max_new_tokens=max_tokens,return_full_text=False,do_sample=True)[0]['generated_text']
     inputs = tokenizers[model_name](prompt, return_tensors="pt", padding=True, truncation=True)
     inputs = {k: v.to(device) for k, v in inputs.items()}
-    outputs = models[model_name].generate(
-        inputs["input_ids"],
-        max_new_tokens=max_tokens,
-        temperature=temperature,
-        do_sample=True,
-        pad_token_id=tokenizers[model_name].pad_token_id,
-        eos_token_id=tokenizers[model_name].eos_token_id
-    )
+
+    with torch.no_grad():  # desliga o autograd (economiza memória)
+        outputs = models[model_name].generate(
+            inputs["input_ids"],
+            max_new_tokens=max_tokens,
+            temperature=temperature,
+            do_sample=True,
+            pad_token_id=tokenizers[model_name].pad_token_id,
+            eos_token_id=tokenizers[model_name].eos_token_id
+        )
     generated_text = tokenizers[model_name].decode(outputs[0], skip_special_tokens=True)
     return generated_text
 
