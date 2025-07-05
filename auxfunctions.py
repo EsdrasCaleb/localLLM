@@ -252,7 +252,7 @@ def generate_model(prompt,model_name,temperature,max_tokens):
             else:
                 download_model(model_name=model_name)
         if model_name in ["google/recurrentgemma-2b-it","google/codegemma-2b"
-            ,"ibm-granite/granite-3.1-1b-a400m-instruct"]:
+            ,"ibm-granite/granite-3.1-1b-a400m-instruct","google/gemma2-2b-it","google/gemma-2-2b-it"]:
             models[model_name] = AutoModelForCausalLM.from_pretrained(model_path,
                                                                       device_map=device
                                                                       )
@@ -283,7 +283,7 @@ def generate_model(prompt,model_name,temperature,max_tokens):
                 trust_remote_code=True
             )
             tokenizers[model_name] = AutoTokenizer.from_pretrained(model_path,trust_remote_code=True)
-        elif model_name in ["tiiuae/Falcon3-1B-Instruct","01-ai/Yi-Coder-1.5B","google/gemma2-2b-it","google/gemma-2-2b-it"]:
+        elif model_name in ["tiiuae/Falcon3-1B-Instruct","01-ai/Yi-Coder-1.5B"]:
             #models[model_name] = AutoModelForCausalLM.from_pretrained(model_path).to(device)
 
             models[model_name] = pipeline("text-generation",
