@@ -376,7 +376,8 @@ def generate_model(prompt,model_name,temperature,max_tokens):
         return models[model_name](prompt, temperature=temperature, max_new_tokens=max_tokens, return_full_text=False,
                                   do_sample=True)[0]['generated_text']
     #return models[model_name](prompt,temperature=temperature,max_new_tokens=max_tokens,return_full_text=False,do_sample=True)[0]['generated_text']
-    inputs = tokenizers[model_name](prompt, return_tensors="pt", padding=True, truncation=True).to(device)
+    inputs = tokenizers[model_name](prompt, return_tensors="pt", padding=True, truncation=True)
+    inputs = {k: v.to(device) for k, v in inputs.items()}
     outputs = models[model_name].generate(
         inputs["input_ids"],
         max_new_tokens=max_tokens,
