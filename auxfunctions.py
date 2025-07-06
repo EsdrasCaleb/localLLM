@@ -214,18 +214,21 @@ def generate_model_new(prompt, model_name, temperature, max_tokens):
         "deepseek-ai/deepseek-coder-1.3b-instruct", "infly/OpenCoder-1.5B-Instruct",
         "deepseek-ai/deepseek-coder-6.7b-instruc","deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
     ]:
-        input_text = tokenizers[model_name].apply_chat_template(prompt, tokenize=False)
-        inputs = tokenizers[model_name](input_text, return_tensors="pt", padding=True, truncation=True).to(device)
-        outputs = models[model_name].module.generate(
-            inputs["input_ids"],
-            max_new_tokens=max_tokens,
-            temperature=temperature,
-            pad_token_id=tokenizers[model_name].pad_token_id,
-            attention_mask=inputs["attention_mask"],
-            eos_token_id=tokenizers[model_name].eos_token_id,
-            top_p=0.9,
-            do_sample=True
-        )
+        iinput_text = tokenizers[model_name].apply_chat_template(prompt, tokenize=False)
+        inputs = tokenizers[model_name](iinput_text, return_tensors="pt", padding=True, truncation=True).to(device)
+
+        with torch.no_grad():
+            outputs = models[model_name].module.generate(
+                inputs["input_ids"],
+                max_new_tokens=max_tokens,
+                temperature=temperature,
+                pad_token_id=tokenizers[model_name].pad_token_id,
+                attention_mask=inputs["attention_mask"],
+                eos_token_id=tokenizers[model_name].eos_token_id,
+                top_p=0.9,
+                do_sample=True
+            )
+
         return tokenizers[model_name].decode(outputs[0], skip_special_tokens=True)
 
     return models[model_name](prompt, temperature=temperature, max_new_tokens=max_tokens, return_full_text=False, do_sample=True)[0]['generated_text']
@@ -276,28 +279,13 @@ def generate_model(prompt,model_name,temperature,max_tokens):
         "HuggingFaceTB/SmolLM2-1.7B-Instruct","Salesforce/xLAM-1b-fc-r","infly/OpenCoder-1.5B-Instruct",
         "deepseek-ai/deepseek-coder-1.3b-instruct","deepseek-ai/deepseek-coder-6.7b-instruct","deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
         ]:
-            input_text = tokenizers[model_name].apply_chat_template(prompt, tokenize=False)
-            inputs = tokenizers[model_name](
-                input_text,
-                return_tensors="pt",
-                padding=True,
-                truncation=True
-            ).to(device)
-
-            with torch.no_grad():
-                outputs = models[model_name].generate(
-                    inputs["input_ids"],
-                    max_new_tokens=max_tokens,
-                    temperature=temperature,
-                    pad_token_id=tokenizers[model_name].pad_token_id,
-                    attention_mask=inputs["attention_mask"],
-                    eos_token_id=tokenizers[model_name].eos_token_id,
-                    top_p=0.9,
-                    do_sample=True
-                )
-
-            generated = tokenizers[model_name].decode(outputs[0][len(inputs[0]):], skip_special_tokens=True)
-            return generated
+            models[model_name] = AutoModelForCausalLM.from_pretrained(
+                model_path,
+                torch_dtype="auto",
+                device_map=device,
+                trust_remote_code=True
+            )
+            tokenizers[model_name] = AutoTokenizer.from_pretrained(model_path,trust_remote_code=True)
         elif model_name in ["tiiuae/Falcon3-1B-Instruct","01-ai/Yi-Coder-1.5B"]:
             #models[model_name] = AutoModelForCausalLM.from_pretrained(model_path).to(device)
 
