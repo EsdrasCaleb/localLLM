@@ -86,7 +86,7 @@ def generate_prompt(messages,model_name):
     elif(model_name in ["Qwen/Qwen2.5-Coder-0.5B-Instruct","Qwen/Qwen2.5-Coder-1.5B-Instruct","Qwen/Qwen2.5-Coder-7B-Instruct","infly/OpenCoder-1.5B-Instruct",
     "HuggingFaceTB/SmolLM2-1.7B-Instruct","Salesforce/xLAM-1b-fc-r","ibm-granite/granite-3.1-1b-a400m-instruct",
     "deepseek-ai/deepseek-coder-1.3b-instruct","deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B","deepseek-ai/deepseek-coder-6.7b-instruc","tiiuae/Falcon3-1B-Instruct",
-                        "google/gemma2-2b-it"] or
+                        "google/gemma-2-2b-it"] or
     model_name.endswith(".gguf")):
         prompt = messages
     else:
@@ -276,13 +276,28 @@ def generate_model(prompt,model_name,temperature,max_tokens):
         "HuggingFaceTB/SmolLM2-1.7B-Instruct","Salesforce/xLAM-1b-fc-r","infly/OpenCoder-1.5B-Instruct",
         "deepseek-ai/deepseek-coder-1.3b-instruct","deepseek-ai/deepseek-coder-6.7b-instruct","deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B"
         ]:
-            models[model_name] = AutoModelForCausalLM.from_pretrained(
-                model_path,
-                torch_dtype="auto",
-                device_map=device,
-                trust_remote_code=True
-            )
-            tokenizers[model_name] = AutoTokenizer.from_pretrained(model_path,trust_remote_code=True)
+            input_text = tokenizers[model_name].apply_chat_template(prompt, tokenize=False)
+            inputs = tokenizers[model_name](
+                input_text,
+                return_tensors="pt",
+                padding=True,
+                truncation=True
+            ).to(device)
+
+            with torch.no_grad():
+                outputs = models[model_name].generate(
+                    inputs["input_ids"],
+                    max_new_tokens=max_tokens,
+                    temperature=temperature,
+                    pad_token_id=tokenizers[model_name].pad_token_id,
+                    attention_mask=inputs["attention_mask"],
+                    eos_token_id=tokenizers[model_name].eos_token_id,
+                    top_p=0.9,
+                    do_sample=True
+                )
+
+            generated = tokenizers[model_name].decode(outputs[0][len(inputs[0]):], skip_special_tokens=True)
+            return generated
         elif model_name in ["tiiuae/Falcon3-1B-Instruct","01-ai/Yi-Coder-1.5B"]:
             #models[model_name] = AutoModelForCausalLM.from_pretrained(model_path).to(device)
 
