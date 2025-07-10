@@ -1,0 +1,107 @@
+# LLMs as Test Generators: A Comparative Benchmarking Study
+
+This repository contains the full research artifact associated with the paper:
+
+**LLMs as Test Generators: A Comparative Benchmarking Study**  
+Accepted at SBES 2025
+
+## 📄 Paper
+
+You can access the camera-ready version of the paper here:  
+**[LINK_TO_FINAL_PDF]**  
+(*Replace with DOI or ArXiv link*)
+
+## 🔍 Description
+
+This repository contains all source code, configuration, and instructions needed to replicate the benchmark described in the paper. It compares small-scale and large-scale LLMs used to generate unit tests for Java systems. The benchmark measures metrics such as mutation score, test smells, and cyclomatic complexity of the generated tests.
+
+All experiments can be reproduced **by simply editing** the `models_web.txt` and `models_local.txt` files to include the list of LLMs to be tested.
+
+This repository already includes all necessary logic to execute both locally hosted models (via VLLM) and web-based models (via OpenAI/Gemini APIs), including test generation, mutation analysis, smell detection (via TsDetect), and complexity analysis (via Lizard).
+
+## 📁 Repository Structure
+
+```
+
+├── main.py                   # Main script to execute the benchmark
+├── models\_web.txt            # List of web-based LLMs to benchmark
+├── models\_local.txt          # List of local LLMs to benchmark
+├── requirements.txt          # Python dependencies
+├── flaskbatchgpu.sh          # SLURM script for GPU cluster (local models)
+├── flaskbatchenv.sh          # SLURM script with .env config
+├── vllm\_server\_tool.py       # Optional: Run local VLLM server manually
+├── .env.example              # Example env file with Hugging Face tokens
+├── LICENSE                   # License (open-source or CC)
+└── README.md                 # This file
+
+````
+
+## 🧰 Requirements
+
+- Python 3.8+
+- pip
+- Linux (tested on Ubuntu 22.04)
+- 16 GB RAM (advised)
+- Access to OpenAI/Gemini/Mistral APIs (for web-based models)
+
+## 🔧 Installation
+
+```bash
+git clone https://github.com/EsdrasCaleb/benchmarkLLM
+cd benchmarkLLM
+python -m venv venv
+source venv/bin/activate   # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+cp .env.example .env       # Then set your Hugging Face token
+````
+
+## ▶️ Execution
+
+To run the complete benchmark for all selected models:
+
+```bash
+python main.py
+```
+
+### Model Configuration
+
+* `models_web.txt`: One model name per line, e.g. `gpt-4o`, `gemini-1.5-flash`.
+* `models_local.txt`: One local model path or name per line (Hugging Face-compatible).
+
+You may comment out lines with `#` to skip specific models.
+
+### Optional (Start Local Server Separately)
+
+```bash
+python main.py --host 0.0.0.0 --port 5000
+```
+
+## 📊 Output
+
+* Test files will be generated automatically in data/{project}_{model_name}.csv.
+* Metrics such as mutation score, smells, and complexity are stored in the same csv.
+* See `finalcompleddata.xlsx` for results used in the article.
+
+## 🛠️ Dependencies
+
+* [ChatTesterMut](https://github.com/EsdrasCaleb/chatunitest-core)
+* [ChatUnitTest Standalone](https://github.com/EsdrasCaleb/chatunitest-standalone)
+* [SF110 Benchmark](http://www.evosuite.org/files/SF110-20130704-src.zip)
+
+The benchmark has a copy of ChatTesterMut.jar **you do not need to clone the others** to only run the benchmark. 
+But you will be asked to download the SD110
+
+## 🧠 Required Skills
+
+* Basic Python scripting
+* Understanding of unit testing and Java projects
+* Experience with virtual environments and API keys
+
+
+## 📮 Contact
+
+For questions or support, contact:
+
+* Esdras Caleb Oliveira Silva – [esdras.caleb@ufrn.br](mailto:esdras.caleb@ufrn.br)
+
+```
