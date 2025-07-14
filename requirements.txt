@@ -1,3 +1,4 @@
+pandas
 torch
 transformers
 datasets
@@ -9,5 +10,14 @@ lizard
 pandas
 javalang
 np
-huggingface_hub
+shutil
+gc
+re
+psutil
+csv
+json
+subprocess
+glob
+requests
 mistral
+huggingface_hub
