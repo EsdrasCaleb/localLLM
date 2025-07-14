@@ -1,4 +1,4 @@
-# ChatTesterMut Artifact for SBES 2025
+# llm-testgen-benchmark — Artifact for SBES 2025
 
 This repository contains the **code, data, scripts, and experimental setup** used in the paper:
 
