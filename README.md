@@ -39,7 +39,7 @@ This repository contains the **code, data, scripts, and experimental setup** use
 
 ## ⚙️ Requirements
 
-- **Java**: OpenJDK 8 or later
+- **Java**: OpenJDK 11 or later
 - **Python**: Version 3.10
 - **pip packages**: All listed in `requirements.txt`
 - **Memory**: At least 8 GB RAM recommended to run local LLMs
