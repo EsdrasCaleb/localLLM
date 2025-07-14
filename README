@@ -1,107 +1,131 @@
-# LLMs as Test Generators: A Comparative Benchmarking Study
+# VLLM Local Server
 
-This repository contains the full research artifact associated with the paper:
+A Flask-based server for managing and running VLLM models with Hugging Face integration.
 
-**LLMs as Test Generators: A Comparative Benchmarking Study**  
-Accepted at SBES 2025
+## Setup
 
-## 📄 Paper
+### Prerequisites
+- Python 3.8 or later
+- Pip
 
-You can access the camera-ready version of the paper here:  
-**[LINK_TO_FINAL_PDF]**  
-(*Replace with DOI or ArXiv link*)
+### Steps
+1. Clone the repository:
+   ```bash
+   git clone <repository_url>
+   cd <repository_directory>
+   ```
+2. Create a virtual environment:
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\\Scripts\\activate
+   ```
+3. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
 
-## 🔍 Description
+## Usage
 
-This repository contains all source code, configuration, and instructions needed to replicate the benchmark described in the paper. It compares small-scale and large-scale LLMs used to generate unit tests for Java systems. The benchmark measures metrics such as mutation score, test smells, and cyclomatic complexity of the generated tests.
-
-All experiments can be reproduced **by simply editing** the `models_web.txt` and `models_local.txt` files to include the list of LLMs to be tested.
-
-This repository already includes all necessary logic to execute both locally hosted models (via VLLM) and web-based models (via OpenAI/Gemini APIs), including test generation, mutation analysis, smell detection (via TsDetect), and complexity analysis (via Lizard).
-
-## 📁 Repository Structure
-
-```
-
-├── main.py                   # Main script to execute the benchmark
-├── models\_web.txt            # List of web-based LLMs to benchmark
-├── models\_local.txt          # List of local LLMs to benchmark
-├── requirements.txt          # Python dependencies
-├── flaskbatchgpu.sh          # SLURM script for GPU cluster (local models)
-├── flaskbatchenv.sh          # SLURM script with .env config
-├── vllm\_server\_tool.py       # Optional: Run local VLLM server manually
-├── .env.example              # Example env file with Hugging Face tokens
-├── LICENSE                   # License (open-source or CC)
-└── README.md                 # This file
-
-````
-
-## 🧰 Requirements
-
-- Python 3.8+
-- pip
-- Linux (tested on Ubuntu 22.04)
-- 16 GB RAM (advised)
-- Access to OpenAI/Gemini/Mistral APIs (for web-based models)
-
-## 🔧 Installation
+### All in one execution
 
 ```bash
-git clone https://github.com/EsdrasCaleb/benchmarkLLM
-cd benchmarkLLM
-python -m venv venv
-source venv/bin/activate   # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-cp .env.example .env       # Then set your Hugging Face token
+python experiment.py
 ````
 
-## ▶️ Execution
+> ⚠️ During the first run, the system may prompt you to provide API keys for online services or to download the `sf110` dataset. Follow the on-screen instructions to complete the setup.
 
-To run the complete benchmark for all selected models:
 
-```bash
-python main.py
-```
-
-### Model Configuration
-
-* `models_web.txt`: One model name per line, e.g. `gpt-4o`, `gemini-1.5-flash`.
-* `models_local.txt`: One local model path or name per line (Hugging Face-compatible).
-
-You may comment out lines with `#` to skip specific models.
-
-### Optional (Start Local Server Separately)
-
+### Start the Server
+Run the following command:
 ```bash
 python main.py --host 0.0.0.0 --port 5000
 ```
 
-## 📊 Output
+### API Endpoints
 
-* Test files will be generated automatically in data/{project}_{model_name}.csv.
-* Metrics such as mutation score, smells, and complexity are stored in the same csv.
-* See `finalcompleddata.xlsx` for results used in the article.
+- **List Models**: `GET /list_models`
+  Lists available text generation models from Hugging Face.
 
-## 🛠️ Dependencies
+- **Download Model**: `POST /download_model`
+  Downloads the specified model.
+  **Body parameters**:
+  - `model_name` (string): Name of the model to download.
 
-* [ChatTesterMut](https://github.com/EsdrasCaleb/chatunitest-core)
-* [ChatUnitTest Standalone](https://github.com/EsdrasCaleb/chatunitest-standalone)
-* [SF110 Benchmark](http://www.evosuite.org/files/SF110-20130704-src.zip)
+- **Generate Text**: `POST /generate`
+  Generates text from a prompt using the specified model.
+  **Body parameters**:
+  - `model` (string): Name of the model to use.
+  - `messages` (array of string): Array of 2 strings with the context and the prompt messages
+  - `messages` (float): Temperature of the generation
+  - `max_tokens` (integer): Maximum token to generate
 
-The benchmark has a copy of ChatTesterMut.jar **you do not need to clone the others** to only run the benchmark. 
-But you will be asked to download the SD110
+- **Clear Models**: `POST /clear_models`
+  Unloads all models from memory to free up system resources.
+### Example Requests
 
-## 🧠 Required Skills
+#### Generate Text
+```bash
+curl -X POST -H "Content-Type: application/json" \
+-d '{
+  "model": "google/gemma-2-2b-it",
+  "messages": ["Context goes here", "Prompt goes here"],
+  "temperature": 0.7,
+  "max_tokens": 100
+}' \
+http://localhost:5000/generate
 
-* Basic Python scripting
-* Understanding of unit testing and Java projects
-* Experience with virtual environments and API keys
+#### Files in Repo
+
+This repository includes multiple scripts and tools for benchmarking and testing local language models on Java projects. Below is a description of each file in the root directory:
+
+- **finalcompleddata.xlsx**
+  Excel file that consolidates all results from the benchmark experiment. It includes detailed information for each test case, such as:
+  - Project ID and name
+  - Class and method tested
+  - Model used
+  - Prompt and generated output
+  - Evaluation metrics (e.g., compilation success, mutation score)
+
+- **generated_tests/**
+  Directory containing all test files generated during the experiment. The folder structure follows the SF110 format, with each subfolder corresponding to a project (e.g., `1/`, `2/`, etc.), and containing the respective test outputs.
 
 
-## 📮 Contact
+- **main.py**
+  Starts the HTTP server that exposes the API endpoints for model management and text generation.
 
-For questions or support, contact:
+- **experiment.py**
+  Runs the full benchmark experiment, including model loading, prompt generation, and result collection.
 
-* Esdras Caleb Oliveira Silva – [esdras.caleb@ufrn.br](mailto:esdras.caleb@ufrn.br)
+- **chatunitest-standalone.jar**
+  A standalone version of ChatTesterMut, a tool capable of generating tests for Java projects. Use it with:
+  ```bash
+  java -jar chatunitest-standalone.jar path_to_env_file COMMAND
+````
 
-```
+* `COMMAND` can be:
+
+  * `project` – generate tests for the whole project
+  * `class CLASS_NAME` – generate tests for a specific class
+  * `method CLASS_NAME METHOD_NAME` – generate tests for a specific method
+
+- **generate\_chatenv\_project.py**
+
+- **generate\_env\_model.py**
+
+- **generatecsvtotest.py**
+
+- **generateevalremovedtests.py**
+
+- **generatetoevosuite.py**
+  These scripts are used to generate environment files and test cases based on the SF110 benchmark. They can be adapted to use other Java projects by placing those projects inside the `../SF110` directory, following the same numeric folder structure used by SF110.
+- **usages.csv**
+  Logs resource usage metrics collected during test generation on a non-GPU (CPU-only) machine.
+
+- **testmodel.py**
+  Script with test cases to verify model loading and generation functionality.
+
+- **request.py**
+  Script to test API endpoints by sending requests and validating responses.
+
+
+> 📁 The SF110 dataset is expected to be placed in `../SF110`. You can replace its content with your own Java projects as long as you follow the same directory structure (e.g., numbered folders like `1`, `2`, etc.).
