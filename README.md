@@ -40,11 +40,11 @@ This repository contains the **code, data, scripts, and experimental setup** use
 ## ⚙️ Requirements
 
 - **Java**: OpenJDK 8 or later
-- **Python**: Version 3.8+
+- **Python**: Version 3.10
 - **pip packages**: All listed in `requirements.txt`
 - **Memory**: At least 8 GB RAM recommended to run local LLMs
-- **Disk Space**: ~5GB for downloaded models and generated data
-- Optional: Docker (to isolate Python environment)
+- **Disk Space**: ~30GB for downloaded models and generated data
+- Optional: Conda or Docker (to isolate Python environment)
 
 ---
 
