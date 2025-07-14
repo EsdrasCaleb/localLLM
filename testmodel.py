@@ -5,7 +5,7 @@ env_data = load_env_file(file_path)
 # Path to the folder containing GGUF model files
 models_folder = os.path.join(env_data.get("model_dir","./models"),"gguf")
 models=["infly/OpenCoder-1.5B-Instruct"]
-prompt="give me e small java class that calculate the area of a polygon"
+prompt="give me a small java class with a fibonacci function"
 messages=[
     {
         "role": "system",
