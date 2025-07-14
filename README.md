@@ -2,7 +2,7 @@
 
 This repository contains the **code, data, scripts, and experimental setup** used in the paper:
 
-> **"Automatic Test Generation and Smell Detection Using LLMs: Evaluating the ChatTesterMut Approach"**  
+> **"LLMs as Test Generators: A Comparative Benchmarking Study"**  
 > Accepted at SBES 2025 (Research Track)  
 > [📄 Link to the paper (PDF)](https://esdrascaleb.github.io/llm-testgen-benchmark/)
 
