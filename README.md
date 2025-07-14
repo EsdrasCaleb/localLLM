@@ -23,45 +23,109 @@ A Flask-based server for managing and running VLLM models with Hugging Face inte
    ```bash
    pip install -r requirements.txt
    ```
-4. Set up the `.env` file with your Hugging Face token:
-   ```plaintext
-   HF_TOKEN=your_huggingface_token
-   ```
 
 ## Usage
 
 ### All in one execution
+
+```bash
 python experiment.py
+````
+
+> ⚠️ During the first run, the system may prompt you to provide API keys for online services or to download the `sf110` dataset. Follow the on-screen instructions to complete the setup.
+
 
 ### Start the Server
 Run the following command:
 ```bash
-python vllm_server_tool.py --host 0.0.0.0 --port 5000
+python main.py --host 0.0.0.0 --port 5000
 ```
 
 ### API Endpoints
-- **List Models**: `GET /list_models` - Lists available text generation models from Hugging Face.
-- **Download Model**: `POST /download_model` - Downloads the specified model.
-- **Generate Text**: `POST /generate` - Generates text from a prompt using the specified model.
 
+- **List Models**: `GET /list_models`  
+  Lists available text generation models from Hugging Face.
+
+- **Download Model**: `POST /download_model`  
+  Downloads the specified model.  
+  **Body parameters**:  
+  - `model_name` (string): Name of the model to download.
+
+- **Generate Text**: `POST /generate`  
+  Generates text from a prompt using the specified model.  
+  **Body parameters**:  
+  - `model` (string): Name of the model to use.
+  - `messages` (array of string): Array of 2 strings with the context and the prompt messages
+  - `messages` (float): Temperature of the generation
+  - `max_tokens` (integer): Maximum token to generate
+
+- **Clear Models**: `POST /clear_models`  
+  Unloads all models from memory to free up system resources.
 ### Example Requests
-#### Download Model
-```bash
-curl -X POST -H "Content-Type: application/json" \
--d '{"model_name": "gpt2"}' http://localhost:5000/download_model
-```
 
 #### Generate Text
 ```bash
 curl -X POST -H "Content-Type: application/json" \
--d '{"model_name": "gpt2", "prompt": "Once upon a time"}' \
+-d '{
+  "model": "google/gemma-2-2b-it",
+  "messages": ["Context goes here", "Prompt goes here"],
+  "temperature": 0.7,
+  "max_tokens": 100
+}' \
 http://localhost:5000/generate
-```
 
-use 
-```bash
-sbatch --partition=gpu-4-a100 flaskbatchgpu.sh 
-sbatch --partition=gpu-8-v100 flaskbatchgpu.sh 
-sbatch --partition=gpu-8-h100 flaskbatchgpu.sh 
-sbatch --partition=parition flaskbatchenv.sh ENVFILE 
-```
+#### Files in Repo
+
+This repository includes multiple scripts and tools for benchmarking and testing local language models on Java projects. Below is a description of each file in the root directory:
+
+- **finalcompleddata.xlsx**  
+  Excel file that consolidates all results from the benchmark experiment. It includes detailed information for each test case, such as:
+  - Project ID and name
+  - Class and method tested
+  - Model used
+  - Prompt and generated output
+  - Evaluation metrics (e.g., compilation success, mutation score)
+
+- **generated_tests/**  
+  Directory containing all test files generated during the experiment. The folder structure follows the SF110 format, with each subfolder corresponding to a project (e.g., `1/`, `2/`, etc.), and containing the respective test outputs.
+
+
+- **main.py**  
+  Starts the HTTP server that exposes the API endpoints for model management and text generation.
+
+- **experiment.py**  
+  Runs the full benchmark experiment, including model loading, prompt generation, and result collection.
+
+- **chatunitest-standalone.jar**  
+  A standalone version of ChatTesterMut, a tool capable of generating tests for Java projects. Use it with:
+  ```bash
+  java -jar chatunitest-standalone.jar path_to_env_file COMMAND
+````
+
+* `COMMAND` can be:
+
+  * `project` – generate tests for the whole project
+  * `class CLASS_NAME` – generate tests for a specific class
+  * `method CLASS_NAME METHOD_NAME` – generate tests for a specific method
+
+- **generate\_chatenv\_project.py**
+
+- **generate\_env\_model.py**
+
+- **generatecsvtotest.py**
+
+- **generateevalremovedtests.py**
+
+- **generatetoevosuite.py**
+  These scripts are used to generate environment files and test cases based on the SF110 benchmark. They can be adapted to use other Java projects by placing those projects inside the `../SF110` directory, following the same numeric folder structure used by SF110.
+- **usages.csv**  
+  Logs resource usage metrics collected during test generation on a non-GPU (CPU-only) machine.
+
+- **testmodel.py**  
+  Script with test cases to verify model loading and generation functionality.
+
+- **request.py**  
+  Script to test API endpoints by sending requests and validating responses.
+
+
+> 📁 The SF110 dataset is expected to be placed in `../SF110`. You can replace its content with your own Java projects as long as you follow the same directory structure (e.g., numbered folders like `1`, `2`, etc.).
