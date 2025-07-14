@@ -165,7 +165,7 @@ def run_chattester(env_path, command, justtest=False):
                 raise ValueError("CSV file is empty")
 
     # Salvar métricas de uso
-    usage_file = "usages.csv"
+    usage_file = "usages_new.csv"
     write_header = (not os.path.exists(usage_file))
     with open(usage_file, "a") as f:
         if(write_header):
