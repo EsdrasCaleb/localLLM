@@ -106,14 +106,14 @@ def add_env_variable(key, value, env_path=".env"):
 def run_chattester(env_path, command, justtest=False):
     global flask_process
     runner_env = load_or_create_env(env_path)
-    # Início da medição
+    #  measure start
     start_time = time.time()
     usage_data = []
 
-    # Captura o processo do Flask (se existir)
+    # get flask process if exists
     flask_ps = psutil.Process(flask_process.pid) if flask_process else None
 
-    # Lança o processo Java e monitora durante execução
+    # lauch java and monitors the execution
     with subprocess.Popen(["java", "-jar", "chatunitest-standalone.jar", env_path, *command]) as proc:
         java_ps = psutil.Process(proc.pid)
         core_count = psutil.cpu_count()
@@ -136,12 +136,12 @@ def run_chattester(env_path, command, justtest=False):
                     record["flask_cpu"] = record["flask_mem"] = 0
 
                 usage_data.append(record)
-                time.sleep(0.1)  # ajuste esse intervalo conforme necessário
+                time.sleep(0.1)  # necessary interval
         except Exception as e:
             proc.kill()
             raise e
 
-    # Tempo total
+    # Total time
     end_time = time.time()
     total_time = end_time - start_time
 
@@ -164,7 +164,7 @@ def run_chattester(env_path, command, justtest=False):
             else:
                 raise ValueError("CSV file is empty")
 
-    # Salvar métricas de uso
+    # Save usage metrics
     usage_file = "usages_new.csv"
     write_header = (not os.path.exists(usage_file))
     with open(usage_file, "a") as f:
@@ -184,6 +184,7 @@ def run_chattester(env_path, command, justtest=False):
             if(max_model_ram < row["flask_mem"]):
                 max_model_ram = row["flask_mem"]
             timestamp = row["timestamp"] - start_time
+            #uncomment to see the runtime metrics
             #f.write(f"{runner_env['model']},{timestamp:.2f},{row['java_cpu']:.2f},{row['java_mem']:.2f},"
             #        f"{row['flask_cpu']:.2f},{row['flask_mem']:.2f},-\n")
         f.write(
@@ -192,7 +193,7 @@ def run_chattester(env_path, command, justtest=False):
     if justtest:
         return
 
-    # Processamento pós-benchmark
+    # Pos benchmark process
     p_dt, semll_dt = generate_dt_smell(runner_env["benchmark_file"])
     smell_file = os.path.splitext(os.path.basename(runner_env["benchmark_file"]))[0]+"smell.csv"
     semll_dt.to_csv(smell_file, index=False, header=False)
@@ -234,7 +235,7 @@ def run_chattester_old(env_path, command, justtest=False):
 def generate_dt_smell(csv_path):
     df = pd.read_csv(csv_path)
 
-    # Filtra só SUCCESS e arquivos que existem
+    # Filter only SUCCESS in existing files
     df = df[df['result'] == 'SUCCESS']
     df = df[df['file'].apply(lambda x: os.path.exists(x))]
 
@@ -256,10 +257,10 @@ def generate_dt_smell(csv_path):
         mutation_logic = row['mutation_logic']
         mutation_relat = row['mutation_relat']
 
-        # Número de métodos SUT é fixo: 1
+        # Number of SUT fix in: 1 as chattester generates one file per SUT
         number_of_sut_methods = 1
 
-        # Conta número de @Test
+        # Counts the @Test
         with open(file_path, 'r', encoding='utf-8') as f:
             content = f.read()
         number_of_tests = len(re.findall(r'@Test\b', content))
@@ -282,8 +283,8 @@ def generate_dt_smell(csv_path):
             'number_of_tests': number_of_tests
         })
 
-        # Gera caminho sut_path
-        # file tem o caminho completo, pega a parte após chatunitest-tests_MODELNAME/
+        # Generates sut_path
+        # file has the full path, get just the chatunitest-tests_MODELNAME/
         split_token = f'chatunitest-tests_{model.replace("/", "_")}/'
         if split_token in file_path:
             path_arr = os.path.dirname(file_path).split(split_token)
@@ -310,10 +311,10 @@ def run_test_smell_detector(input_csv_path,  jar_name="TestSmellDetector.jar"):
 
   output_csv = output_files[0]
 
-  # Lê o CSV em um DataFrame
+  # Read CSV into a DataFrame
   df = pd.read_csv(output_csv)
 
-  # Apaga o arquivo CSV gerado
+  # Remove previus CSV
   os.remove(output_csv)
 
   return df
@@ -412,7 +413,7 @@ def find_existing_evosuite_tests_chat(projects_dir):
 
 
 def merge_test_data(final_dt, smell_dt):
-  # Faz o merge usando 'file' de df1 e 'TestFilePath' de df2
+  # Merge  df1 and df2 in 'TestFilePath' to get all data in one place
   merged_df = final_dt.merge(
     smell_dt,
     left_on="file",
@@ -420,7 +421,7 @@ def merge_test_data(final_dt, smell_dt):
     how="inner"
   )
 
-  # Seleciona e reordena as colunas conforme especificado
+  # Selecet and reoorder colluns as specified
   final_columns = [
     "project", "file", "num_interactions", "num_corrections", "result", "model", "test_number",
     "mutation_null", "mutation_var", "mutation_bool", "mutation_aritime", "mutation_logic", "mutation_relat",
@@ -437,7 +438,7 @@ def merge_test_data(final_dt, smell_dt):
 def generate_dt_from_evosuite_files(existing_files_by_project):
   data = []
 
-  # Montar todos os caminhos sut_paths_by_project
+  # Make all sut_paths_by_project
   sut_paths_by_project = {}
   for project in existing_files_by_project.keys():
     filename = f"evosuittestsemll_{project}"
@@ -472,7 +473,7 @@ def generate_dt_from_evosuite_files(existing_files_by_project):
         "SUCCESS",  # result
         "evosuite",  # model
         0,  # test_number
-        -1, -1, -1, -1, -1, -1,  # mutation_* colunas
+        -1, -1, -1, -1, -1, -1,  # mutation_* colums
         num_sut_methods,
         num_tests
       ])
@@ -585,7 +586,6 @@ def get_models():
     except FileNotFoundError:
         sys.exit(f"Error: {models_file} not found.")
 
-    #colocar so primeira parte
     print("\nAvailable models:")
     for i, model in enumerate(models, start=1):
         model_arr = model.split(" ")
@@ -754,11 +754,11 @@ def start_flask_server():
         bufsize=1
     )
 
-    # Iniciar threads para imprimir stdout e stderr
+    # Initiate threads to print stdout and stderr
     threading.Thread(target=stream_output, args=(flask_process.stdout, 'STDOUT'), daemon=True).start()
     threading.Thread(target=stream_output, args=(flask_process.stderr, 'STDERR'), daemon=True).start()
 
-    # Esperar o servidor subir
+    # Waiting server
     status = False
     while not status:
         try:
@@ -828,7 +828,7 @@ def main():
       case "c":
         evosuite_data, smell_evo_data = find_existing_evosuite_tests_chat(PROJECTS_DIR)
         df = pd.DataFrame(smell_evo_data)
-        #pd.set_option('display.max_colwidth', None)  # mostra conteúdo completo das colunas
+        #pd.set_option('display.max_colwidth', None)  # show all collums content
         df.to_csv("evotssmell.csv", index=False, header=False)
         ts_df = run_test_smell_detector("evotssmell.csv")
         finaldt = generate_dt_from_evosuite_files(evosuite_data)
@@ -884,7 +884,6 @@ def main():
             except FileNotFoundError:
                 sys.exit(f"Error: {LOCAL_MODELS_FILE} not found.")
 
-                # colocar so primeira parte
             for model in models:
                 generate_model_benchmark(model,"XXXXX")
             print("Generating web models")
@@ -915,7 +914,6 @@ def main():
             except FileNotFoundError:
                 sys.exit(f"Error: {LOCAL_MODELS_FILE} not found.")
 
-                # colocar so primeira parte
             for model in models:
                 execute_benchmark(generate_chatenv_file("1_tullibee", model, "XXXXX"),
                                   ['method','OrderState','equals'],True)
