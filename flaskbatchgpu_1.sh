@@ -25,21 +25,35 @@ export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 execute_command() {
   local command="$1"
   local env_file="$2"
-  local folder="$3"
-  start_time=$(date +%s)
-  echo "$(date '+%Y-%m-%d %H:%M:%S') Executing: $command"
-  local output=$(eval "$command" 2>&1 | tr -d '\0')
+  local file="$3"
+
+  # sanitiza o nome do arquivo (só letras, números e _)
+  local safe_file
+  safe_file=$(echo "$file" | tr -cd '[:alnum:]_')
+
+  # garante que a pasta exista
+  mkdir -p unilogs
+
+  # debug
+  echo "DEBUG file=[$file] safe_file=[$safe_file] env_file=[$env_file]" >> debugunilogs.log
+
+  local start_time=$(date +%s)
+  echo "Executing: $command"
+  local output
+  output=$(eval "$command" 2>&1)
   local exit_code=$?
+
   if [ $exit_code -eq 0 ]; then
-    echo "Successful execution of $env_file" >> "unilogs/executions_$folder.log"
-    echo "\nLog of $env_file:\n $output\n" >> "unilogs/logs_$folder.log"
-    #rm $env_file
+    echo "Successful execution of $env_file" >> "unilogs/executions_${safe_file}.log"
+    echo -e "\nLog of $env_file:\n$output\n" >> "unilogs/logs_${safe_file}.log"
+    #rm "$env_file"
   else
-    echo "Problem in execution of $env_file: $output" >>"unilogs/errors_$folder.log"
+    echo "Problem in execution of $env_file" >> "unilogs/executions_${safe_file}.log"
+    echo -e "\nError log of $env_file:\n$output\n" >> "unilogs/logs_${safe_file}.log"
   fi
-  # After processing each project:
-  end_time=$(date +%s)
-  elapsed_time=$((end_time - start_time))
+
+  local end_time=$(date +%s)
+  local elapsed_time=$((end_time - start_time))
   echo "Processing $env_file took $elapsed_time seconds" >> timings.log
 }
 
