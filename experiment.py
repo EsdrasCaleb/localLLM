@@ -550,9 +550,11 @@ def select_option():
     print("c - Generate EvoSuite benchmark data")
     print("d - make the full benchmark")
     print("e - make the local tests")
+    print("f - complete csv from a project")
+    print("g - generate Evosuite from a project")
 
     choice = input("Enter your choice (a/b/c): ").strip().lower()
-    if choice not in ("a", "b", "c","d","e"):
+    if choice not in ("a", "b", "c","d","e","f"):
         sys.exit("Invalid choice. Exiting.")
     return choice
 
