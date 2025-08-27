@@ -12,6 +12,7 @@ import time
 import requests
 import psutil
 import threading
+from collections import defaultdict
 
 REQUIREMENTS_FILE = "requirements.txt"
 LOCAL_MODELS_FILE = "models_local.txt"
@@ -179,20 +180,46 @@ def run_chattester(env_path, command, justtest=False):
         return
 
     # Processamento pós-benchmark
-    p_dt, semll_dt = generate_dt_smell(runner_env["benchmark_file"])
-    smell_file = os.path.splitext(os.path.basename(runner_env["benchmark_file"]))[0]+"smell.csv"
+    final_df = process_benchmark_file(runner_env["benchmark_file"])
+    # Salva resultado final
+    output_dir = "benchmarkfiles"
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    final_file = os.path.join(
+        output_dir,
+        os.path.splitext(os.path.basename(runner_env["benchmark_file"]))[0] + "smell.csv"
+    )
+    final_df.to_csv(final_file, index=False)
+
+def process_benchmark_file(benchmark_file: str) -> pd.DataFrame:
+    # Gera os dados iniciais
+    p_dt, semll_dt = generate_dt_smell(benchmark_file)
+
+    # Cria arquivo intermediário de smells
+    smell_file = os.path.splitext(os.path.basename(benchmark_file))[0] + "smell.csv"
     semll_dt.to_csv(smell_file, index=False, header=False)
+
+    # Roda detector de smells
     ts_df = run_test_smell_detector(smell_file)
+
+    # Remove arquivo intermediário
     os.remove(smell_file)
+
+    # Junta dados
     finaldt = merge_test_data(p_dt, ts_df)
+
+    # Métricas de código
     finaldt[['lizard_nloc', 'lizard_ccn', 'lizard_token', 'lizard_function_count']] = finaldt['file'].apply(
-        lambda x: pd.Series(analyze_code_metrics(x)))
+        lambda x: pd.Series(analyze_code_metrics(x))
+    )
+
+    # Contagem de assertions
     finaldt[['total_assertion', 'methods_without_assertions', 'total_methods']] = finaldt['file'].apply(
-        lambda x: pd.Series(count_assertions_in_methods(x)))
-    final_file = "benchmarkfiles/"+os.path.splitext(os.path.basename(runner_env["benchmark_file"]))[0]+"smell.csv"
-    if not os.path.exists("benchmarkfiles"):
-        os.makedirs("benchmarkfiles")
-    finaldt.to_csv(final_file, index=False)
+        lambda x: pd.Series(count_assertions_in_methods(x))
+    )
+
+    return finaldt
 
 def run_chattester_old(env_path, command, justtest=False):
   subprocess.run(["java", "-jar", "chatunitest-standalone.jar",env_path,*command], check=True)
@@ -230,6 +257,8 @@ def generate_dt_smell(csv_path):
     for _, row in df.iterrows():
         project = row['project']
         model = row['model']
+        if "/" in model:
+            model = model.split("/")[1]
         file_path = row['file']
         test_number = row['test_number']
         num_interactions = row['num_interactions']
@@ -366,6 +395,50 @@ def find_existing_evosuite_tests(projects_dir):
   return result, data
 
 
+import os
+
+def find_evosuite_tests_for_project(project_number, base_dir="../SF110"):
+    """
+    Encontra todos os testes EvoSuite para um projeto específico identificado pelo número.
+    Retorna lista de [project_name, evo_test_path, sut_path].
+    """
+    # procura diretório que começa com o número
+    project_dir = None
+    for d in os.listdir(base_dir):
+        if d.startswith(f"{project_number}_") and os.path.isdir(os.path.join(base_dir, d)):
+            project_dir = os.path.join(base_dir, d)
+            break
+
+    if not project_dir:
+        print(f"Projeto com número {project_number} não encontrado em {base_dir}")
+        return []
+
+    project_name = os.path.basename(project_dir).split("_")[1] if "_" in os.path.basename(project_dir) else os.path.basename(project_dir)
+    evosuite_dir = os.path.join(project_dir, "evosuite-tests")
+
+    if not os.path.isdir(evosuite_dir):
+        print(f"Nenhuma pasta 'evosuite-tests' encontrada em {project_dir}")
+        return []
+
+    data = []
+
+    for root, _, files in os.walk(evosuite_dir):
+        for file in files:
+            if file.endswith("EvoSuiteTest.java"):
+                evo_test_path = os.path.join(root, file)
+
+                class_relative = file.replace("EvoSuiteTest.java", "")
+                rel_dir = os.path.relpath(root, evosuite_dir)
+                sut_path = os.path.join(project_dir, "src", "main", "java", rel_dir, class_relative + ".java")
+
+                if os.path.isfile(sut_path):
+                    data.append([project_name, evo_test_path, sut_path])
+                else:
+                    print(f"Warning: SUT class not found for {evo_test_path} -> {sut_path}")
+
+    return data
+
+
 def find_existing_evosuite_tests_chat(projects_dir):
     result = {}
     data = []
@@ -472,11 +545,21 @@ def generate_dt_from_evosuite_files(existing_files_by_project):
 
   return df
 
+def safe_analyze(file_path):
+    try:
+        return analyze_code_metrics(file_path)
+    except Exception as e:
+        print(f"Arquivo não encontrado: {file_path}")
+        print(f"Erro analisando {file_path}: {e}")
+        return 0, 0, 0, 0
+
 def analyze_code_metrics(file_path):
   if not os.path.exists(file_path):
+    print(f"Arquivo não encontrado: {file_path}")
     raise FileNotFoundError(f"Arquivo não encontrado: {file_path}")
 
   analysis = lizard.analyze_file(file_path)
+  print(analysis)
   return analysis.nloc, analysis.CCN, analysis.token_count, len(analysis.function_list)
 
 
@@ -554,7 +637,7 @@ def select_option():
     print("g - generate Evosuite from a project")
 
     choice = input("Enter your choice (a/b/c): ").strip().lower()
-    if choice not in ("a", "b", "c","d","e","f"):
+    if choice not in ("a", "b", "c","d","e","f","g"):
         sys.exit("Invalid choice. Exiting.")
     return choice
 
@@ -907,7 +990,72 @@ def main():
             for model in models:
                 execute_benchmark(generate_chatenv_file("1_tullibee", model, "XXXXX"),
                                   ['method','OrderState','equals'],True)
+      case "f":
+          print("Write the path to the file:")
+          file_path = input().strip()
 
+          if os.path.exists(file_path):
+              # Processa com a função já pronta
+              final_df = process_benchmark_file(file_path)
+
+              # Monta caminho de saída
+              output_file = os.path.splitext(file_path)[0] + "_complete.csv"
+
+              # Salva no mesmo diretório
+              final_df.to_csv(output_file, index=False)
+              print(f"Resulting file in: {output_file}")
+          else:
+              print("File not found."+file_path)
+      case "g":
+          project_number = input("Enter the project number: ").strip()
+          if not project_number.isdigit():
+              print("Invalid number.")
+              return
+
+          project_number = int(project_number)
+          print(f"Processing project {project_number}...")
+
+          # encontra todos os testes EvoSuite para o projeto
+          evosuite_data = find_evosuite_tests_for_project(project_number)
+
+          if not evosuite_data:
+              print(f"No test found on {project_number}.")
+              return
+
+          # converte para DataFrame
+          df = pd.DataFrame(evosuite_data, columns=["project", "evo_test_path", "sut_path"])
+
+          # cria CSV intermediário para o detector de smells
+          df.to_csv("evotssmell.csv", index=False, header=False)
+
+          # roda detector de smells
+          ts_df = run_test_smell_detector("evotssmell.csv")
+
+          # gera DataFrame final com dados dos arquivos EvoSuite
+          files_by_project = defaultdict(list)
+          for project, evosuite_file, sut_path in evosuite_data:
+              files_by_project[project].append(evosuite_file)
+
+          finaldt = generate_dt_from_evosuite_files(files_by_project)
+          finaldt = merge_test_data(finaldt, ts_df)
+
+          # adiciona métricas de código
+          finaldt[['lizard_nloc', 'lizard_ccn', 'lizard_token', 'lizard_function_count']] = \
+              finaldt['file'].apply(lambda x: pd.Series(analyze_code_metrics(x)))
+
+          # adiciona contagem de assertions
+          finaldt[['total_assertion', 'methods_without_assertions', 'total_methods']] = \
+              finaldt['file'].apply(lambda x: pd.Series(count_assertions_in_methods(x)))
+
+          # salva resultado final
+          output_dir = "benchmarkfiles"
+          if not os.path.exists(output_dir):
+              os.makedirs(output_dir)
+
+          final_file = os.path.join(output_dir, f"evosuite_{project_number}.csv")
+          finaldt.to_csv(final_file, index=False)
+
+          print(f"Evosuite files for project {project_number} saved in '{final_file}'")
 
     if flask_process:
         flask_process.terminate()  # Sends SIGTERM signal to the process
