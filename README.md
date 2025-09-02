@@ -15,7 +15,7 @@ This repository contains the code, data, scripts, and experimental setup used in
 | `generated_tests/`               | Automatically generated tests from the paper benchmark.                 |
 | `src/main/resources/dependency/` | Java dependencies used by the system.                                   |
 | `.gitignore`                     | Git ignore file.                                                        |
-| `LICENSE`                        | Open-source license for this artifact.                                  |
+| `LICENSE`                        | Mozilla Public License Version 2.0                                 |
 | `README.md`                      | This file.                                                              |
 | `TestSmellDetector.jar`          | TSDetect tool used to identify test smells.                             |
 | `chatunitest-standalone.jar`     | Main ChatTesterMut tool used to simulate LLM-based test generation.     |
